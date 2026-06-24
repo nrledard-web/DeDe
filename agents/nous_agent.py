@@ -1,20 +1,108 @@
 """
-Nous Agent
+DeDe - Nous Agent
 
-The Nous Agent is responsible for building integrated understanding from available knowledge.
-
-Unlike the Gnosis Agent, which focuses on articulated knowledge and evidence, the Nous Agent seeks to:
-
-- connect concepts
-- identify context
-- preserve nuance
-- detect coherence
-- integrate multiple perspectives
-- recognize limitations of understanding
-
-Its objective is not to accumulate information, but to transform knowledge into structured understanding.
-
-Status:
-Initial architecture.
-Implementation in progress.
+The Nous Agent evaluates integrated understanding, coherence,
+meaning relations and conceptual synthesis.
 """
+
+from typing import Any
+
+from core.cognitive_state import CognitiveState
+from interfaces.cognitive_agent import CognitiveAgent
+
+
+class NousAgent(CognitiveAgent):
+    """
+    Cognitive agent responsible for integrated understanding.
+    """
+
+    name = "nous"
+
+    def can_handle(self, state: CognitiveState) -> bool:
+        """
+        Nous is broadly useful and can handle most cognitive states.
+        """
+
+        return bool(state.user_input.strip())
+
+    def analyze(self, state: CognitiveState) -> dict[str, Any]:
+        """
+        Produce a first symbolic Nous analysis.
+        """
+
+        text = state.user_input.lower()
+
+        relation_markers = self._count_markers(
+            text,
+            [
+                "because",
+                "therefore",
+                "so",
+                "if",
+                "then",
+                "but",
+                "however",
+                "whereas",
+                "while",
+                "relation",
+                "link",
+                "connection",
+            ],
+        )
+
+        synthesis_markers = self._count_markers(
+            text,
+            [
+                "understand",
+                "meaning",
+                "sense",
+                "coherence",
+                "structure",
+                "integrate",
+                "synthesis",
+                "interpretation",
+                "concept",
+            ],
+        )
+
+        contradiction_markers = self._count_markers(
+            text,
+            [
+                "contradiction",
+                "paradox",
+                "tension",
+                "conflict",
+                "opposite",
+                "incoherent",
+                "inconsistency",
+            ],
+        )
+
+        nous_level = min(
+            1.0,
+            0.35
+            + relation_markers * 0.08
+            + synthesis_markers * 0.1
+            + contradiction_markers * 0.06,
+        )
+
+        result = {
+            "agent": self.name,
+            "nous_level": nous_level,
+            "relation_markers": relation_markers,
+            "synthesis_markers": synthesis_markers,
+            "contradiction_markers": contradiction_markers,
+            "integrated_understanding_needed": True,
+            "summary": "The input requires integration of meaning, context and conceptual relations.",
+        }
+
+        state.nous_level = nous_level
+
+        return result
+
+    def _count_markers(self, text: str, markers: list[str]) -> int:
+        """
+        Count simple textual markers.
+        """
+
+        return sum(1 for marker in markers if marker in text)
