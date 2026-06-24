@@ -1,70 +1,83 @@
 """
 DeDe - Doxa Engine
 
-Core symbolic engine for evaluating certainty, epistemic rigidity
-and cognitive closure.
+Main cognitive analysis engine.
+
+The DoxaEngine coordinates DeDe's first-generation cognitive agents
+and produces a unified symbolic cognitive report.
 """
 
 from typing import Any
 
+from agents.gnosis_agent import GnosisAgent
+from agents.nous_agent import NousAgent
+from agents.doxa_agent import DoxaAgent
+from agents.reduction_agent import ReductionAgent
+from agents.nouscope_agent import NOUSCOPEAgent
+from agents.cognitive_therapy_agent import CognitiveTherapyAgent
+
+from core.cognitive_state import CognitiveState
+
 
 class DoxaEngine:
     """
-    Computes symbolic Doxa indicators.
+    Central engine for running DeDe's symbolic cognitive analysis.
     """
 
-    certainty_markers = [
-        "always",
-        "never",
-        "certain",
-        "obviously",
-        "everyone",
-        "nobody",
-        "undeniable",
-        "must",
-        "cannot",
-        "impossible",
-        "definitely",
-        "absolutely",
-        "without doubt",
-    ]
+    def __init__(self):
+        self.agents = [
+            GnosisAgent(),
+            NousAgent(),
+            DoxaAgent(),
+            ReductionAgent(),
+            NOUSCOPEAgent(),
+            CognitiveTherapyAgent(),
+        ]
 
-    nuance_markers = [
-        "maybe",
-        "perhaps",
-        "possible",
-        "might",
-        "could",
-        "sometimes",
-        "depends",
-        "uncertain",
-        "hypothesis",
-        "open question",
-    ]
+    def analyze(self, text: str, context: dict | None = None) -> dict[str, Any]:
+        """
+        Run the full symbolic cognitive analysis.
+        """
 
-    def analyze(self, text: str) -> dict[str, Any]:
-        text = text.lower()
-
-        certainty_count = self._count_markers(text, self.certainty_markers)
-        nuance_count = self._count_markers(text, self.nuance_markers)
-
-        doxa_level = min(
-            1.0,
-            max(
-                0.0,
-                0.40 + certainty_count * 0.10 - nuance_count * 0.06,
-            ),
+        state = CognitiveState(
+            user_input=text,
+            context=context or {},
         )
 
-        closure_level = max(0.0, doxa_level - 0.60)
+        for agent in self.agents:
+            if agent.can_handle(state):
+                result = agent.analyze(state)
+                state = agent.update_state(state, result)
+
+        state.final_response = self._build_summary(state)
 
         return {
-            "doxa_level": doxa_level,
-            "closure_level": closure_level,
-            "certainty_markers": certainty_count,
-            "nuance_markers": nuance_count,
-            "cognitive_closure": doxa_level > 0.75,
+            "input": text,
+            "active_agents": state.active_agents,
+            "scores": {
+                "gnosis": state.gnosis_level,
+                "nous": state.nous_level,
+                "doxa": state.doxa_level,
+                "reduction": state.reduction_level,
+                "revisability": state.revisability_level,
+                "nouscope": state.metadata.get("nouscope", {}).get(
+                    "cognitive_filter_level"
+                ),
+            },
+            "analyses": state.analyses,
+            "summary": state.final_response,
         }
 
-    def _count_markers(self, text: str, markers: list[str]) -> int:
-        return sum(1 for marker in markers if marker in text)
+    def _build_summary(self, state: CognitiveState) -> str:
+        """
+        Build a first unified symbolic report.
+        """
+
+        return (
+            "DeDe completed a symbolic cognitive analysis. "
+            f"Gnosis={state.gnosis_level}, "
+            f"Nous={state.nous_level}, "
+            f"Doxa={state.doxa_level}, "
+            f"Reduction={state.reduction_level}, "
+            f"Revisability={state.revisability_level}."
+        )
