@@ -17,6 +17,7 @@ from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
 
 from core.cognitive_state import CognitiveState
+from detectors.mecroyance_detector import MecroyanceDetector
 
 
 class DoxaEngine:
@@ -33,6 +34,7 @@ class DoxaEngine:
             NOUSCOPEAgent(),
             CognitiveTherapyAgent(),
         ]
+        self.mecroyance_detector = MecroyanceDetector()
 
     def analyze(self, text: str, context: dict | None = None) -> dict[str, Any]:
         """
@@ -49,7 +51,9 @@ class DoxaEngine:
                 result = agent.analyze(state)
                 state = agent.update_state(state, result)
 
-        state.final_response = self._build_summary(state)
+        mecroyance = self.mecroyance_detector.analyze(text)
+
+        state.final_response = self._build_summary(state, mecroyance)
 
         return {
             "input": text,
@@ -64,14 +68,21 @@ class DoxaEngine:
                     "cognitive_filter_level"
                 ),
             },
+            "mecroyance": mecroyance,
             "analyses": state.analyses,
             "summary": state.final_response,
         }
 
-    def _build_summary(self, state: CognitiveState) -> str:
+    def _build_summary(
+        self,
+        state: CognitiveState,
+        mecroyance: dict[str, Any],
+    ) -> str:
         """
         Build a first unified symbolic report.
         """
+
+        risk = mecroyance["scores"]["mecroyance_risk"]
 
         return (
             "DeDe completed a symbolic cognitive analysis. "
@@ -79,5 +90,6 @@ class DoxaEngine:
             f"Nous={state.nous_level}, "
             f"Doxa={state.doxa_level}, "
             f"Reduction={state.reduction_level}, "
-            f"Revisability={state.revisability_level}."
+            f"Revisability={state.revisability_level}, "
+            f"MecroyanceRisk={risk}."
         )
