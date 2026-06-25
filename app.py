@@ -1,6 +1,7 @@
 import streamlit as st
 
 from engine.doxa_engine import DoxaEngine
+from user_model.user_cognitive_model import UserCognitiveModel
 
 
 def pct(value):
@@ -28,6 +29,9 @@ st.caption(
     "core formulas, detector pipeline and recalibration questions."
 )
 
+if "user_model" not in st.session_state:
+    st.session_state.user_model = UserCognitiveModel()
+
 text = st.text_area(
     "Text to analyze",
     value=(
@@ -44,6 +48,12 @@ if st.button("Analyze"):
 
     detectors = report["detectors"]
     scores = detectors["mecroyance"]["scores"]
+
+    st.session_state.user_model.update(
+        detectors["cognitive_vector"]
+    )
+
+    user_profile = st.session_state.user_model.profile()
 
     st.subheader("Cognitive Scores")
 
@@ -155,17 +165,42 @@ if st.button("Analyze"):
         show_metric("M1 Revisable", mecroyance_variants["M1_revisable"])
 
     with col2:
-        show_metric("M2 Reduction-aware", mecroyance_variants["M2_reduction_aware"])
+        show_metric(
+            "M2 Reduction-aware",
+            mecroyance_variants["M2_reduction_aware"],
+        )
         show_metric("Cognitive Balance", balance_variants["cognitive_balance"])
 
     with col3:
         show_metric("Cognitive Closure", pressure_variants["cognitive_closure"])
-        show_metric("Forgotten Reduction", pressure_variants["forgotten_reduction"])
+        show_metric(
+            "Forgotten Reduction",
+            pressure_variants["forgotten_reduction"],
+        )
+
+    st.subheader("User Cognitive Profile")
+
+    st.write(f"Analyses in this session: {user_profile['analysis_count']}")
+
+    average_vector = user_profile["average_vector"]
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        show_metric("Avg G", average_vector["gnosis"])
+    with col2:
+        show_metric("Avg N", average_vector["nous"])
+    with col3:
+        show_metric("Avg D", average_vector["doxa"])
+    with col4:
+        show_metric("Avg R", average_vector["reduction"])
+    with col5:
+        show_metric("Avg V", average_vector["revisability"])
 
     st.subheader("Cognitive Questions")
     for question in report.get("questions", []):
         st.info(question)
-        
+
     st.subheader("Summary")
     st.write(report["summary"])
 
@@ -174,4 +209,3 @@ if st.button("Analyze"):
 
     with st.expander("Agent analyses"):
         st.json(report["analyses"])
-        
