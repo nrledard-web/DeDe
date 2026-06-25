@@ -1,7 +1,7 @@
 """
 DeDe - Detector Engine
 
-Coordinates all symbolic cognitive detectors.
+Coordinates all symbolic cognitive detectors and core cognitive metrics.
 """
 
 from typing import Any
@@ -16,6 +16,8 @@ from detectors.reduction_detector import ReductionDetector
 from detectors.revisability_detector import RevisabilityDetector
 from detectors.mecroyance_detector import MecroyanceDetector
 from detectors.cognitive_balance_detector import CognitiveBalanceDetector
+
+from metrics.cognitive_metrics import CognitiveMetrics
 
 
 class DetectorEngine:
@@ -33,6 +35,7 @@ class DetectorEngine:
         self.revisability = RevisabilityDetector()
         self.mecroyance = MecroyanceDetector()
         self.balance = CognitiveBalanceDetector()
+        self.metrics = CognitiveMetrics()
 
     def analyze(self, state: CognitiveState) -> dict[str, Any]:
         """
@@ -49,12 +52,26 @@ class DetectorEngine:
         revisability = self.revisability.analyze(text)
         mecroyance = self.mecroyance.analyze(text)
 
+        g = gnosis["gnosis_score"]
+        n = nous["nous_score"]
+        d = certainty["certainty_score"]
+        r = reduction["reduction_score"]
+        v = revisability["revisability_score"]
+
         balance = self.balance.analyze(
-            gnosis=gnosis["gnosis_score"],
-            nous=nous["nous_score"],
-            doxa=certainty["certainty_score"],
-            reduction=reduction["reduction_score"],
-            revisability=revisability["revisability_score"],
+            gnosis=g,
+            nous=n,
+            doxa=d,
+            reduction=r,
+            revisability=v,
+        )
+
+        metrics = self.metrics.compute(
+            gnosis=g,
+            nous=n,
+            doxa=d,
+            reduction=r,
+            revisability=v,
         )
 
         return {
@@ -73,5 +90,5 @@ class DetectorEngine:
             "revisability": revisability,
             "mecroyance": mecroyance,
             "balance": balance,
+            "metrics": metrics,
         }
-        
