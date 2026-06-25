@@ -17,7 +17,9 @@ from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
 
 from core.cognitive_state import CognitiveState
+
 from detectors.detector_engine import DetectorEngine
+from dialogue.question_generator import QuestionGenerator
 
 
 class DoxaEngine:
@@ -34,9 +36,15 @@ class DoxaEngine:
             NOUSCOPEAgent(),
             CognitiveTherapyAgent(),
         ]
-        self.detectors = DetectorEngine()
 
-    def analyze(self, text: str, context: dict | None = None) -> dict[str, Any]:
+        self.detectors = DetectorEngine()
+        self.question_generator = QuestionGenerator()
+
+    def analyze(
+        self,
+        text: str,
+        context: dict | None = None,
+    ) -> dict[str, Any]:
         """
         Run the full symbolic cognitive analysis.
         """
@@ -53,7 +61,16 @@ class DoxaEngine:
 
         detector_results = self.detectors.analyze(state)
 
-        state.final_response = self._build_summary(state, detector_results)
+        questions = self.question_generator.generate(
+            {
+                "detectors": detector_results,
+            }
+        )
+
+        state.final_response = self._build_summary(
+            state,
+            detector_results,
+        )
 
         return {
             "input": text,
@@ -64,11 +81,13 @@ class DoxaEngine:
                 "doxa": state.doxa_level,
                 "reduction": state.reduction_level,
                 "revisability": state.revisability_level,
-                "nouscope": state.metadata.get("nouscope", {}).get(
-                    "cognitive_filter_level"
-                ),
+                "nouscope": state.metadata.get(
+                    "nouscope",
+                    {},
+                ).get("cognitive_filter_level"),
             },
             "detectors": detector_results,
+            "questions": questions,
             "analyses": state.analyses,
             "summary": state.final_response,
         }
