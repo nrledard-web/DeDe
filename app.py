@@ -22,6 +22,12 @@ st.set_page_config(
 st.title("DeDe — Cognitive Daimon")
 st.caption("First symbolic cognitive analysis prototype")
 
+st.success("DeDe Alpha prototype is running.")
+st.caption(
+    "Current status: symbolic cognitive analysis, cognitive vector, "
+    "core formulas, detector pipeline and recalibration questions."
+)
+
 text = st.text_area(
     "Text to analyze",
     value=(
