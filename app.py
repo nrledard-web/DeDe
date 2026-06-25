@@ -68,6 +68,26 @@ if st.button("Analyze"):
     if scores["overconfidence"] > 0.25:
         st.warning("Unsupported certainty detected.")
 
+    st.subheader("Text Statistics")
+
+    stats = detectors["processed_text"]
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Words", stats["word_count"])
+        st.metric("Sentences", stats["sentence_count"])
+
+    with col2:
+        st.metric("Paragraphs", stats["paragraph_count"])
+        st.metric("Unique words", stats["unique_word_count"])
+
+    with col3:
+        st.metric(
+            "Lexical diversity",
+            f"{round(stats['lexical_diversity'] * 100)}%",
+        )
+        
     st.subheader("Summary")
     st.write(report["summary"])
 
@@ -76,3 +96,4 @@ if st.button("Analyze"):
 
     with st.expander("Agent analyses"):
         st.json(report["analyses"])
+        
