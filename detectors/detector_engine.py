@@ -1,12 +1,14 @@
 """
 DeDe - Detector Engine
 
-Coordinates all symbolic cognitive detectors and core cognitive metrics.
+Coordinates all symbolic cognitive detectors, the cognitive vector
+and core cognitive metrics.
 """
 
 from typing import Any
 
 from core.cognitive_state import CognitiveState
+from core.cognitive_vector import CognitiveVector
 from processing.text_preprocessor import TextPreprocessor
 
 from detectors.certainty_detector import CertaintyDetector
@@ -22,7 +24,7 @@ from metrics.cognitive_metrics import CognitiveMetrics
 
 class DetectorEngine:
     """
-    Central coordinator for all symbolic cognitive detectors.
+    Central coordinator for symbolic detectors and cognitive mechanics.
     """
 
     def __init__(self):
@@ -39,7 +41,7 @@ class DetectorEngine:
 
     def analyze(self, state: CognitiveState) -> dict[str, Any]:
         """
-        Run all symbolic detectors and return a unified signal report.
+        Run detectors, build a cognitive vector and compute metrics.
         """
 
         processed = self.preprocessor.process(state.user_input)
@@ -52,26 +54,28 @@ class DetectorEngine:
         revisability = self.revisability.analyze(text)
         mecroyance = self.mecroyance.analyze(text)
 
-        g = gnosis["gnosis_score"]
-        n = nous["nous_score"]
-        d = certainty["certainty_score"]
-        r = reduction["reduction_score"]
-        v = revisability["revisability_score"]
+        vector = CognitiveVector(
+            gnosis=gnosis["gnosis_score"],
+            nous=nous["nous_score"],
+            doxa=certainty["certainty_score"],
+            reduction=reduction["reduction_score"],
+            revisability=revisability["revisability_score"],
+        ).clamp()
 
         balance = self.balance.analyze(
-            gnosis=g,
-            nous=n,
-            doxa=d,
-            reduction=r,
-            revisability=v,
+            gnosis=vector.gnosis,
+            nous=vector.nous,
+            doxa=vector.doxa,
+            reduction=vector.reduction,
+            revisability=vector.revisability,
         )
 
         metrics = self.metrics.compute(
-            gnosis=g,
-            nous=n,
-            doxa=d,
-            reduction=r,
-            revisability=v,
+            gnosis=vector.gnosis,
+            nous=vector.nous,
+            doxa=vector.doxa,
+            reduction=vector.reduction,
+            revisability=vector.revisability,
         )
 
         return {
@@ -83,6 +87,7 @@ class DetectorEngine:
                 "unique_word_count": processed.unique_word_count,
                 "lexical_diversity": processed.lexical_diversity,
             },
+            "cognitive_vector": vector.to_dict(),
             "certainty": certainty,
             "gnosis": gnosis,
             "nous": nous,
