@@ -93,6 +93,48 @@ if st.button("Analyze"):
                 f"{round(lexical_diversity * 100)}%",
             )
 
+    st.subheader("Cognitive Vector")
+
+    vector = detectors["cognitive_vector"]
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        show_metric("G", vector["gnosis"])
+    with col2:
+        show_metric("N", vector["nous"])
+    with col3:
+        show_metric("D", vector["doxa"])
+    with col4:
+        show_metric("R", vector["reduction"])
+    with col5:
+        show_metric("V", vector["revisability"])
+
+    st.subheader("Core Cognitive Metrics")
+
+    metrics = detectors["metrics"]
+    core = metrics["core"]
+    derived = metrics["derived"]
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        show_metric("Grounding", core["grounding"])
+        show_metric("Closure Pressure", core["closure_pressure"])
+
+    with col2:
+        show_metric("Mecroyance Pressure", core["mecroyance_pressure"])
+        show_metric("Cognitive Balance", core["cognitive_balance"])
+
+    with col3:
+        show_metric("Surconfidence", derived["surconfidence"])
+        show_metric(
+            "Forgotten Reduction",
+            derived["forgotten_reduction_pressure"],
+        )
+
+    st.info(metrics["diagnosis"])
+
     st.subheader("Cognitive Questions")
     for question in report.get("questions", []):
         st.info(question)
