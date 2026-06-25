@@ -34,9 +34,9 @@ class FormulaVariants:
         m1_revisable = (g + n + v) - d
         m2_reduction_aware = (g + n + v) - (d + r)
 
-        surconfidence = d - (g + n)
-        cognitive_closure = d - v
-        forgotten_reduction = r - v
+        surconfidence = max(0.0, d - (g + n))
+        cognitive_closure = max(0.0, d - v)
+        forgotten_reduction = max(0.0, r - v)
 
         grounding = g + n + v
         closure_pressure = d + r
