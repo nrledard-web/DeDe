@@ -92,6 +92,10 @@ if st.button("Analyze"):
                 "Lexical diversity",
                 f"{round(lexical_diversity * 100)}%",
             )
+
+    st.subheader("Cognitive Questions")
+    for question in report.get("questions", []):
+        st.info(question)
         
     st.subheader("Summary")
     st.write(report["summary"])
