@@ -74,3 +74,4 @@ class DetectorEngine:
             "mecroyance": mecroyance,
             "balance": balance,
         }
+        
