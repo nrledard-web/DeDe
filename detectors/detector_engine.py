@@ -1,8 +1,8 @@
 """
 DeDe - Detector Engine
 
-Coordinates all symbolic cognitive detectors, the cognitive vector
-and core cognitive metrics.
+Coordinates all symbolic cognitive detectors, the cognitive vector,
+core cognitive metrics and formula variants.
 """
 
 from typing import Any
@@ -20,6 +20,7 @@ from detectors.mecroyance_detector import MecroyanceDetector
 from detectors.cognitive_balance_detector import CognitiveBalanceDetector
 
 from metrics.cognitive_metrics import CognitiveMetrics
+from metrics.formula_variants import FormulaVariants
 
 
 class DetectorEngine:
@@ -37,11 +38,13 @@ class DetectorEngine:
         self.revisability = RevisabilityDetector()
         self.mecroyance = MecroyanceDetector()
         self.balance = CognitiveBalanceDetector()
+
         self.metrics = CognitiveMetrics()
+        self.formulas = FormulaVariants()
 
     def analyze(self, state: CognitiveState) -> dict[str, Any]:
         """
-        Run detectors, build a cognitive vector and compute metrics.
+        Run detectors, build a cognitive vector and compute formulas.
         """
 
         processed = self.preprocessor.process(state.user_input)
@@ -78,6 +81,14 @@ class DetectorEngine:
             revisability=vector.revisability,
         )
 
+        formulas = self.formulas.compute(
+            gnosis=vector.gnosis,
+            nous=vector.nous,
+            doxa=vector.doxa,
+            reduction=vector.reduction,
+            revisability=vector.revisability,
+        )
+
         return {
             "processed_text": {
                 "char_count": processed.char_count,
@@ -96,4 +107,5 @@ class DetectorEngine:
             "mecroyance": mecroyance,
             "balance": balance,
             "metrics": metrics,
+            "formulas": formulas,
         }
