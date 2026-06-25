@@ -70,23 +70,28 @@ if st.button("Analyze"):
 
     st.subheader("Text Statistics")
 
-    stats = detectors["processed_text"]
+    stats = detectors.get("processed_text", {})
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric("Words", stats["word_count"])
-        st.metric("Sentences", stats["sentence_count"])
+        st.metric("Words", stats.get("word_count", "N/A"))
+        st.metric("Sentences", stats.get("sentence_count", "N/A"))
 
     with col2:
-        st.metric("Paragraphs", stats["paragraph_count"])
-        st.metric("Unique words", stats["unique_word_count"])
+        st.metric("Paragraphs", stats.get("paragraph_count", "N/A"))
+        st.metric("Unique words", stats.get("unique_word_count", "N/A"))
 
     with col3:
-        st.metric(
-            "Lexical diversity",
-            f"{round(stats['lexical_diversity'] * 100)}%",
-        )
+        lexical_diversity = stats.get("lexical_diversity")
+
+        if lexical_diversity is None:
+            st.metric("Lexical diversity", "N/A")
+        else:
+            st.metric(
+                "Lexical diversity",
+                f"{round(lexical_diversity * 100)}%",
+            )
         
     st.subheader("Summary")
     st.write(report["summary"])
