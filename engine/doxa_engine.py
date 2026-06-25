@@ -20,6 +20,7 @@ from core.cognitive_state import CognitiveState
 
 from detectors.detector_engine import DetectorEngine
 from dialogue.question_generator import QuestionGenerator
+from reasoning.cognitive_interpreter import CognitiveInterpreter
 
 
 class DoxaEngine:
@@ -39,6 +40,7 @@ class DoxaEngine:
 
         self.detectors = DetectorEngine()
         self.question_generator = QuestionGenerator()
+        self.interpreter = CognitiveInterpreter()
 
     def analyze(
         self,
@@ -60,6 +62,10 @@ class DoxaEngine:
                 state = agent.update_state(state, result)
 
         detector_results = self.detectors.analyze(state)
+
+        interpretation = self.interpreter.interpret(
+            detector_results
+        )
 
         questions = self.question_generator.generate(
             {
@@ -87,6 +93,7 @@ class DoxaEngine:
                 ).get("cognitive_filter_level"),
             },
             "detectors": detector_results,
+            "interpretation": interpretation,
             "questions": questions,
             "analyses": state.analyses,
             "summary": state.final_response,
