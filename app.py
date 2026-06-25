@@ -135,6 +135,27 @@ if st.button("Analyze"):
 
     st.info(metrics["diagnosis"])
 
+    st.subheader("Formula Variants")
+
+    formulas = detectors["formulas"]
+    mecroyance_variants = formulas["mecroyance_variants"]
+    pressure_variants = formulas["pressure_variants"]
+    balance_variants = formulas["balance_variants"]
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        show_metric("M0 Base", mecroyance_variants["M0_base"])
+        show_metric("M1 Revisable", mecroyance_variants["M1_revisable"])
+
+    with col2:
+        show_metric("M2 Reduction-aware", mecroyance_variants["M2_reduction_aware"])
+        show_metric("Cognitive Balance", balance_variants["cognitive_balance"])
+
+    with col3:
+        show_metric("Cognitive Closure", pressure_variants["cognitive_closure"])
+        show_metric("Forgotten Reduction", pressure_variants["forgotten_reduction"])
+
     st.subheader("Cognitive Questions")
     for question in report.get("questions", []):
         st.info(question)
