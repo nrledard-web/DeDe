@@ -38,6 +38,12 @@ class SharedCognitiveWorkspace:
             )
         )
 
+    def find(self, agent_name: str):
+        for obs in self.observations:
+            if obs.agent.lower() == agent_name.lower():
+                return obs
+        return None
+
     def summary(self) -> dict:
         return {
             "question": self.question,
