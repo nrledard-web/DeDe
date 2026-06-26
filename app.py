@@ -2,6 +2,7 @@ import streamlit as st
 
 from engine.doxa_engine import DoxaEngine
 from user_model.user_cognitive_model import UserCognitiveModel
+from memory.cognitive_comparator import CognitiveComparator
 
 
 def pct(value):
@@ -32,6 +33,9 @@ st.caption(
 if "user_model" not in st.session_state:
     st.session_state.user_model = UserCognitiveModel()
 
+if "cognitive_comparator" not in st.session_state:
+    st.session_state.cognitive_comparator = CognitiveComparator()
+
 text = st.text_area(
     "Text to analyze",
     value=(
@@ -54,6 +58,11 @@ if st.button("Analyze"):
     )
 
     user_profile = st.session_state.user_model.profile()
+
+    comparison = st.session_state.cognitive_comparator.compare(
+        detectors["cognitive_vector"],
+        user_profile,
+    )
 
     st.subheader("Cognitive Scores")
 
@@ -196,6 +205,21 @@ if st.button("Analyze"):
         show_metric("Avg R", average_vector["reduction"])
     with col5:
         show_metric("Avg V", average_vector["revisability"])
+
+    st.subheader("Compared With Your Session Profile")
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        st.metric("G Δ", pct(comparison["gnosis"]["delta"]), comparison["gnosis"]["trend"])
+    with col2:
+        st.metric("N Δ", pct(comparison["nous"]["delta"]), comparison["nous"]["trend"])
+    with col3:
+        st.metric("D Δ", pct(comparison["doxa"]["delta"]), comparison["doxa"]["trend"])
+    with col4:
+        st.metric("R Δ", pct(comparison["reduction"]["delta"]), comparison["reduction"]["trend"])
+    with col5:
+        st.metric("V Δ", pct(comparison["revisability"]["delta"]), comparison["revisability"]["trend"])
 
     st.subheader("Cognitive Questions")
     for question in report.get("questions", []):
