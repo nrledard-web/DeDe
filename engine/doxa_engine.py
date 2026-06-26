@@ -52,54 +52,56 @@ class DoxaEngine:
         """
         Run the full symbolic cognitive analysis.
         """
-
+    
         state = CognitiveState(
             user_input=text,
             context=context or {},
         )
-
+    
+        workspace = SharedCognitiveWorkspace(
+            question=text,
+            response="",
+        )
+    
         for agent in self.agents:
             if agent.can_handle(state):
                 result = agent.analyze(state)
                 state = agent.update_state(state, result)
-
-        if agent.name == "knowledge":
-            workspace.add_observation(
-                agent="Knowledge",
-                level=1.0,
-                observation=result.get(
-                    "summary",
-                    "Knowledge retrieved.",
-                ),
-                implication="Provides the factual basis for subsequent cognitive analysis.",
-                confidence=1.0,
-                signals=result,
-            )
-
+    
+                if agent.name == "knowledge":
+                    workspace.add_observation(
+                        agent="Knowledge",
+                        level=1.0,
+                        observation=result.get(
+                            "summary",
+                            "Knowledge retrieved.",
+                        ),
+                        implication="Provides the factual basis for subsequent cognitive analysis.",
+                        confidence=1.0,
+                        signals=result,
+                    )
+    
         detector_results = self.detectors.analyze(state)
-
+    
         interpretation = self.interpreter.interpret(
             detector_results
         )
-
+    
         questions = self.question_generator.generate(
             {
                 "detectors": detector_results,
             }
         )
-
+    
         knowledge = state.metadata.get("knowledge", {})
         knowledge_answer = knowledge.get("answer", "")
-
-        workspace = SharedCognitiveWorkspace(
-            question=text,
-            response=knowledge_answer,
-        )
-
+    
+        workspace.response = knowledge_answer
+    
         response_analysis = None
         response_interpretation = None
         revision = None
-
+    
         if knowledge_answer and knowledge_answer != "Knowledge not found in local knowledge base.":
             response_state = CognitiveState(
                 user_input=knowledge_answer,
@@ -107,23 +109,23 @@ class DoxaEngine:
                     "analysis_target": "knowledge_response",
                 },
             )
-
+    
             response_analysis = self.detectors.analyze(response_state)
-
+    
             revision = self.revision_agent.revise(
                 knowledge_answer,
                 response_analysis,
             )
-
+    
             response_interpretation = self.interpreter.interpret(
                 response_analysis
             )
-
+    
         state.final_response = self._build_summary(
             state,
             detector_results,
         )
-
+    
         return {
             "input": text,
             "active_agents": state.active_agents,
