@@ -64,15 +64,24 @@ if st.button("Analyze"):
         user_profile,
     )
 
+    knowledge = report["analyses"].get("knowledge")
+
+    if knowledge:
+        st.subheader("Knowledge Response")
+        st.success(knowledge["answer"])
+
     st.subheader("Cognitive Scores")
 
     col1, col2, col3 = st.columns(3)
+
     with col1:
         show_metric("Gnosis", scores["gnosis"])
         show_metric("Nous", scores["nous"])
+
     with col2:
         show_metric("Doxa", scores["doxa"])
         show_metric("Reduction", scores["reduction"])
+
     with col3:
         show_metric("Revisability", scores["revisability"])
         show_metric("Mecroyance Risk", scores["mecroyance_risk"])
