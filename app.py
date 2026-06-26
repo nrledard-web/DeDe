@@ -98,6 +98,17 @@ if st.button("Analyze"):
         if interpretation:
             st.info(interpretation["diagnosis"])
 
+        revision = report.get("revision")
+
+        if revision:
+            st.subheader("Revision Suggestions")
+
+            if revision["needs_revision"]:
+                for suggestion in revision["suggestions"]:
+                    st.warning(suggestion)
+            else:
+                st.success("No revision required.")
+
     st.subheader("Cognitive Scores")
 
     col1, col2, col3 = st.columns(3)
