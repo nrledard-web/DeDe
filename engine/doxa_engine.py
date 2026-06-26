@@ -80,6 +80,22 @@ class DoxaEngine:
                         confidence=1.0,
                         signals=result,
                     )
+
+                if result.get("agent") == "nous":
+                    workspace.add_observation(
+                        agent="Nous",
+                        level=result.get("nous_level", 0.0),
+                        observation=result.get(
+                            "summary",
+                            "No observation.",
+                        ),
+                        implication=(
+                            "Evaluates the degree of integrated understanding "
+                            "and conceptual coherence."
+                        ),
+                        confidence=result.get("nous_level", 0.0),
+                        signals=result,
+                    )
     
         detector_results = self.detectors.analyze(state)
     
