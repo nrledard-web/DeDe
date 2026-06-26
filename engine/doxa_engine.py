@@ -10,6 +10,7 @@ from agents.doxa_agent import DoxaAgent
 from agents.reduction_agent import ReductionAgent
 from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
+from agents.revision_agent import RevisionAgent
 
 from knowledge.knowledge_agent import KnowledgeAgent
 
@@ -39,6 +40,7 @@ class DoxaEngine:
         self.detectors = DetectorEngine()
         self.question_generator = QuestionGenerator()
         self.interpreter = CognitiveInterpreter()
+        self.revision_agent = RevisionAgent()
 
     def analyze(
         self,
@@ -76,6 +78,7 @@ class DoxaEngine:
 
         response_analysis = None
         response_interpretation = None
+        revision = None
 
         if knowledge_answer and knowledge_answer != "Knowledge not found in local knowledge base.":
             response_state = CognitiveState(
@@ -86,6 +89,12 @@ class DoxaEngine:
             )
 
             response_analysis = self.detectors.analyze(response_state)
+
+            revision = self.revision_agent.revise(
+                knowledge_answer,
+                response_analysis,
+            )
+
             response_interpretation = self.interpreter.interpret(
                 response_analysis
             )
@@ -113,6 +122,7 @@ class DoxaEngine:
             "interpretation": interpretation,
             "response_analysis": response_analysis,
             "response_interpretation": response_interpretation,
+            "revision": revision,
             "questions": questions,
             "analyses": state.analyses,
             "summary": state.final_response,
