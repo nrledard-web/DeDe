@@ -68,7 +68,7 @@ class DoxaEngine:
                 result = agent.analyze(state)
                 state = agent.update_state(state, result)
     
-                if agent.name == "knowledge":
+                if result.get("agent") == "knowledge":
                     workspace.add_observation(
                         agent="Knowledge",
                         level=1.0,
