@@ -70,6 +70,34 @@ if st.button("Analyze"):
         st.subheader("Knowledge Response")
         st.success(knowledge["answer"])
 
+    if report.get("response_analysis"):
+
+        st.subheader("Knowledge Response Cognitive Analysis")
+
+        response_vector = report["response_analysis"]["cognitive_vector"]
+
+        col1, col2, col3, col4, col5 = st.columns(5)
+
+        with col1:
+            show_metric("Response G", response_vector["gnosis"])
+
+        with col2:
+            show_metric("Response N", response_vector["nous"])
+
+        with col3:
+            show_metric("Response D", response_vector["doxa"])
+
+        with col4:
+            show_metric("Response R", response_vector["reduction"])
+
+        with col5:
+            show_metric("Response V", response_vector["revisability"])
+
+        interpretation = report.get("response_interpretation")
+
+        if interpretation:
+            st.info(interpretation["diagnosis"])
+
     st.subheader("Cognitive Scores")
 
     col1, col2, col3 = st.columns(3)
