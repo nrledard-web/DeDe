@@ -22,6 +22,8 @@ from detectors.detector_engine import DetectorEngine
 from dialogue.question_generator import QuestionGenerator
 from reasoning.cognitive_interpreter import CognitiveInterpreter
 
+from knowledge.knowledge_agent import KnowledgeAgent
+
 
 class DoxaEngine:
     """
@@ -30,6 +32,7 @@ class DoxaEngine:
 
     def __init__(self):
         self.agents = [
+            KnowledgeAgent(),
             GnosisAgent(),
             NousAgent(),
             DoxaAgent(),
