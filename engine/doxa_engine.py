@@ -63,6 +63,19 @@ class DoxaEngine:
                 result = agent.analyze(state)
                 state = agent.update_state(state, result)
 
+        if agent.name == "knowledge":
+            workspace.add_observation(
+                agent="Knowledge",
+                level=1.0,
+                observation=result.get(
+                    "summary",
+                    "Knowledge retrieved.",
+                ),
+                implication="Provides the factual basis for subsequent cognitive analysis.",
+                confidence=1.0,
+                signals=result,
+            )
+
         detector_results = self.detectors.analyze(state)
 
         interpretation = self.interpreter.interpret(
