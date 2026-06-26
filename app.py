@@ -281,3 +281,6 @@ if st.button("Analyze"):
 
     with st.expander("Agent analyses"):
         st.json(report["analyses"])
+
+    with st.expander("Shared Cognitive Workspace"):
+        st.json(report.get("shared_workspace", {}))
