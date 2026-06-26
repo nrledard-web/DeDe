@@ -1,10 +1,5 @@
 """
 DeDe - Doxa Engine
-
-Main cognitive analysis engine.
-
-The DoxaEngine coordinates DeDe's first-generation cognitive agents
-and produces a unified symbolic cognitive report.
 """
 
 from typing import Any
@@ -16,13 +11,13 @@ from agents.reduction_agent import ReductionAgent
 from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
 
+from knowledge.knowledge_agent import KnowledgeAgent
+
 from core.cognitive_state import CognitiveState
 
 from detectors.detector_engine import DetectorEngine
 from dialogue.question_generator import QuestionGenerator
 from reasoning.cognitive_interpreter import CognitiveInterpreter
-
-from knowledge.knowledge_agent import KnowledgeAgent
 
 
 class DoxaEngine:
@@ -76,6 +71,25 @@ class DoxaEngine:
             }
         )
 
+        knowledge = state.metadata.get("knowledge", {})
+        knowledge_answer = knowledge.get("answer", "")
+
+        response_analysis = None
+        response_interpretation = None
+
+        if knowledge_answer and knowledge_answer != "Knowledge not found in local knowledge base.":
+            response_state = CognitiveState(
+                user_input=knowledge_answer,
+                context={
+                    "analysis_target": "knowledge_response",
+                },
+            )
+
+            response_analysis = self.detectors.analyze(response_state)
+            response_interpretation = self.interpreter.interpret(
+                response_analysis
+            )
+
         state.final_response = self._build_summary(
             state,
             detector_results,
@@ -97,6 +111,8 @@ class DoxaEngine:
             },
             "detectors": detector_results,
             "interpretation": interpretation,
+            "response_analysis": response_analysis,
+            "response_interpretation": response_interpretation,
             "questions": questions,
             "analyses": state.analyses,
             "summary": state.final_response,
