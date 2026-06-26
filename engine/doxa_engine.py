@@ -15,6 +15,8 @@ from agents.revision_agent import RevisionAgent
 from knowledge.knowledge_agent import KnowledgeAgent
 
 from core.cognitive_state import CognitiveState
+from core.shared_workspace import SharedCognitiveWorkspace
+
 
 from detectors.detector_engine import DetectorEngine
 from dialogue.question_generator import QuestionGenerator
@@ -76,6 +78,11 @@ class DoxaEngine:
         knowledge = state.metadata.get("knowledge", {})
         knowledge_answer = knowledge.get("answer", "")
 
+        workspace = SharedCognitiveWorkspace(
+            question=text,
+            response=knowledge_answer,
+        )
+
         response_analysis = None
         response_interpretation = None
         revision = None
@@ -125,6 +132,7 @@ class DoxaEngine:
             "revision": revision,
             "questions": questions,
             "analyses": state.analyses,
+            "shared_workspace": workspace.summary(),
             "summary": state.final_response,
         }
 
