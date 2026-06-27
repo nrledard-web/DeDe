@@ -38,6 +38,8 @@ class NousAgent(CognitiveAgent):
         previous_context = ""
 
         previous_signals = []
+        knowledge_available = False
+        knowledge_source = None
 
         if self.workspace is not None:
             previous_context = self.workspace.previous_summary(
@@ -46,6 +48,12 @@ class NousAgent(CognitiveAgent):
             previous_signals = self.workspace.previous_signals(
                 "Nous"
             )
+            
+            for signal in previous_signals:
+                if signal.get("agent") == "knowledge":
+                    knowledge_available = True
+                    knowledge_source = signal.get("source")
+                    break
 
         relation_markers = self._count_markers(
             text,
@@ -101,7 +109,12 @@ class NousAgent(CognitiveAgent):
             + contradiction_markers * 0.06,
         )
 
-        if previous_context:
+        if knowledge_available:
+            summary = (
+                f"Integrated after considering knowledge "
+                f"from {knowledge_source}."
+            )
+        elif previous_context:
             summary = (
                 "Integrated after considering previous committee observations."
             )
@@ -121,6 +134,8 @@ class NousAgent(CognitiveAgent):
             "previous_signals": previous_signals,
             "integrated_understanding_needed": True,
             "summary": summary,
+            "knowledge_available": knowledge_available,
+            "knowledge_source": knowledge_source,
         }
 
         state.nous_level = nous_level
