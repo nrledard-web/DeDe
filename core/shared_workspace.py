@@ -52,6 +52,22 @@ class SharedCognitiveWorkspace:
     
         return previous
 
+    def previous_summary(
+        self,
+        current_agent: str,
+    ):
+        previous = self.previous_observations(
+            current_agent
+        )
+
+        if not previous:
+            return ""
+
+        return "\n".join(
+            f"{obs.agent}: {obs.observation}"
+            for obs in previous
+        )
+
     def get_all(self):
         return self.observations
 
