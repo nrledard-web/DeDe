@@ -43,13 +43,13 @@ class SharedCognitiveWorkspace:
         current_agent: str,
     ):
         previous = []
-    
+
         for obs in self.observations:
             if obs.agent.lower() == current_agent.lower():
                 break
-    
+
             previous.append(obs)
-    
+
         return previous
 
     def previous_summary(
@@ -68,6 +68,19 @@ class SharedCognitiveWorkspace:
             for obs in previous
         )
 
+    def previous_signals(
+        self,
+        current_agent: str,
+    ):
+        previous = self.previous_observations(
+            current_agent
+        )
+
+        return [
+            obs.signals
+            for obs in previous
+        ]
+
     def get_all(self):
         return self.observations
 
@@ -81,6 +94,7 @@ class SharedCognitiveWorkspace:
     def latest(self):
         if not self.observations:
             return None
+
         return self.observations[-1]
 
     def agents(self):
@@ -105,6 +119,7 @@ class SharedCognitiveWorkspace:
         for obs in self.observations:
             if obs.agent.lower() == agent_name.lower():
                 return obs
+
         return None
 
     def summary(self) -> dict:
