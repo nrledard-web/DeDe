@@ -19,6 +19,7 @@ class CommitteeEngine:
         recommendations = []
         agent_positions = []
         discussion = []
+        round_table = []
 
         for obs in observations:
 
@@ -36,6 +37,18 @@ class CommitteeEngine:
                     "speaker": obs.agent,
                     "statement": obs.observation,
                     "implication": obs.implication,
+                    "confidence": obs.confidence,
+                }
+            )
+
+            round_table.append(
+                {
+                    "speaker": obs.agent,
+                    "responds_to": "committee",
+                    "statement": (
+                        f"{obs.agent} contributes: "
+                        f"{obs.observation}"
+                    ),
                     "confidence": obs.confidence,
                 }
             )
@@ -85,6 +98,7 @@ class CommitteeEngine:
             "committee_size": len(observations),
             "agent_positions": agent_positions,
             "discussion": discussion,
+            "round_table": round_table,
             "strong_agreements": strong_agreements,
             "concerns": concerns,
             "recommendations": sorted(
