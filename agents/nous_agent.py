@@ -41,6 +41,9 @@ class NousAgent(CognitiveAgent):
         knowledge_available = False
         knowledge_source = None
 
+        knowledge_answer = ""
+        knowledge_quality = "unknown"
+
         if self.workspace is not None:
             previous_context = self.workspace.previous_summary(
                 "Nous"
@@ -53,6 +56,16 @@ class NousAgent(CognitiveAgent):
                 if signal.get("agent") == "knowledge":
                     knowledge_available = True
                     knowledge_source = signal.get("source")
+                    knowledge_answer = signal.get("answer", "")
+
+                    if (
+                        knowledge_answer
+                        and "not found" not in knowledge_answer.lower()
+                    ):
+                        knowledge_quality = "available"
+                    else:
+                        knowledge_quality = "missing"
+
                     break
 
         relation_markers = self._count_markers(
@@ -136,6 +149,8 @@ class NousAgent(CognitiveAgent):
             "summary": summary,
             "knowledge_available": knowledge_available,
             "knowledge_source": knowledge_source,
+            "knowledge_answer": knowledge_answer,
+            "knowledge_quality": knowledge_quality,
         }
 
         state.nous_level = nous_level
