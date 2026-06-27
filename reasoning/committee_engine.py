@@ -17,15 +17,27 @@ class CommitteeEngine:
         strong_agreements = []
         concerns = []
         recommendations = []
+        agent_positions = []
 
         for obs in observations:
+            agent_positions.append(
+                {
+                    "agent": obs.agent,
+                    "confidence": obs.confidence,
+                    "observation": obs.observation,
+                    "implication": obs.implication,
+                }
+            )
+
             if obs.confidence >= 0.70:
                 strong_agreements.append(obs.agent)
 
             if obs.confidence <= 0.40:
                 concerns.append(obs.agent)
 
-            text = obs.observation.lower()
+            text = (
+                obs.observation + " " + obs.implication
+            ).lower()
 
             if "grounding" in text:
                 recommendations.append("Increase factual grounding.")
@@ -36,14 +48,24 @@ class CommitteeEngine:
             if "reduction" in text:
                 recommendations.append("Check for possible forgotten reductions.")
 
+        committee_confidence = (
+            sum(obs.confidence for obs in observations)
+            / max(1, len(observations))
+        )
+
+        summary = (
+            f"{len(observations)} agents participated. "
+            f"{len(strong_agreements)} strong agreements, "
+            f"{len(concerns)} concerns, "
+            f"committee confidence {round(committee_confidence * 100)}%."
+        )
+
         return {
             "committee_size": len(observations),
+            "agent_positions": agent_positions,
             "strong_agreements": strong_agreements,
             "concerns": concerns,
             "recommendations": sorted(set(recommendations)),
-            "summary": (
-                f"{len(observations)} agents participated in the cognitive committee. "
-                f"{len(strong_agreements)} strong agreements and "
-                f"{len(concerns)} concerns were detected."
-            ),
+            "committee_confidence": committee_confidence,
+            "summary": summary,
         }
