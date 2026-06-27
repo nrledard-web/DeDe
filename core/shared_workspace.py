@@ -38,6 +38,39 @@ class SharedCognitiveWorkspace:
             )
         )
 
+    def get_all(self):
+        return self.observations
+
+    def get_agent(self, agent_name: str):
+        return [
+            obs
+            for obs in self.observations
+            if obs.agent.lower() == agent_name.lower()
+        ]
+
+    def latest(self):
+        if not self.observations:
+            return None
+        return self.observations[-1]
+
+    def agents(self):
+        return sorted(
+            {
+                obs.agent
+                for obs in self.observations
+            }
+        )
+
+    def high_confidence(
+        self,
+        threshold: float = 0.7,
+    ):
+        return [
+            obs
+            for obs in self.observations
+            if obs.confidence >= threshold
+        ]
+
     def find(self, agent_name: str):
         for obs in self.observations:
             if obs.agent.lower() == agent_name.lower():
