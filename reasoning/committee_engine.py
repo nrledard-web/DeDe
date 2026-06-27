@@ -18,14 +18,25 @@ class CommitteeEngine:
         concerns = []
         recommendations = []
         agent_positions = []
+        discussion = []
 
         for obs in observations:
+
             agent_positions.append(
                 {
                     "agent": obs.agent,
                     "confidence": obs.confidence,
                     "observation": obs.observation,
                     "implication": obs.implication,
+                }
+            )
+
+            discussion.append(
+                {
+                    "speaker": obs.agent,
+                    "statement": obs.observation,
+                    "implication": obs.implication,
+                    "confidence": obs.confidence,
                 }
             )
 
@@ -40,13 +51,22 @@ class CommitteeEngine:
             ).lower()
 
             if "grounding" in text:
-                recommendations.append("Increase factual grounding.")
+                recommendations.append(
+                    "Increase factual grounding."
+                )
 
-            if "revision" in text or "recalibration" in text:
-                recommendations.append("Consider cognitive recalibration.")
+            if (
+                "revision" in text
+                or "recalibration" in text
+            ):
+                recommendations.append(
+                    "Consider cognitive recalibration."
+                )
 
             if "reduction" in text:
-                recommendations.append("Check for possible forgotten reductions.")
+                recommendations.append(
+                    "Check for possible forgotten reductions."
+                )
 
         committee_confidence = (
             sum(obs.confidence for obs in observations)
@@ -57,15 +77,19 @@ class CommitteeEngine:
             f"{len(observations)} agents participated. "
             f"{len(strong_agreements)} strong agreements, "
             f"{len(concerns)} concerns, "
-            f"committee confidence {round(committee_confidence * 100)}%."
+            f"committee confidence "
+            f"{round(committee_confidence * 100)}%."
         )
 
         return {
             "committee_size": len(observations),
             "agent_positions": agent_positions,
+            "discussion": discussion,
             "strong_agreements": strong_agreements,
             "concerns": concerns,
-            "recommendations": sorted(set(recommendations)),
+            "recommendations": sorted(
+                set(recommendations)
+            ),
             "committee_confidence": committee_confidence,
             "summary": summary,
         }
