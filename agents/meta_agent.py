@@ -26,6 +26,7 @@ class MetaAgent:
             "recommendations": committee["recommendations"],
             "agent_positions": committee["agent_positions"],
             "discussion": committee["discussion"],
+            "round_table": committee["round_table"],
             "committee_confidence": committee["committee_confidence"],
             "summary": committee["summary"],
             "confidence": 0.95,
