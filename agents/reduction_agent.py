@@ -15,12 +15,68 @@ class ReductionAgent(CognitiveAgent):
 
     name = "reduction"
 
+    def __init__(self):
+        self.workspace = None
+
     def can_handle(self, state: CognitiveState) -> bool:
         return bool(state.user_input.strip())
 
     def analyze(self, state: CognitiveState) -> dict[str, Any]:
 
         text = state.user_input.lower()
+
+        previous_context = ""
+        previous_signals = []
+
+        knowledge_available = False
+        knowledge_quality = "unknown"
+
+        nous_available = False
+        nous_level = None
+
+        doxa_available = False
+        doxa_level = None
+
+        if self.workspace is not None:
+
+            previous_context = self.workspace.previous_summary(
+                "Reduction"
+            )
+
+            previous_signals = self.workspace.previous_signals(
+                "Reduction"
+            )
+
+            for signal in previous_signals:
+
+                if signal.get("agent") == "knowledge":
+                    knowledge_available = True
+
+                    answer = signal.get(
+                        "answer",
+                        "",
+                    )
+
+                    if (
+                        answer
+                        and "not found"
+                        not in answer.lower()
+                    ):
+                        knowledge_quality = "available"
+                    else:
+                        knowledge_quality = "missing"
+
+                elif signal.get("agent") == "nous":
+                    nous_available = True
+                    nous_level = signal.get(
+                        "nous_level"
+                    )
+
+                elif signal.get("agent") == "doxa":
+                    doxa_available = True
+                    doxa_level = signal.get(
+                        "doxa_level"
+                    )
 
         reduction_markers = self._count_markers(
             text,
@@ -62,17 +118,38 @@ class ReductionAgent(CognitiveAgent):
             ),
         )
 
+        if doxa_available:
+            summary = (
+                "Reduction evaluated after considering "
+                "Knowledge, Nous and Doxa."
+            )
+        else:
+            summary = (
+                "Potential conceptual reduction detected."
+                if reduction_level > 0.60
+                else "No significant conceptual reduction detected."
+            )
+
         result = {
             "agent": self.name,
             "reduction_level": reduction_level,
             "reduction_markers": reduction_markers,
             "missing_dimension_markers": missing_dimension_markers,
             "possible_hidden_assumptions": reduction_level > 0.60,
-            "summary": (
-                "Potential conceptual reduction detected."
-                if reduction_level > 0.60
-                else "No significant conceptual reduction detected."
-            ),
+
+            "previous_context": previous_context,
+            "previous_signals": previous_signals,
+
+            "knowledge_available": knowledge_available,
+            "knowledge_quality": knowledge_quality,
+
+            "nous_available": nous_available,
+            "nous_level": nous_level,
+
+            "doxa_available": doxa_available,
+            "doxa_level": doxa_level,
+
+            "summary": summary,
         }
 
         state.reduction_level = reduction_level
@@ -80,4 +157,8 @@ class ReductionAgent(CognitiveAgent):
         return result
 
     def _count_markers(self, text: str, markers: list[str]) -> int:
-        return sum(1 for marker in markers if marker in text)
+        return sum(
+            1
+            for marker in markers
+            if marker in text
+        )
