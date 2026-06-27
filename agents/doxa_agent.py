@@ -18,12 +18,48 @@ class DoxaAgent(CognitiveAgent):
 
     name = "doxa"
 
+    def __init__(self):
+        self.workspace = None
+
     def can_handle(self, state: CognitiveState) -> bool:
         return bool(state.user_input.strip())
 
     def analyze(self, state: CognitiveState) -> dict[str, Any]:
 
         text = state.user_input.lower()
+
+        previous_context = ""
+        previous_signals = []
+
+        nous_available = False
+        nous_level = None
+        nous_summary = ""
+
+        knowledge_available = False
+        knowledge_quality = "unknown"
+
+        if self.workspace is not None:
+            previous_context = self.workspace.previous_summary(
+                "Doxa"
+            )
+            previous_signals = self.workspace.previous_signals(
+                "Doxa"
+            )
+
+            for signal in previous_signals:
+                if signal.get("agent") == "nous":
+                    nous_available = True
+                    nous_level = signal.get("nous_level")
+                    nous_summary = signal.get("summary", "")
+
+                if signal.get("agent") == "knowledge":
+                    knowledge_available = True
+                    answer = signal.get("answer", "")
+
+                    if answer and "not found" not in answer.lower():
+                        knowledge_quality = "available"
+                    else:
+                        knowledge_quality = "missing"
 
         certainty_markers = self._count_markers(
             text,
@@ -67,17 +103,29 @@ class DoxaAgent(CognitiveAgent):
 
         cognitive_closure = doxa_level > 0.75
 
+        if cognitive_closure:
+            summary = "High certainty detected."
+        elif nous_available:
+            summary = (
+                "Certainty evaluated after considering Nous integration."
+            )
+        else:
+            summary = "Certainty remains cognitively revisable."
+
         result = {
             "agent": self.name,
             "doxa_level": doxa_level,
             "certainty_markers": certainty_markers,
             "nuance_markers": nuance_markers,
             "cognitive_closure": cognitive_closure,
-            "summary": (
-                "High certainty detected."
-                if cognitive_closure
-                else "Certainty remains cognitively revisable."
-            ),
+            "previous_context": previous_context,
+            "previous_signals": previous_signals,
+            "knowledge_available": knowledge_available,
+            "knowledge_quality": knowledge_quality,
+            "nous_available": nous_available,
+            "nous_level": nous_level,
+            "nous_summary": nous_summary,
+            "summary": summary,
         }
 
         state.doxa_level = doxa_level
