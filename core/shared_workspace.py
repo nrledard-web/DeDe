@@ -38,6 +38,20 @@ class SharedCognitiveWorkspace:
             )
         )
 
+    def previous_observations(
+        self,
+        current_agent: str,
+    ):
+        previous = []
+    
+        for obs in self.observations:
+            if obs.agent.lower() == current_agent.lower():
+                break
+    
+            previous.append(obs)
+    
+        return previous
+
     def get_all(self):
         return self.observations
 
