@@ -35,6 +35,13 @@ class NousAgent(CognitiveAgent):
 
         text = state.user_input.lower()
 
+        previous_context = ""
+
+        if self.workspace is not None:
+            previous_context = self.workspace.previous_summary(
+                "Nous"
+            )
+
         relation_markers = self._count_markers(
             text,
             [
@@ -89,14 +96,25 @@ class NousAgent(CognitiveAgent):
             + contradiction_markers * 0.06,
         )
 
+        if previous_context:
+            summary = (
+                "Integrated after considering previous committee observations."
+            )
+        else:
+            summary = (
+                "The input requires integration of meaning, "
+                "context and conceptual relations."
+            )
+
         result = {
             "agent": self.name,
             "nous_level": nous_level,
             "relation_markers": relation_markers,
             "synthesis_markers": synthesis_markers,
             "contradiction_markers": contradiction_markers,
+            "previous_context": previous_context,
             "integrated_understanding_needed": True,
-            "summary": "The input requires integration of meaning, context and conceptual relations.",
+            "summary": summary,
         }
 
         state.nous_level = nous_level
