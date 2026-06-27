@@ -76,10 +76,26 @@ class SharedCognitiveWorkspace:
             current_agent
         )
 
-        return [
-            obs.signals
-            for obs in previous
-        ]
+        cleaned_signals = []
+
+        for obs in previous:
+            signals = dict(obs.signals)
+
+            signals.pop(
+                "previous_signals",
+                None,
+            )
+
+            signals.pop(
+                "previous_context",
+                None,
+            )
+
+            cleaned_signals.append(
+                signals
+            )
+
+        return cleaned_signals
 
     def get_all(self):
         return self.observations
