@@ -96,6 +96,22 @@ class DoxaEngine:
                         confidence=result.get("nous_level", 0.0),
                         signals=result,
                     )
+                    
+                if result.get("agent") == "doxa":
+                    workspace.add_observation(
+                        agent="Doxa",
+                        level=result.get("doxa_level", 0.0),
+                        observation=result.get(
+                            "summary",
+                            "No observation.",
+                        ),
+                        implication=(
+                            "Evaluates certainty, cognitive closure "
+                            "and potential overconfidence."
+                        ),
+                        confidence=result.get("doxa_level", 0.0),
+                        signals=result,
+                    )
     
         detector_results = self.detectors.analyze(state)
     
