@@ -18,6 +18,17 @@ class SharedCognitiveWorkspace:
     response: str
     observations: list[CognitiveObservation] = field(default_factory=list)
 
+    def _clean_signals(
+        self,
+        signals: dict[str, Any],
+    ):
+        cleaned = dict(signals)
+    
+        cleaned.pop("previous_context", None)
+        cleaned.pop("previous_signals", None)
+    
+        return cleaned
+
     def add_observation(
         self,
         agent: str,
@@ -34,7 +45,7 @@ class SharedCognitiveWorkspace:
                 observation=observation,
                 implication=implication,
                 confidence=confidence,
-                signals=signals or {},
+                signals=self._clean_signals(signals or {}),
             )
         )
 
