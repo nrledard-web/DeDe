@@ -64,9 +64,11 @@ class DoxaEngine:
             question=text,
             response="",
         )
-    
+
         for agent in self.agents:
             if agent.can_handle(state):
+                agent.workspace = workspace
+            
                 result = agent.analyze(state)
                 state = agent.update_state(state, result)
     
