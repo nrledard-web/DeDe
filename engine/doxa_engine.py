@@ -112,6 +112,21 @@ class DoxaEngine:
                         confidence=result.get("doxa_level", 0.0),
                         signals=result,
                     )
+                if result.get("agent") == "reduction":
+                    workspace.add_observation(
+                        agent="Reduction",
+                        level=result.get("reduction_level", 0.0),
+                        observation=result.get(
+                            "summary",
+                            "No observation.",
+                        ),
+                        implication=(
+                            "Evaluates simplifications, hidden assumptions "
+                            "and possible forgotten reductions."
+                        ),
+                        confidence=result.get("reduction_level", 0.0),
+                        signals=result,
+                    )
     
         detector_results = self.detectors.analyze(state)
     
