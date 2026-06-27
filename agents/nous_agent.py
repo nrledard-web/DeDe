@@ -37,8 +37,13 @@ class NousAgent(CognitiveAgent):
 
         previous_context = ""
 
+        previous_signals = []
+
         if self.workspace is not None:
             previous_context = self.workspace.previous_summary(
+                "Nous"
+            )
+            previous_signals = self.workspace.previous_signals(
                 "Nous"
             )
 
@@ -113,6 +118,7 @@ class NousAgent(CognitiveAgent):
             "synthesis_markers": synthesis_markers,
             "contradiction_markers": contradiction_markers,
             "previous_context": previous_context,
+            "previous_signals": previous_signals,
             "integrated_understanding_needed": True,
             "summary": summary,
         }
