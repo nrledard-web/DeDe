@@ -127,6 +127,21 @@ class DoxaEngine:
                         confidence=result.get("reduction_level", 0.0),
                         signals=result,
                     )
+                if result.get("agent") == "nouscope":
+                    workspace.add_observation(
+                        agent="NOUSCOPE",
+                        level=result.get("cognitive_filter_level", 0.0),
+                        observation=result.get(
+                            "summary",
+                            "No observation.",
+                        ),
+                        implication=(
+                            "Evaluates possible cognitive filter influence, "
+                            "including emotional, cultural and memory-based filters."
+                        ),
+                        confidence=result.get("cognitive_filter_level", 0.0),
+                        signals=result,
+                    )
     
         detector_results = self.detectors.analyze(state)
     
