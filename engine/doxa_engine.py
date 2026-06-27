@@ -22,6 +22,7 @@ from detectors.detector_engine import DetectorEngine
 from dialogue.question_generator import QuestionGenerator
 from reasoning.cognitive_interpreter import CognitiveInterpreter
 
+from agents.meta_agent import MetaAgent
 
 class DoxaEngine:
     """
@@ -43,6 +44,7 @@ class DoxaEngine:
         self.question_generator = QuestionGenerator()
         self.interpreter = CognitiveInterpreter()
         self.revision_agent = RevisionAgent()
+        self.meta_agent = MetaAgent()
 
     def analyze(
         self,
@@ -159,6 +161,21 @@ class DoxaEngine:
                         signals=result,
                     )
     
+        meta_report = self.meta_agent.analyze(
+            workspace
+        )
+
+        workspace.add_observation(
+            agent="Meta",
+            level=1.0,
+            observation=meta_report["summary"],
+            implication=(
+                "Summarizes the current state of the cognitive committee."
+            ),
+            confidence=1.0,
+            signals=meta_report,
+        )
+
         detector_results = self.detectors.analyze(state)
     
         interpretation = self.interpreter.interpret(
@@ -225,6 +242,7 @@ class DoxaEngine:
             "revision": revision,
             "questions": questions,
             "analyses": state.analyses,
+            "meta": meta_report,
             "shared_workspace": workspace.summary(),
             "summary": state.final_response,
         }
