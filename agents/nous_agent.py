@@ -18,6 +18,9 @@ class NousAgent(CognitiveAgent):
 
     name = "nous"
 
+    def __init__(self):
+        self.workspace = None
+
     def can_handle(self, state: CognitiveState) -> bool:
         """
         Nous is broadly useful and can handle most cognitive states.
