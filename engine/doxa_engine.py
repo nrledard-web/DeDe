@@ -142,6 +142,22 @@ class DoxaEngine:
                         confidence=result.get("cognitive_filter_level", 0.0),
                         signals=result,
                     )
+
+                if result.get("agent") == "cognitive_therapy":
+                    workspace.add_observation(
+                        agent="Cognitive Therapy",
+                        level=result.get("revisability_level", 0.0),
+                        observation=result.get(
+                            "summary",
+                            "No observation.",
+                        ),
+                        implication=(
+                            "Evaluates whether cognitive recalibration "
+                            "or revision strategies are needed."
+                        ),
+                        confidence=result.get("revisability_level", 0.0),
+                        signals=result,
+                    )
     
         detector_results = self.detectors.analyze(state)
     
