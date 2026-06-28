@@ -60,7 +60,9 @@ class CognitiveTherapyAgent(CognitiveAgent):
                     nous_level = signal.get("nous_level")
 
                 elif signal.get("agent") == "doxa":
-                    doxa_level_from_committee = signal.get("doxa_level")
+                    doxa_level_from_committee = signal.get(
+                        "doxa_level"
+                    )
 
                 elif signal.get("agent") == "reduction":
                     reduction_level_from_committee = signal.get(
@@ -105,7 +107,10 @@ class CognitiveTherapyAgent(CognitiveAgent):
                 "Improve integrated understanding by connecting facts, context and meaning."
             )
 
-        if cognitive_filter_level is not None and cognitive_filter_level > 0.60:
+        if (
+            cognitive_filter_level is not None
+            and cognitive_filter_level > 0.60
+        ):
             strategies.append(
                 "Examine possible cognitive filters influencing interpretation."
             )
@@ -133,6 +138,48 @@ class CognitiveTherapyAgent(CognitiveAgent):
             else "Cognitive state appears sufficiently revisable after committee review."
         )
 
+        if knowledge_quality == "missing":
+            committee_reply = (
+                "The committee should retrieve missing knowledge before consolidating interpretation."
+            )
+
+        elif (
+            nous_level is not None
+            and nous_level < 0.50
+        ):
+            committee_reply = (
+                "The committee should strengthen conceptual integration before increasing certainty."
+            )
+
+        elif (
+            doxa_level_from_committee is not None
+            and doxa_level_from_committee > 0.60
+        ):
+            committee_reply = (
+                "The committee should reduce certainty pressure and preserve revisability."
+            )
+
+        elif (
+            reduction_level_from_committee is not None
+            and reduction_level_from_committee > 0.60
+        ):
+            committee_reply = (
+                "The committee should expand the frame before stabilizing its conclusion."
+            )
+
+        elif (
+            cognitive_filter_level is not None
+            and cognitive_filter_level > 0.60
+        ):
+            committee_reply = (
+                "The committee should examine cognitive filters before final interpretation."
+            )
+
+        else:
+            committee_reply = (
+                "Current revisability is sufficient, but deeper integration would improve cognitive stability."
+            )
+
         result = {
             "agent": self.name,
             "recalibration_needed": recalibration_needed,
@@ -149,6 +196,7 @@ class CognitiveTherapyAgent(CognitiveAgent):
             "cognitive_filter_level": cognitive_filter_level,
 
             "summary": summary,
+            "committee_reply": committee_reply,
         }
 
         state.revisability_level = revisability_level
