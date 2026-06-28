@@ -1,182 +1,183 @@
 """
-DeDe - Doxa Agent
+Cognitive Dynamics
 
-The Doxa Agent evaluates certainty, cognitive closure,
-assertiveness and epistemic rigidity.
+Defines abstract cognitive dynamics used by DeDe to transform
+signals into structural cognitive values.
+
+Dynamics do not decide how they affect Gnosis, Nous, Doxa,
+Reduction or Revisability.
+
+They only produce normalized cognitive forces.
+Agents decide how to use those forces.
 """
 
-from typing import Any
-
-from core.cognitive_state import CognitiveState
-from core.cognitive_dynamics import ClosureDynamic
-from interfaces.cognitive_agent import CognitiveAgent
+from dataclasses import dataclass
 
 
-class DoxaAgent(CognitiveAgent):
+@dataclass
+class CognitiveDynamicResult:
+    name: str
+    value: float
+    description: str
+
+
+class BaseCognitiveDynamic:
     """
-    Cognitive agent responsible for evaluating certainty.
+    Base class for cognitive dynamics.
+    A dynamic receives abstract signals and returns a value
+    between 0.0 and 1.0.
     """
 
-    name = "doxa"
+    name = "base_dynamic"
+
+    def evaluate(
+        self,
+        signals: dict,
+    ) -> CognitiveDynamicResult:
+        return CognitiveDynamicResult(
+            name=self.name,
+            value=0.0,
+            description="No dynamic effect detected.",
+        )
+
+    def _clamp(
+        self,
+        value: float,
+    ) -> float:
+        return max(
+            0.0,
+            min(
+                1.0,
+                value,
+            ),
+        )
+
+
+class ClosureDynamic(BaseCognitiveDynamic):
+    """
+    Measures how strongly a discourse reduces the space
+    of possible revision, alternatives or uncertainty.
+    """
+
+    name = "closure"
+
+    def evaluate(
+        self,
+        signals: dict,
+    ) -> CognitiveDynamicResult:
+        value = signals.get(
+            "closure_signal",
+            0.0,
+        )
+
+        value = self._clamp(value)
+
+        return CognitiveDynamicResult(
+            name=self.name,
+            value=value,
+            description=(
+                "Closure measures the reduction of open alternatives, "
+                "revision space and uncertainty tolerance."
+            ),
+        )
+
+
+class IntegrationDynamic(BaseCognitiveDynamic):
+    """
+    Measures whether the elements of a discourse are genuinely
+    connected, contextualized and conceptually integrated.
+    """
+
+    name = "integration"
+
+    def evaluate(
+        self,
+        signals: dict,
+    ) -> CognitiveDynamicResult:
+        value = signals.get(
+            "integration_signal",
+            0.0,
+        )
+
+        value = self._clamp(value)
+
+        return CognitiveDynamicResult(
+            name=self.name,
+            value=value,
+            description=(
+                "Integration measures how strongly facts, context "
+                "and meaning are connected."
+            ),
+        )
+
+
+class ReductionDynamic(BaseCognitiveDynamic):
+    """
+    Measures whether a discourse removes dimensions, alternatives
+    or contextual complexity without acknowledging the reduction.
+    """
+
+    name = "reduction"
+
+    def evaluate(
+        self,
+        signals: dict,
+    ) -> CognitiveDynamicResult:
+        value = signals.get(
+            "reduction_signal",
+            0.0,
+        )
+
+        value = self._clamp(value)
+
+        return CognitiveDynamicResult(
+            name=self.name,
+            value=value,
+            description=(
+                "Reduction measures how much complexity, alternatives "
+                "or missing dimensions disappear from the discourse."
+            ),
+        )
+
+
+class CognitiveDynamicsEngine:
+    """
+    Runs cognitive dynamics and returns their normalized values.
+    """
 
     def __init__(self):
-        self.workspace = None
+        self.dynamics = [
+            ClosureDynamic(),
+            IntegrationDynamic(),
+            ReductionDynamic(),
+        ]
 
-    def can_handle(self, state: CognitiveState) -> bool:
-        return bool(state.user_input.strip())
+    def evaluate(
+        self,
+        signals: dict,
+    ) -> dict:
+        results = []
 
-    def analyze(self, state: CognitiveState) -> dict[str, Any]:
-
-        text = state.user_input.lower()
-
-        previous_context = ""
-        previous_signals = []
-
-        nous_available = False
-        nous_level = None
-        nous_summary = ""
-
-        knowledge_available = False
-        knowledge_quality = "unknown"
-
-        if self.workspace is not None:
-            previous_context = self.workspace.previous_summary(
-                "Doxa"
-            )
-            previous_signals = self.workspace.previous_signals(
-                "Doxa"
+        for dynamic in self.dynamics:
+            result = dynamic.evaluate(
+                signals
             )
 
-            for signal in previous_signals:
-                if signal.get("agent") == "nous":
-                    nous_available = True
-                    nous_level = signal.get("nous_level")
-                    nous_summary = signal.get("summary", "")
+            results.append(
+                result
+            )
 
-                if signal.get("agent") == "knowledge":
-                    knowledge_available = True
-                    answer = signal.get("answer", "")
-
-                    if answer and "not found" not in answer.lower():
-                        knowledge_quality = "available"
-                    else:
-                        knowledge_quality = "missing"
-
-        certainty_markers = self._count_markers(
-            text,
-            [
-                "always",
-                "never",
-                "certain",
-                "obviously",
-                "everyone",
-                "nobody",
-                "undeniable",
-                "must",
-                "cannot",
-                "impossible",
-                "definitely",
-                "absolutely",
+        return {
+            "results": [
+                {
+                    "name": result.name,
+                    "value": result.value,
+                    "description": result.description,
+                }
+                for result in results
             ],
-        )
-
-        nuance_markers = self._count_markers(
-            text,
-            [
-                "maybe",
-                "perhaps",
-                "possible",
-                "might",
-                "could",
-                "sometimes",
-                "depends",
-                "uncertain",
-            ],
-        )
-
-        base_doxa_level = min(
-            1.0,
-            max(
-                0.0,
-                0.40 + certainty_markers * 0.10 - nuance_markers * 0.05,
-            ),
-        )
-
-        closure = ClosureDynamic()
-
-        dynamic = closure.evaluate(
-            {
-                "closure_signal": base_doxa_level,
-            }
-        )
-
-        doxa_level = min(
-            1.0,
-            max(
-                0.0,
-                base_doxa_level
-                + dynamic.affects["doxa"],
-            ),
-        )
-
-        cognitive_closure = doxa_level > 0.75
-
-        if cognitive_closure:
-            summary = "High certainty detected."
-        elif nous_available:
-            summary = (
-                "Certainty evaluated after considering Nous integration."
-            )
-        else:
-            summary = "Certainty remains cognitively revisable."
-
-        if cognitive_closure:
-            committee_reply = (
-                "Certainty appears too strong and may reduce revisability."
-            )
-        elif knowledge_quality == "missing":
-            committee_reply = (
-                "Certainty should remain moderate because knowledge is missing."
-            )
-        elif (
-            nous_available
-            and nous_level is not None
-            and nous_level < 0.50
-        ):
-            committee_reply = (
-                "Certainty should remain cautious because integrated understanding is still limited."
-            )
-        else:
-            committee_reply = (
-                "Certainty remains moderate and cognitively revisable."
-            )
-
-        result = {
-            "agent": self.name,
-            "doxa_level": doxa_level,
-            "base_doxa_level": base_doxa_level,
-            "certainty_markers": certainty_markers,
-            "nuance_markers": nuance_markers,
-            "cognitive_closure": cognitive_closure,
-            "previous_context": previous_context,
-            "previous_signals": previous_signals,
-            "knowledge_available": knowledge_available,
-            "knowledge_quality": knowledge_quality,
-            "nous_available": nous_available,
-            "nous_level": nous_level,
-            "nous_summary": nous_summary,
-            "summary": summary,
-            "committee_reply": committee_reply,
-            "closure_dynamic": {
-                "value": dynamic.value,
-                "affects": dynamic.affects,
-                "description": dynamic.description,
+            "values": {
+                result.name: result.value
+                for result in results
             },
         }
-
-        state.doxa_level = doxa_level
-
-        return result
-
-    def _count_markers(self, text: str, markers: list[str]) -> int:
-        return sum(1 for marker in markers if marker in text)
