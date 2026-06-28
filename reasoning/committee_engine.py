@@ -21,7 +21,15 @@ class CommitteeEngine:
         discussion = []
         round_table = []
 
+        previous_speaker = "committee"
+
         for obs in observations:
+            signals = obs.signals or {}
+
+            statement = signals.get(
+                "committee_reply",
+                obs.observation,
+            )
 
             agent_positions.append(
                 {
@@ -29,13 +37,17 @@ class CommitteeEngine:
                     "confidence": obs.confidence,
                     "observation": obs.observation,
                     "implication": obs.implication,
+                    "committee_reply": signals.get(
+                        "committee_reply",
+                    ),
                 }
             )
 
             discussion.append(
                 {
                     "speaker": obs.agent,
-                    "statement": obs.observation,
+                    "statement": statement,
+                    "observation": obs.observation,
                     "implication": obs.implication,
                     "confidence": obs.confidence,
                 }
@@ -44,14 +56,13 @@ class CommitteeEngine:
             round_table.append(
                 {
                     "speaker": obs.agent,
-                    "responds_to": "committee",
-                    "statement": (
-                        f"{obs.agent} contributes: "
-                        f"{obs.observation}"
-                    ),
+                    "responds_to": previous_speaker,
+                    "statement": statement,
                     "confidence": obs.confidence,
                 }
             )
+
+            previous_speaker = obs.agent
 
             if obs.confidence >= 0.70:
                 strong_agreements.append(obs.agent)
@@ -60,7 +71,11 @@ class CommitteeEngine:
                 concerns.append(obs.agent)
 
             text = (
-                obs.observation + " " + obs.implication
+                obs.observation
+                + " "
+                + obs.implication
+                + " "
+                + statement
             ).lower()
 
             if "grounding" in text:
@@ -79,6 +94,14 @@ class CommitteeEngine:
             if "reduction" in text:
                 recommendations.append(
                     "Check for possible forgotten reductions."
+                )
+
+            if (
+                "integration remains partial" in text
+                or "integration remains limited" in text
+            ):
+                recommendations.append(
+                    "Strengthen conceptual integration."
                 )
 
         committee_confidence = (
