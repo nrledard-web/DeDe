@@ -112,6 +112,27 @@ class DoxaAgent(CognitiveAgent):
         else:
             summary = "Certainty remains cognitively revisable."
 
+        if cognitive_closure:
+            committee_reply = (
+                "Certainty appears too strong and may reduce revisability."
+            )
+        elif knowledge_quality == "missing":
+            committee_reply = (
+                "Certainty should remain moderate because knowledge is missing."
+            )
+        elif (
+            nous_available
+            and nous_level is not None
+            and nous_level < 0.50
+        ):
+            committee_reply = (
+                "Certainty should remain cautious because integrated understanding is still limited."
+            )
+        else:
+            committee_reply = (
+                "Certainty remains moderate and cognitively revisable."
+            )
+
         result = {
             "agent": self.name,
             "doxa_level": doxa_level,
@@ -126,6 +147,7 @@ class DoxaAgent(CognitiveAgent):
             "nous_level": nous_level,
             "nous_summary": nous_summary,
             "summary": summary,
+            "committee_reply": committee_reply,
         }
 
         state.doxa_level = doxa_level
