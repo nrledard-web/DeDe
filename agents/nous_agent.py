@@ -137,6 +137,19 @@ class NousAgent(CognitiveAgent):
                 "context and conceptual relations."
             )
 
+        if knowledge_quality == "missing":
+            committee_reply = (
+                "Without available knowledge, integration remains partial."
+            )
+        elif knowledge_quality == "available":
+            committee_reply = (
+                "Knowledge is available, but conceptual integration remains limited."
+            )
+        else:
+            committee_reply = (
+                "Integration requires more context from the committee."
+            )
+
         result = {
             "agent": self.name,
             "nous_level": nous_level,
@@ -147,6 +160,7 @@ class NousAgent(CognitiveAgent):
             "previous_signals": previous_signals,
             "integrated_understanding_needed": True,
             "summary": summary,
+            "committee_reply": committee_reply,
             "knowledge_available": knowledge_available,
             "knowledge_source": knowledge_source,
             "knowledge_answer": knowledge_answer,
