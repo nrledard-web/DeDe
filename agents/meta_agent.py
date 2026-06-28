@@ -65,24 +65,63 @@ class MetaAgent:
         diagnoses = reasoning.get("diagnoses", [])
         next_steps = reasoning.get("recommended_next_steps", [])
 
-        parts = []
+        has_knowledge = any(
+            "knowledge" in item.lower()
+            for item in strengths
+        )
 
-        if strengths:
-            parts.append(strengths[0])
+        weak_integration = any(
+            "understanding remains weak" in item.lower()
+            or "weakly integrated" in item.lower()
+            for item in weaknesses + diagnoses
+        )
 
-        if weaknesses:
-            parts.append(weaknesses[0])
+        certainty_exceeds_understanding = any(
+            "certainty" in item.lower()
+            and "understanding" in item.lower()
+            for item in diagnoses
+        )
 
-        if diagnoses:
-            parts.append(diagnoses[0])
-
-        if next_steps:
-            parts.append(next_steps[0])
-
-        if not parts:
-            return (
-                "The committee found no major cognitive imbalance "
-                "and recommends maintaining revisability."
+        if has_knowledge and weak_integration:
+            opening = (
+                "The committee has a factual basis, "
+                "but integrated understanding remains weak."
+            )
+        elif has_knowledge:
+            opening = (
+                "The committee has a factual basis for analysis."
+            )
+        elif weak_integration:
+            opening = (
+                "The committee detects weak conceptual integration."
+            )
+        else:
+            opening = (
+                "The committee found no major cognitive imbalance."
             )
 
-        return " ".join(parts)
+        if certainty_exceeds_understanding:
+            middle = (
+                "Certainty should therefore remain cautious "
+                "until understanding becomes more integrated."
+            )
+        else:
+            middle = (
+                "The current interpretation should remain revisable."
+            )
+
+        if next_steps:
+            closing = (
+                f"The recommended next step is to "
+                f"{next_steps[0][0].lower()}{next_steps[0][1:]}"
+            )
+        else:
+            closing = (
+                "The recommended next step is to maintain revisability."
+            )
+
+        return (
+            f"{opening} "
+            f"{middle} "
+            f"{closing}"
+        )
