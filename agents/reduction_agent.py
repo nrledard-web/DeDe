@@ -130,6 +130,39 @@ class ReductionAgent(CognitiveAgent):
                 else "No significant conceptual reduction detected."
             )
 
+        if reduction_level > 0.60:
+            committee_reply = (
+                "A conceptual reduction may be shaping the interpretation."
+            )
+
+        elif knowledge_quality == "missing":
+            committee_reply = (
+                "Reduction cannot be fully evaluated while knowledge is missing."
+            )
+
+        elif (
+            doxa_available
+            and doxa_level is not None
+            and doxa_level > 0.60
+        ):
+            committee_reply = (
+                "Certainty should be checked for possible hidden reductions."
+            )
+
+        elif (
+            nous_available
+            and nous_level is not None
+            and nous_level < 0.50
+        ):
+            committee_reply = (
+                "No major reduction is detected, but weak integration may hide missing dimensions."
+            )
+
+        else:
+            committee_reply = (
+                "No significant forgotten reduction is currently detected."
+            )
+
         result = {
             "agent": self.name,
             "reduction_level": reduction_level,
@@ -150,6 +183,7 @@ class ReductionAgent(CognitiveAgent):
             "doxa_level": doxa_level,
 
             "summary": summary,
+            "committee_reply": committee_reply,
         }
 
         state.reduction_level = reduction_level
