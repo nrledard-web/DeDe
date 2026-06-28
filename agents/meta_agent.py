@@ -28,6 +28,10 @@ class MetaAgent:
             committee,
         )
 
+        narrative = self._build_narrative(
+            reasoning
+        )
+
         return {
             "agent": "meta",
             "committee_size": committee["committee_size"],
@@ -38,7 +42,8 @@ class MetaAgent:
             "discussion": committee["discussion"],
             "round_table": committee["round_table"],
             "committee_confidence": committee["committee_confidence"],
-            "summary": committee["summary"],
+            "summary": narrative,
+            "technical_summary": committee["summary"],
             "confidence": 0.95,
             "coherence": committee["committee_confidence"],
             "reasoning": reasoning,
@@ -48,4 +53,36 @@ class MetaAgent:
             "weaknesses": reasoning["weaknesses"],
             "conflicts": reasoning["conflicts"],
             "recommended_next_steps": reasoning["recommended_next_steps"],
+            "narrative": narrative,
         }
+
+    def _build_narrative(
+        self,
+        reasoning,
+    ):
+        strengths = reasoning.get("strengths", [])
+        weaknesses = reasoning.get("weaknesses", [])
+        diagnoses = reasoning.get("diagnoses", [])
+        next_steps = reasoning.get("recommended_next_steps", [])
+
+        parts = []
+
+        if strengths:
+            parts.append(strengths[0])
+
+        if weaknesses:
+            parts.append(weaknesses[0])
+
+        if diagnoses:
+            parts.append(diagnoses[0])
+
+        if next_steps:
+            parts.append(next_steps[0])
+
+        if not parts:
+            return (
+                "The committee found no major cognitive imbalance "
+                "and recommends maintaining revisability."
+            )
+
+        return " ".join(parts)
