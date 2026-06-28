@@ -53,6 +53,7 @@ class NOUSCOPEAgent(CognitiveAgent):
             )
 
             for signal in previous_signals:
+
                 if signal.get("agent") == "knowledge":
                     answer = signal.get("answer", "")
 
@@ -148,7 +149,40 @@ class NOUSCOPEAgent(CognitiveAgent):
                 "Significant cognitive filtering may influence interpretation."
             )
         else:
-            summary = "No strong cognitive filter influence detected."
+            summary = (
+                "No strong cognitive filter influence detected."
+            )
+
+        if cognitive_filter_level > 0.60:
+            committee_reply = (
+                "Cognitive filters may significantly influence the current interpretation."
+            )
+
+        elif knowledge_quality == "missing":
+            committee_reply = (
+                "The influence of cognitive filters cannot yet be fully evaluated."
+            )
+
+        elif (
+            reduction_level is not None
+            and reduction_level > 0.60
+        ):
+            committee_reply = (
+                "Conceptual reductions may themselves originate from cognitive filtering."
+            )
+
+        elif (
+            doxa_level is not None
+            and doxa_level > 0.60
+        ):
+            committee_reply = (
+                "Strong certainty should be examined for possible cognitive filter effects."
+            )
+
+        else:
+            committee_reply = (
+                "Current cognitive filters do not appear to strongly distort the interpretation."
+            )
 
         result = {
             "agent": self.name,
@@ -168,6 +202,7 @@ class NOUSCOPEAgent(CognitiveAgent):
             "reduction_level": reduction_level,
 
             "summary": summary,
+            "committee_reply": committee_reply,
         }
 
         state.metadata["nouscope"] = {
@@ -181,4 +216,8 @@ class NOUSCOPEAgent(CognitiveAgent):
         Count simple textual markers.
         """
 
-        return sum(1 for marker in markers if marker in text)
+        return sum(
+            1
+            for marker in markers
+            if marker in text
+        )
