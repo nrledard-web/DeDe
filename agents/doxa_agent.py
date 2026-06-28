@@ -8,6 +8,7 @@ assertiveness and epistemic rigidity.
 from typing import Any
 
 from core.cognitive_state import CognitiveState
+from core.cognitive_dynamics import ClosureDynamic
 from interfaces.cognitive_agent import CognitiveAgent
 
 
@@ -93,11 +94,28 @@ class DoxaAgent(CognitiveAgent):
             ],
         )
 
-        doxa_level = min(
+        base_doxa_level = min(
             1.0,
             max(
                 0.0,
                 0.40 + certainty_markers * 0.10 - nuance_markers * 0.05,
+            ),
+        )
+
+        closure = ClosureDynamic()
+
+        dynamic = closure.evaluate(
+            {
+                "closure_signal": base_doxa_level,
+            }
+        )
+
+        doxa_level = min(
+            1.0,
+            max(
+                0.0,
+                base_doxa_level
+                + dynamic.affects["doxa"],
             ),
         )
 
@@ -136,6 +154,7 @@ class DoxaAgent(CognitiveAgent):
         result = {
             "agent": self.name,
             "doxa_level": doxa_level,
+            "base_doxa_level": base_doxa_level,
             "certainty_markers": certainty_markers,
             "nuance_markers": nuance_markers,
             "cognitive_closure": cognitive_closure,
@@ -148,6 +167,11 @@ class DoxaAgent(CognitiveAgent):
             "nous_summary": nous_summary,
             "summary": summary,
             "committee_reply": committee_reply,
+            "closure_dynamic": {
+                "value": dynamic.value,
+                "affects": dynamic.affects,
+                "description": dynamic.description,
+            },
         }
 
         state.doxa_level = doxa_level
