@@ -24,6 +24,7 @@ class CommitteeEngine:
         previous_speaker = "committee"
 
         for obs in observations:
+
             signals = obs.signals or {}
 
             statement = signals.get(
@@ -35,11 +36,7 @@ class CommitteeEngine:
                 {
                     "agent": obs.agent,
                     "confidence": obs.confidence,
-                    "observation": obs.observation,
-                    "implication": obs.implication,
-                    "committee_reply": signals.get(
-                        "committee_reply",
-                    ),
+                    "statement": statement,
                 }
             )
 
@@ -47,8 +44,6 @@ class CommitteeEngine:
                 {
                     "speaker": obs.agent,
                     "statement": statement,
-                    "observation": obs.observation,
-                    "implication": obs.implication,
                     "confidence": obs.confidence,
                 }
             )
@@ -70,13 +65,7 @@ class CommitteeEngine:
             if obs.confidence <= 0.40:
                 concerns.append(obs.agent)
 
-            text = (
-                obs.observation
-                + " "
-                + obs.implication
-                + " "
-                + statement
-            ).lower()
+            text = statement.lower()
 
             if "grounding" in text:
                 recommendations.append(
@@ -99,6 +88,7 @@ class CommitteeEngine:
             if (
                 "integration remains partial" in text
                 or "integration remains limited" in text
+                or "strengthen conceptual integration" in text
             ):
                 recommendations.append(
                     "Strengthen conceptual integration."
