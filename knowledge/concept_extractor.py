@@ -136,8 +136,42 @@ class ConceptExtractor:
             "relations": relations,
             "concept_count": len(all_concepts),
             "relation_count": len(relations),
+            "concept_density": min(
+                1.0,
+                len(relations) / max(1, len(all_concepts)),
+            ),
             "summary": "Concepts extracted from text and available knowledge.",
         }
+
+        workspace.set(
+            "concept_count",
+            len(all_concepts),
+            {
+                "extractor": self.name,
+                "summary": "Number of extracted concepts.",
+            },
+        )
+        
+        workspace.set(
+            "relation_count",
+            len(relations),
+            {
+                "extractor": self.name,
+                "summary": "Number of extracted concept relations.",
+            },
+        )
+        
+        workspace.set(
+            "concept_density",
+            min(
+                1.0,
+                len(relations) / max(1, len(all_concepts)),
+            ),
+            {
+                "extractor": self.name,
+                "summary": "Concept relation density.",
+            },
+        )
 
         workspace.add_interpretation(self.name, result)
 
