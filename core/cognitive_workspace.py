@@ -76,7 +76,7 @@ class CognitiveWorkspace:
     # Future Cognitive Variables
     # =====================================================
 
-    values: dict[str, float] = field(default_factory=dict)
+    values: dict[str, Any] = field(default_factory=dict)
 
     # =====================================================
     # Raw estimator outputs
@@ -122,6 +122,20 @@ class CognitiveWorkspace:
             self.signals[name] = signals
 
         self.history.append(f"SET {name}={value:.3f}")
+
+    def set_raw(self, name: str, value: Any, signals: Any = None) -> None:
+        """
+        Store a raw value inside the workspace without normalization.
+
+        Use this for counters, lists, strings or structured values.
+        """
+
+        self.values[name] = value
+
+        if signals is not None:
+            self.signals[name] = signals
+
+        self.history.append(f"SET RAW {name}={value}")
 
     def get(self, name: str, default: float = 0.0) -> float:
         """
