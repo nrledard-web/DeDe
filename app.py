@@ -72,6 +72,37 @@ if st.button("Analyze"):
         pct(summary["cognitive_balance"]),
     )
 
+    committee = report["committee"]
+
+    st.subheader("Cognitive Committee")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        show_metric(
+            "Committee Confidence",
+            committee["confidence"],
+        )
+
+    with col2:
+        st.metric(
+            "Dominant Orientation",
+            committee["dominant_orientation"],
+        )
+
+    st.info(committee["diagnosis"])
+
+    if committee["concerns"]:
+        st.subheader("Committee Concerns")
+
+        for concern in committee["concerns"]:
+            st.warning(concern)
+
+    st.subheader("Committee Recommendations")
+
+    for recommendation in committee["recommendations"]:
+        st.write(f"- {recommendation}")
+
     formulas = report["formulas"]
     core = formulas["core"]
     derived = formulas["derived"]
