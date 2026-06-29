@@ -1,8 +1,6 @@
 import streamlit as st
 
-from engine.doxa_engine import DoxaEngine
-from user_model.user_cognitive_model import UserCognitiveModel
-from memory.cognitive_comparator import CognitiveComparator
+from engine.doxa_engine_phase2 import DoxaEnginePhase2
 
 
 def pct(value):
@@ -22,19 +20,13 @@ st.set_page_config(
 )
 
 st.title("DeDe — Cognitive Daimon")
-st.caption("First symbolic cognitive analysis prototype")
+st.caption("Phase 2 — Cognitive Mechanics")
 
-st.success("DeDe Alpha prototype is running.")
+st.success("DeDe Phase 2 prototype is running.")
 st.caption(
-    "Current status: symbolic cognitive analysis, cognitive vector, "
-    "core formulas, detector pipeline and recalibration questions."
+    "Current status: CognitiveWorkspace, estimator layer, "
+    "agent interpretation and shared cognitive mechanics."
 )
-
-if "user_model" not in st.session_state:
-    st.session_state.user_model = UserCognitiveModel()
-
-if "cognitive_comparator" not in st.session_state:
-    st.session_state.cognitive_comparator = CognitiveComparator()
 
 text = st.text_area(
     "Text to analyze",
@@ -47,240 +39,51 @@ text = st.text_area(
 )
 
 if st.button("Analyze"):
-    engine = DoxaEngine()
+    engine = DoxaEnginePhase2()
     report = engine.analyze(text)
 
-    detectors = report["detectors"]
-    scores = detectors["mecroyance"]["scores"]
+    workspace = report["workspace"]
+    variables = workspace["variables"]
+    agent_results = report["agent_results"]
+    summary = report["summary"]
 
-    st.session_state.user_model.update(
-        detectors["cognitive_vector"]
+    st.subheader("Phase 2 Cognitive Variables")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        show_metric("Grounding", variables["grounding"])
+
+    with col2:
+        show_metric("Integration", variables["integration"])
+
+    with col3:
+        show_metric("Closure", variables["closure"])
+
+    with col4:
+        show_metric("Reduction", variables["reduction"])
+
+    st.subheader("Phase 2 Cognitive Summary")
+
+    st.write(summary["diagnosis"])
+
+    st.metric(
+        "Cognitive Balance",
+        pct(summary["cognitive_balance"]),
     )
 
-    user_profile = st.session_state.user_model.profile()
+    st.subheader("Agent Interpretations")
 
-    comparison = st.session_state.cognitive_comparator.compare(
-        detectors["cognitive_vector"],
-        user_profile,
-    )
+    for name, result in agent_results.items():
+        st.markdown(f"### {name}")
 
-    knowledge = report["analyses"].get("knowledge")
+        st.info(result.get("summary", ""))
 
-    if knowledge:
-        st.subheader("Knowledge Response")
-        st.success(knowledge["answer"])
+        if result.get("committee_reply"):
+            st.write(result["committee_reply"])
 
-    if report.get("response_analysis"):
+        with st.expander(f"{name} details"):
+            st.json(result)
 
-        st.subheader("Knowledge Response Cognitive Analysis")
-
-        response_vector = report["response_analysis"]["cognitive_vector"]
-
-        col1, col2, col3, col4, col5 = st.columns(5)
-
-        with col1:
-            show_metric("Response G", response_vector["gnosis"])
-
-        with col2:
-            show_metric("Response N", response_vector["nous"])
-
-        with col3:
-            show_metric("Response D", response_vector["doxa"])
-
-        with col4:
-            show_metric("Response R", response_vector["reduction"])
-
-        with col5:
-            show_metric("Response V", response_vector["revisability"])
-
-        interpretation = report.get("response_interpretation")
-
-        if interpretation:
-            st.info(interpretation["diagnosis"])
-
-        revision = report.get("revision")
-
-        if revision:
-            st.subheader("Revision Suggestions")
-
-            if revision["needs_revision"]:
-                for suggestion in revision["suggestions"]:
-                    st.warning(suggestion)
-            else:
-                st.success("No revision required.")
-
-    st.subheader("Cognitive Scores")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        show_metric("Gnosis", scores["gnosis"])
-        show_metric("Nous", scores["nous"])
-
-    with col2:
-        show_metric("Doxa", scores["doxa"])
-        show_metric("Reduction", scores["reduction"])
-
-    with col3:
-        show_metric("Revisability", scores["revisability"])
-        show_metric("Mecroyance Risk", scores["mecroyance_risk"])
-
-    st.subheader("Cognitive Balance")
-    balance = detectors["balance"]
-    st.write(balance["diagnosis"])
-    st.progress(min(max(scores["mecroyance_risk"], 0.0), 1.0))
-
-    st.subheader("Main Signals")
-
-    if detectors["reduction"]["forgotten_reduction"]:
-        st.warning("Possible forgotten reduction detected.")
-
-    if scores["cognitive_closure"] > 0.25:
-        st.warning("Cognitive closure pressure detected.")
-
-    if scores["overconfidence"] > 0.25:
-        st.warning("Unsupported certainty detected.")
-
-    st.subheader("Text Statistics")
-
-    stats = detectors.get("processed_text", {})
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.metric("Words", stats.get("word_count", "N/A"))
-        st.metric("Sentences", stats.get("sentence_count", "N/A"))
-
-    with col2:
-        st.metric("Paragraphs", stats.get("paragraph_count", "N/A"))
-        st.metric("Unique words", stats.get("unique_word_count", "N/A"))
-
-    with col3:
-        lexical_diversity = stats.get("lexical_diversity")
-
-        if lexical_diversity is None:
-            st.metric("Lexical diversity", "N/A")
-        else:
-            st.metric(
-                "Lexical diversity",
-                f"{round(lexical_diversity * 100)}%",
-            )
-
-    st.subheader("Cognitive Vector")
-
-    vector = detectors["cognitive_vector"]
-
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        show_metric("G", vector["gnosis"])
-    with col2:
-        show_metric("N", vector["nous"])
-    with col3:
-        show_metric("D", vector["doxa"])
-    with col4:
-        show_metric("R", vector["reduction"])
-    with col5:
-        show_metric("V", vector["revisability"])
-
-    st.subheader("Core Cognitive Metrics")
-
-    metrics = detectors["metrics"]
-    core = metrics["core"]
-    derived = metrics["derived"]
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        show_metric("Grounding", core["grounding"])
-        show_metric("Closure Pressure", core["closure_pressure"])
-
-    with col2:
-        show_metric("Mecroyance Pressure", core["mecroyance_pressure"])
-        show_metric("Cognitive Balance", core["cognitive_balance"])
-
-    with col3:
-        show_metric("Surconfidence", derived["surconfidence"])
-        show_metric(
-            "Forgotten Reduction",
-            derived["forgotten_reduction_pressure"],
-        )
-
-    st.info(metrics["diagnosis"])
-
-    st.subheader("Formula Variants")
-
-    formulas = detectors["formulas"]
-    mecroyance_variants = formulas["mecroyance_variants"]
-    pressure_variants = formulas["pressure_variants"]
-    balance_variants = formulas["balance_variants"]
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        show_metric("M0 Base", mecroyance_variants["M0_base"])
-        show_metric("M1 Revisable", mecroyance_variants["M1_revisable"])
-
-    with col2:
-        show_metric(
-            "M2 Reduction-aware",
-            mecroyance_variants["M2_reduction_aware"],
-        )
-        show_metric("Cognitive Balance", balance_variants["cognitive_balance"])
-
-    with col3:
-        show_metric("Cognitive Closure", pressure_variants["cognitive_closure"])
-        show_metric(
-            "Forgotten Reduction",
-            pressure_variants["forgotten_reduction"],
-        )
-
-    st.subheader("User Cognitive Profile")
-
-    st.write(f"Analyses in this session: {user_profile['analysis_count']}")
-
-    average_vector = user_profile["average_vector"]
-
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        show_metric("Avg G", average_vector["gnosis"])
-    with col2:
-        show_metric("Avg N", average_vector["nous"])
-    with col3:
-        show_metric("Avg D", average_vector["doxa"])
-    with col4:
-        show_metric("Avg R", average_vector["reduction"])
-    with col5:
-        show_metric("Avg V", average_vector["revisability"])
-
-    st.subheader("Compared With Your Session Profile")
-
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        st.metric("G Δ", pct(comparison["gnosis"]["delta"]), comparison["gnosis"]["trend"])
-    with col2:
-        st.metric("N Δ", pct(comparison["nous"]["delta"]), comparison["nous"]["trend"])
-    with col3:
-        st.metric("D Δ", pct(comparison["doxa"]["delta"]), comparison["doxa"]["trend"])
-    with col4:
-        st.metric("R Δ", pct(comparison["reduction"]["delta"]), comparison["reduction"]["trend"])
-    with col5:
-        st.metric("V Δ", pct(comparison["revisability"]["delta"]), comparison["revisability"]["trend"])
-
-    st.subheader("Cognitive Questions")
-    for question in report.get("questions", []):
-        st.info(question)
-
-    st.subheader("Summary")
-    st.write(report["summary"])
-
-    with st.expander("Full detector report"):
-        st.json(detectors)
-
-    with st.expander("Agent analyses"):
-        st.json(report["analyses"])
-
-    with st.expander("Shared Cognitive Workspace"):
-        st.json(report.get("shared_workspace", {}))
+    with st.expander("Full Phase 2 Report"):
+        st.json(report)
