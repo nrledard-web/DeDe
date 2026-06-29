@@ -1,223 +1,87 @@
 """
 DeDe - NOUSCOPE Agent
 
-The NOUSCOPE Agent evaluates cognitive filters, interpretive frames,
-perspective calibration and possible influences shaping perception.
+Phase 2 cognitive agent.
+
+The NOUSCOPE Agent no longer estimates cognitive filters directly from text.
+It reads shared cognitive variables from the CognitiveWorkspace
+and interprets possible filter influence, perspective distortion
+and calibration pressure.
 """
 
 from typing import Any
 
-from core.cognitive_state import CognitiveState
-from interfaces.cognitive_agent import CognitiveAgent
+from core.cognitive_workspace import CognitiveWorkspace
 
 
-class NOUSCOPEAgent(CognitiveAgent):
+class NOUSCOPEAgent:
     """
-    Cognitive agent responsible for cognitive filter modeling.
+    Cognitive agent responsible for interpreting cognitive filter influence.
+
+    NOUSCOPE reads:
+    - Grounding
+    - Integration
+    - Closure
+    - Reduction
+
+    It produces an interpretation of possible filter influence
+    shaping perception and interpretation.
     """
 
     name = "nouscope"
 
-    def __init__(self):
-        self.workspace = None
-
-    def can_handle(self, state: CognitiveState) -> bool:
+    def analyze(self, workspace: CognitiveWorkspace) -> dict[str, Any]:
         """
-        NOUSCOPE can evaluate most interpretive inputs.
+        Interpret cognitive filter influence from the shared workspace.
         """
 
-        return bool(state.user_input.strip())
+        grounding = workspace.get("grounding")
+        integration = workspace.get("integration")
+        closure = workspace.get("closure")
+        reduction = workspace.get("reduction")
 
-    def analyze(self, state: CognitiveState) -> dict[str, Any]:
-        """
-        Produce a first symbolic NOUSCOPE analysis.
-        """
+        cognitive_filter_level = max(
+            0.0,
+            min(
+                1.0,
+                (closure * 0.35)
+                + (reduction * 0.35)
+                - (grounding * 0.15)
+                - (integration * 0.10)
+                + 0.25,
+            ),
+        )
 
-        text = state.user_input.lower()
+        possible_filter_influence = cognitive_filter_level >= 0.60
 
-        previous_context = ""
-        previous_signals = []
-
-        knowledge_quality = "unknown"
-        nous_level = None
-        doxa_level = None
-        reduction_level = None
-
-        if self.workspace is not None:
-            previous_context = self.workspace.previous_summary(
-                "NOUSCOPE"
+        if cognitive_filter_level >= 0.70:
+            summary = "Strong cognitive filter influence detected."
+            committee_reply = (
+                "The interpretation may be significantly shaped by cognitive filters."
             )
-
-            previous_signals = self.workspace.previous_signals(
-                "NOUSCOPE"
-            )
-
-            for signal in previous_signals:
-
-                if signal.get("agent") == "knowledge":
-                    answer = signal.get("answer", "")
-
-                    if (
-                        answer
-                        and "not found" not in answer.lower()
-                    ):
-                        knowledge_quality = "available"
-                    else:
-                        knowledge_quality = "missing"
-
-                elif signal.get("agent") == "nous":
-                    nous_level = signal.get("nous_level")
-
-                elif signal.get("agent") == "doxa":
-                    doxa_level = signal.get("doxa_level")
-
-                elif signal.get("agent") == "reduction":
-                    reduction_level = signal.get("reduction_level")
-
-        filter_markers = self._count_markers(
-            text,
-            [
-                "filter",
-                "perception",
-                "bias",
-                "interpretation",
-                "perspective",
-                "frame",
-                "mental model",
-                "worldview",
-            ],
-        )
-
-        emotional_markers = self._count_markers(
-            text,
-            [
-                "fear",
-                "anger",
-                "sad",
-                "stress",
-                "hope",
-                "desire",
-                "hate",
-                "love",
-                "pain",
-            ],
-        )
-
-        cultural_markers = self._count_markers(
-            text,
-            [
-                "culture",
-                "society",
-                "education",
-                "religion",
-                "politics",
-                "ideology",
-                "media",
-                "tradition",
-            ],
-        )
-
-        memory_markers = self._count_markers(
-            text,
-            [
-                "remember",
-                "memory",
-                "past",
-                "experience",
-                "history",
-                "trauma",
-                "habit",
-            ],
-        )
-
-        cognitive_filter_level = min(
-            1.0,
-            0.30
-            + filter_markers * 0.12
-            + emotional_markers * 0.08
-            + cultural_markers * 0.08
-            + memory_markers * 0.06,
-        )
-
-        if reduction_level is not None:
-            summary = (
-                "NOUSCOPE evaluated cognitive filters after considering "
-                "Knowledge, Nous, Doxa and Reduction."
-            )
-        elif cognitive_filter_level > 0.60:
-            summary = (
-                "Significant cognitive filtering may influence interpretation."
+        elif cognitive_filter_level >= 0.40:
+            summary = "Moderate cognitive filter influence detected."
+            committee_reply = (
+                "Some interpretive filtering may be present and should remain visible."
             )
         else:
-            summary = (
-                "No strong cognitive filter influence detected."
-            )
-
-        if cognitive_filter_level > 0.60:
+            summary = "Low cognitive filter influence detected."
             committee_reply = (
-                "Cognitive filters may significantly influence the current interpretation."
-            )
-
-        elif knowledge_quality == "missing":
-            committee_reply = (
-                "The influence of cognitive filters cannot yet be fully evaluated."
-            )
-
-        elif (
-            reduction_level is not None
-            and reduction_level > 0.60
-        ):
-            committee_reply = (
-                "Conceptual reductions may themselves originate from cognitive filtering."
-            )
-
-        elif (
-            doxa_level is not None
-            and doxa_level > 0.60
-        ):
-            committee_reply = (
-                "Strong certainty should be examined for possible cognitive filter effects."
-            )
-
-        else:
-            committee_reply = (
-                "Current cognitive filters do not appear to strongly distort the interpretation."
+                "Current cognitive filters do not appear to strongly distort interpretation."
             )
 
         result = {
             "agent": self.name,
             "cognitive_filter_level": cognitive_filter_level,
-            "filter_markers": filter_markers,
-            "emotional_markers": emotional_markers,
-            "cultural_markers": cultural_markers,
-            "memory_markers": memory_markers,
-            "possible_filter_influence": cognitive_filter_level > 0.60,
-
-            "previous_context": previous_context,
-            "previous_signals": previous_signals,
-
-            "knowledge_quality": knowledge_quality,
-            "nous_level": nous_level,
-            "doxa_level": doxa_level,
-            "reduction_level": reduction_level,
-
+            "possible_filter_influence": possible_filter_influence,
+            "grounding": grounding,
+            "integration": integration,
+            "closure": closure,
+            "reduction": reduction,
             "summary": summary,
             "committee_reply": committee_reply,
         }
 
-        state.metadata["nouscope"] = {
-            "cognitive_filter_level": cognitive_filter_level
-        }
+        workspace.add_interpretation(self.name, result)
 
         return result
-
-    def _count_markers(self, text: str, markers: list[str]) -> int:
-        """
-        Count simple textual markers.
-        """
-
-        return sum(
-            1
-            for marker in markers
-            if marker in text
-        )
