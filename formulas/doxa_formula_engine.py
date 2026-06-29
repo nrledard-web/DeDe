@@ -20,13 +20,15 @@ class DoxaFormulaEngine:
     """
     Computes Phase 2 cognitive mechanics metrics from the workspace.
 
-    Inputs:
+    Inputs
+    ------
     - Grounding
     - Integration
     - Closure
     - Reduction
 
-    Outputs:
+    Outputs
+    -------
     - Mecroyance pressure
     - Mecroyance risk
     - Cognitive balance
@@ -36,80 +38,164 @@ class DoxaFormulaEngine:
     - Revisability
     """
 
-    def compute(self, workspace: CognitiveWorkspace) -> dict[str, Any]:
-        """
-        Compute all Phase 2 cognitive formulas.
-        """
+    def compute(
+        self,
+        workspace: CognitiveWorkspace,
+    ) -> dict[str, Any]:
 
         grounding = workspace.get("grounding")
         integration = workspace.get("integration")
         closure = workspace.get("closure")
         reduction = workspace.get("reduction")
 
-        support = grounding + integration
-        pressure = closure + reduction
+        # -------------------------------------------------
+        # Raw mechanics
+        # -------------------------------------------------
 
-        cognitive_balance = support - pressure
+        raw_support = grounding + integration
+        raw_pressure = closure + reduction
 
-        mecroyance_pressure = pressure - support
-        mecroyance_risk = max(0.0, min(1.0, mecroyance_pressure / 2.0))
+        # -------------------------------------------------
+        # Normalized values (UI)
+        # -------------------------------------------------
 
-        surconfidence = max(0.0, closure - support / 2.0)
+        support = max(
+            0.0,
+            min(1.0, raw_support),
+        )
 
-        cognitive_closure = max(
+        pressure = max(
+            0.0,
+            min(1.0, raw_pressure),
+        )
+
+        # -------------------------------------------------
+        # Derived mechanics
+        # -------------------------------------------------
+
+        cognitive_balance = max(
+            -1.0,
+            min(
+                1.0,
+                raw_support - raw_pressure,
+            ),
+        )
+
+        mecroyance_pressure = max(
+            -1.0,
+            min(
+                1.0,
+                raw_pressure - raw_support,
+            ),
+        )
+
+        mecroyance_risk = max(
             0.0,
             min(
                 1.0,
-                closure - ((grounding + integration) / 2.0),
+                mecroyance_pressure,
+            ),
+        )
+
+        surconfidence = max(
+            0.0,
+            closure - (grounding * 0.5),
+        )
+
+        cognitive_closure = max(
+            0.0,
+            closure - (
+                (grounding + integration) / 2.0
             ),
         )
 
         forgotten_reduction_pressure = max(
             0.0,
-            min(
-                1.0,
-                reduction - integration,
-            ),
+            reduction - integration,
         )
 
         revisability = max(
             0.0,
             min(
                 1.0,
-                (grounding * 0.25)
-                + (integration * 0.35)
-                - (closure * 0.25)
-                - (reduction * 0.15)
-                + 0.50,
+                (
+                    grounding * 0.25
+                    + integration * 0.35
+                    - closure * 0.25
+                    - reduction * 0.15
+                    + 0.50
+                ),
             ),
         )
 
+        # -------------------------------------------------
+        # Diagnosis
+        # -------------------------------------------------
+
         if cognitive_balance >= 0.30:
-            diagnosis = "Grounding and integration exceed closure and reduction."
+
+            diagnosis = (
+                "Grounding and integration exceed "
+                "closure and reduction."
+            )
+
         elif cognitive_balance >= 0.0:
-            diagnosis = "Cognitive structure appears moderately balanced."
+
+            diagnosis = (
+                "Cognitive structure appears "
+                "moderately balanced."
+            )
+
         else:
-            diagnosis = "Closure and reduction may exceed grounding and integration."
+
+            diagnosis = (
+                "Closure and reduction may exceed "
+                "grounding and integration."
+            )
+
+        # -------------------------------------------------
+        # Report
+        # -------------------------------------------------
 
         return {
+
             "inputs": {
+
                 "grounding": grounding,
                 "integration": integration,
                 "closure": closure,
                 "reduction": reduction,
+
             },
+
             "core": {
+
+                "raw_support": raw_support,
+                "raw_pressure": raw_pressure,
+
                 "support": support,
                 "pressure": pressure,
+
                 "cognitive_balance": cognitive_balance,
+
                 "mecroyance_pressure": mecroyance_pressure,
                 "mecroyance_risk": mecroyance_risk,
+
                 "revisability": revisability,
+
             },
+
             "derived": {
+
                 "surconfidence": surconfidence,
+
                 "cognitive_closure": cognitive_closure,
-                "forgotten_reduction_pressure": forgotten_reduction_pressure,
+
+                "forgotten_reduction_pressure":
+                    forgotten_reduction_pressure,
+
             },
+
             "diagnosis": diagnosis,
+
         }
