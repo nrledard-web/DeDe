@@ -8,6 +8,7 @@ conceptual precision and the need for verification.
 from typing import Any
 
 from core.cognitive_state import CognitiveState
+from core.cognitive_dynamics import GroundingDynamic
 from interfaces.cognitive_agent import CognitiveAgent
 
 
@@ -47,7 +48,7 @@ class GnosisAgent(CognitiveAgent):
 
     def analyze(self, state: CognitiveState) -> dict[str, Any]:
         """
-        Produce a first symbolic Gnosis analysis.
+        Produce a symbolic Gnosis analysis using GroundingDynamic.
         """
 
         text = state.user_input.lower()
@@ -91,11 +92,33 @@ class GnosisAgent(CognitiveAgent):
             ]
         )
 
-        gnosis_level = min(1.0, 0.3 + factual_markers * 0.1 + uncertainty_markers * 0.05)
+        base_gnosis_level = min(
+            1.0,
+            0.30
+            + factual_markers * 0.10
+            + uncertainty_markers * 0.05,
+        )
+
+        grounding_dynamic = GroundingDynamic().evaluate(
+            {
+                "grounding_signal": base_gnosis_level,
+            }
+        )
+
+        gnosis_effect = grounding_dynamic.value * 0.20
+
+        gnosis_level = min(
+            1.0,
+            max(
+                0.0,
+                base_gnosis_level + gnosis_effect,
+            ),
+        )
 
         result = {
             "agent": self.name,
             "gnosis_level": gnosis_level,
+            "base_gnosis_level": base_gnosis_level,
             "factual_markers": factual_markers,
             "uncertainty_markers": uncertainty_markers,
             "verification_needed": verification_needed,
@@ -104,6 +127,11 @@ class GnosisAgent(CognitiveAgent):
                 if verification_needed
                 else "No strong factual verification requirement detected."
             ),
+            "grounding_dynamic": {
+                "value": grounding_dynamic.value,
+                "gnosis_effect": gnosis_effect,
+                "description": grounding_dynamic.description,
+            },
         }
 
         state.gnosis_level = gnosis_level
