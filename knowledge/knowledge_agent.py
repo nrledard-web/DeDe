@@ -3,14 +3,13 @@ DeDe - Knowledge Agent
 
 Phase 2 knowledge orchestrator.
 
-The KnowledgeAgent no longer contains knowledge directly.
-It coordinates knowledge providers and writes structured knowledge
-results into the CognitiveWorkspace.
+The KnowledgeAgent delegates knowledge retrieval to the ProviderEngine
+and writes structured knowledge results into the CognitiveWorkspace.
 """
 
 from typing import Any
 
-from knowledge.providers.local_provider import LocalProvider
+from knowledge.providers.provider_engine import ProviderEngine
 
 
 class KnowledgeAgent:
@@ -30,43 +29,25 @@ class KnowledgeAgent:
     name = "knowledge"
 
     def __init__(self):
-        self.providers = [
-            LocalProvider(),
-        ]
+        self.provider_engine = ProviderEngine()
 
     def search(self, query: str) -> dict[str, Any]:
         normalized_query = query.lower().strip()
 
-        results = [
-            provider.search(normalized_query)
-            for provider in self.providers
-        ]
+        provider_result = self.provider_engine.search(normalized_query)
 
-        found_results = [
-            result for result in results
-            if result.get("found")
-        ]
-
-        if found_results:
-            best_result = max(
-                found_results,
-                key=lambda result: result.get("confidence", 0.0),
-            )
-        else:
-            best_result = max(
-                results,
-                key=lambda result: result.get("confidence", 0.0),
-            )
+        best = provider_result["best_result"]
 
         return {
             "agent": self.name,
             "query": normalized_query,
-            "answer": best_result.get("answer"),
-            "found": best_result.get("found", False),
-            "confidence": best_result.get("confidence", 0.0),
-            "provider": best_result.get("provider"),
-            "sources": best_result.get("sources", []),
-            "all_results": results,
+            "answer": best.get("answer"),
+            "found": best.get("found", False),
+            "confidence": best.get("confidence", 0.0),
+            "provider": best.get("provider"),
+            "sources": best.get("sources", []),
+            "all_results": provider_result["results"],
+            "provider_count": provider_result["provider_count"],
         }
 
     def analyze(self, workspace) -> dict[str, Any]:
