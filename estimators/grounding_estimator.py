@@ -9,13 +9,23 @@ class GroundingEstimator:
     """
     Estimates factual grounding.
 
-    Grounding measures sources, evidence, facts,
-    verification markers and concrete anchors.
+    Grounding combines:
+
+    - linguistic evidence markers
+    - available knowledge
+    - source confidence
+
+    Future versions will also integrate:
+    - Web search
+    - LLM providers
+    - PDF knowledge
+    - Scientific databases
     """
 
     name = "grounding"
 
     def run(self, workspace: CognitiveWorkspace) -> CognitiveWorkspace:
+
         text = workspace.text.lower()
 
         markers = [
@@ -44,17 +54,74 @@ class GroundingEstimator:
             "statistiques",
         ]
 
-        hits = [marker for marker in markers if marker in text]
-        score = min(1.0, 0.20 + len(hits) * 0.08)
+        hits = [
+            marker
+            for marker in markers
+            if marker in text
+        ]
+
+        linguistic_score = min(
+            1.0,
+            0.20 + len(hits) * 0.08,
+        )
+
+        # ----------------------------------------
+        # Knowledge contribution
+        # ----------------------------------------
+
+        knowledge = workspace.interpretations.get(
+            "knowledge",
+            {},
+        )
+
+        knowledge_found = knowledge.get(
+            "found",
+            False,
+        )
+
+        knowledge_confidence = knowledge.get(
+            "confidence",
+            0.0,
+        )
+
+        if knowledge_found:
+
+            knowledge_bonus = (
+                0.25 * knowledge_confidence
+            )
+
+        else:
+
+            knowledge_bonus = 0.0
+
+        score = min(
+            1.0,
+            linguistic_score + knowledge_bonus,
+        )
 
         workspace.set(
             self.name,
             score,
             {
                 "estimator": self.name,
+
                 "hits": hits,
+
                 "hit_count": len(hits),
-                "summary": "Grounding estimated from factual and evidential markers.",
+
+                "linguistic_score": linguistic_score,
+
+                "knowledge_found": knowledge_found,
+
+                "knowledge_confidence": knowledge_confidence,
+
+                "knowledge_bonus": knowledge_bonus,
+
+                "summary":
+                    (
+                        "Grounding estimated from linguistic "
+                        "markers and available knowledge."
+                    ),
             },
         )
 
