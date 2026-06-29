@@ -143,7 +143,7 @@ class ConceptExtractor:
             "summary": "Concepts extracted from text and available knowledge.",
         }
 
-        workspace.set(
+        workspace.set_raw(
             "concept_count",
             len(all_concepts),
             {
@@ -152,7 +152,7 @@ class ConceptExtractor:
             },
         )
         
-        workspace.set(
+        workspace.set_raw(
             "relation_count",
             len(relations),
             {
