@@ -9,6 +9,7 @@ from typing import Any
 from core.cognitive_workspace import CognitiveWorkspace
 from estimators.estimator_engine import EstimatorEngine
 from formulas.doxa_formula_engine import DoxaFormulaEngine
+from committee.cognitive_committee import CognitiveCommittee
 
 from agents.nous_agent import NousAgent
 from agents.doxa_agent import DoxaAgent
@@ -22,6 +23,7 @@ class DoxaEnginePhase2:
     def __init__(self):
         self.estimator_engine = EstimatorEngine()
         self.formula_engine = DoxaFormulaEngine()
+        self.committee = CognitiveCommittee()
 
         self.agents = [
             NousAgent(),
@@ -42,6 +44,8 @@ class DoxaEnginePhase2:
             result = agent.analyze(workspace)
             agent_results[agent.name] = result
 
+        committee_result = self.committee.synthesize(workspace)
+
         formulas = self.formula_engine.compute(workspace)
 
         report = {
@@ -49,8 +53,14 @@ class DoxaEnginePhase2:
             "text": text,
             "workspace": workspace.snapshot(),
             "agent_results": agent_results,
+            "committee": committee_result,
             "formulas": formulas,
-            "summary": self._build_summary(workspace, agent_results, formulas),
+            "summary": self._build_summary(
+                workspace,
+                agent_results,
+                committee_result,
+                formulas,
+            ),
         }
 
         return report
@@ -59,6 +69,7 @@ class DoxaEnginePhase2:
         self,
         workspace: CognitiveWorkspace,
         agent_results: dict[str, Any],
+        committee_result: dict[str, Any],
         formulas: dict[str, Any],
     ) -> dict[str, Any]:
 
@@ -77,6 +88,9 @@ class DoxaEnginePhase2:
             "surconfidence": derived["surconfidence"],
             "cognitive_closure": derived["cognitive_closure"],
             "forgotten_reduction_pressure": derived["forgotten_reduction_pressure"],
+            "committee_diagnosis": committee_result["diagnosis"],
+            "committee_confidence": committee_result["confidence"],
+            "committee_orientation": committee_result["dominant_orientation"],
             "diagnosis": formulas["diagnosis"],
             "agent_count": len(agent_results),
         }
