@@ -2,12 +2,13 @@
 Cognitive Dynamics
 
 Defines abstract cognitive dynamics used by DeDe to transform
-signals into structural influences on Gnosis, Nous, Doxa,
-Reduction and Revisability.
+signals into structural cognitive values.
 
-This layer does not replace agents.
-It provides deeper cognitive forces that agents and committees
-can later use without depending directly on language markers.
+Dynamics do not decide how they affect Gnosis, Nous, Doxa,
+Reduction or Revisability.
+
+They only produce normalized cognitive forces.
+Agents decide how to use those forces.
 """
 
 from dataclasses import dataclass
@@ -17,7 +18,6 @@ from dataclasses import dataclass
 class CognitiveDynamicResult:
     name: str
     value: float
-    affects: dict[str, float]
     description: str
 
 
@@ -25,7 +25,7 @@ class BaseCognitiveDynamic:
     """
     Base class for cognitive dynamics.
     A dynamic receives abstract signals and returns a value
-    between 0.0 and 1.0 with its influence on cognitive dimensions.
+    between 0.0 and 1.0.
     """
 
     name = "base_dynamic"
@@ -37,8 +37,48 @@ class BaseCognitiveDynamic:
         return CognitiveDynamicResult(
             name=self.name,
             value=0.0,
-            affects={},
             description="No dynamic effect detected.",
+        )
+
+    def _clamp(
+        self,
+        value: float,
+    ) -> float:
+        return max(
+            0.0,
+            min(
+                1.0,
+                value,
+            ),
+        )
+
+
+class GroundingDynamic(BaseCognitiveDynamic):
+    """
+    Measures how strongly a discourse is constrained by factual,
+    empirical, contextual or verifiable grounding.
+    """
+
+    name = "grounding"
+
+    def evaluate(
+        self,
+        signals: dict,
+    ) -> CognitiveDynamicResult:
+        value = signals.get(
+            "grounding_signal",
+            0.0,
+        )
+
+        value = self._clamp(value)
+
+        return CognitiveDynamicResult(
+            name=self.name,
+            value=value,
+            description=(
+                "Grounding measures how strongly a discourse remains "
+                "constrained by facts, sources, evidence, context or verification."
+            ),
         )
 
 
@@ -64,26 +104,9 @@ class ClosureDynamic(BaseCognitiveDynamic):
         return CognitiveDynamicResult(
             name=self.name,
             value=value,
-            affects={
-                "doxa": value * 0.20,
-                "revisability": -value * 0.15,
-                "nous": -value * 0.05,
-            },
             description=(
-                "Closure increases Doxa pressure, reduces revisability "
-                "and may weaken integrated understanding."
-            ),
-        )
-
-    def _clamp(
-        self,
-        value: float,
-    ) -> float:
-        return max(
-            0.0,
-            min(
-                1.0,
-                value,
+                "Closure measures the reduction of open alternatives, "
+                "revision space and uncertainty tolerance."
             ),
         )
 
@@ -110,26 +133,9 @@ class IntegrationDynamic(BaseCognitiveDynamic):
         return CognitiveDynamicResult(
             name=self.name,
             value=value,
-            affects={
-                "nous": value * 0.25,
-                "revisability": value * 0.10,
-                "reduction": -value * 0.10,
-            },
             description=(
-                "Integration strengthens Nous, supports revisability "
-                "and reduces reduction pressure."
-            ),
-        )
-
-    def _clamp(
-        self,
-        value: float,
-    ) -> float:
-        return max(
-            0.0,
-            min(
-                1.0,
-                value,
+                "Integration measures how strongly facts, context "
+                "and meaning are connected."
             ),
         )
 
@@ -156,37 +162,21 @@ class ReductionDynamic(BaseCognitiveDynamic):
         return CognitiveDynamicResult(
             name=self.name,
             value=value,
-            affects={
-                "reduction": value * 0.25,
-                "nous": -value * 0.10,
-                "doxa": value * 0.05,
-            },
             description=(
-                "Reduction increases reduction pressure, weakens Nous "
-                "and may slightly increase Doxa through simplification."
-            ),
-        )
-
-    def _clamp(
-        self,
-        value: float,
-    ) -> float:
-        return max(
-            0.0,
-            min(
-                1.0,
-                value,
+                "Reduction measures how much complexity, alternatives "
+                "or missing dimensions disappear from the discourse."
             ),
         )
 
 
 class CognitiveDynamicsEngine:
     """
-    Runs cognitive dynamics and returns their combined influence.
+    Runs cognitive dynamics and returns their normalized values.
     """
 
     def __init__(self):
         self.dynamics = [
+            GroundingDynamic(),
             ClosureDynamic(),
             IntegrationDynamic(),
             ReductionDynamic(),
@@ -197,13 +187,6 @@ class CognitiveDynamicsEngine:
         signals: dict,
     ) -> dict:
         results = []
-        combined_affects = {
-            "gnosis": 0.0,
-            "nous": 0.0,
-            "doxa": 0.0,
-            "reduction": 0.0,
-            "revisability": 0.0,
-        }
 
         for dynamic in self.dynamics:
             result = dynamic.evaluate(
@@ -214,18 +197,17 @@ class CognitiveDynamicsEngine:
                 result
             )
 
-            for key, value in result.affects.items():
-                combined_affects[key] += value
-
         return {
             "results": [
                 {
                     "name": result.name,
                     "value": result.value,
-                    "affects": result.affects,
                     "description": result.description,
                 }
                 for result in results
             ],
-            "combined_affects": combined_affects,
+            "values": {
+                result.name: result.value
+                for result in results
+            },
         }
