@@ -9,6 +9,8 @@ Text
     ↓
 Knowledge
     ↓
+Concept Extraction
+    ↓
 Estimators
     ↓
 Cognitive Workspace
@@ -27,6 +29,7 @@ from typing import Any
 from core.cognitive_workspace import CognitiveWorkspace
 
 from knowledge.knowledge_agent import KnowledgeAgent
+from knowledge.concept_extractor import ConceptExtractor
 
 from estimators.estimator_engine import EstimatorEngine
 
@@ -49,13 +52,11 @@ class DoxaEnginePhase2:
     """
 
     def __init__(self):
-
         self.knowledge = KnowledgeAgent()
+        self.concept_extractor = ConceptExtractor()
 
         self.estimator_engine = EstimatorEngine()
-
         self.committee = CognitiveCommittee()
-
         self.formula_engine = DoxaFormulaEngine()
 
         self.agents = [
@@ -74,17 +75,19 @@ class DoxaEnginePhase2:
         # Knowledge
         # -------------------------------------------------
 
-        knowledge_result = self.knowledge.analyze(
-            workspace
-        )
+        knowledge_result = self.knowledge.analyze(workspace)
+
+        # -------------------------------------------------
+        # Concept extraction
+        # -------------------------------------------------
+
+        workspace = self.concept_extractor.run(workspace)
 
         # -------------------------------------------------
         # Estimation layer
         # -------------------------------------------------
 
-        workspace = self.estimator_engine.run(
-            workspace
-        )
+        workspace = self.estimator_engine.run(workspace)
 
         # -------------------------------------------------
         # Cognitive agents
@@ -93,51 +96,34 @@ class DoxaEnginePhase2:
         agent_results = {}
 
         for agent in self.agents:
-
-            result = agent.analyze(
-                workspace
-            )
-
-            agent_results[
-                agent.name
-            ] = result
+            result = agent.analyze(workspace)
+            agent_results[agent.name] = result
 
         # -------------------------------------------------
         # Committee
         # -------------------------------------------------
 
-        committee_result = self.committee.synthesize(
-            workspace
-        )
+        committee_result = self.committee.synthesize(workspace)
 
         # -------------------------------------------------
         # Formula engine
         # -------------------------------------------------
 
-        formulas = self.formula_engine.compute(
-            workspace
-        )
+        formulas = self.formula_engine.compute(workspace)
 
         # -------------------------------------------------
         # Report
         # -------------------------------------------------
 
         report = {
-
             "phase": "phase_2_cognitive_mechanics",
-
             "text": text,
-
             "knowledge": knowledge_result,
-
+            "concepts": workspace.interpretations.get("concepts", {}),
             "workspace": workspace.snapshot(),
-
             "agent_results": agent_results,
-
             "committee": committee_result,
-
             "formulas": formulas,
-
             "summary": self._build_summary(
                 workspace,
                 committee_result,
@@ -158,45 +144,19 @@ class DoxaEnginePhase2:
         derived = formulas["derived"]
 
         return {
-
             "grounding": workspace.get("grounding"),
-
             "integration": workspace.get("integration"),
-
             "closure": workspace.get("closure"),
-
             "reduction": workspace.get("reduction"),
-
-            "cognitive_balance":
-                core["cognitive_balance"],
-
-            "mecroyance_pressure":
-                core["mecroyance_pressure"],
-
-            "mecroyance_risk":
-                core["mecroyance_risk"],
-
-            "revisability":
-                core["revisability"],
-
-            "surconfidence":
-                derived["surconfidence"],
-
-            "cognitive_closure":
-                derived["cognitive_closure"],
-
-            "forgotten_reduction_pressure":
-                derived["forgotten_reduction_pressure"],
-
-            "committee_diagnosis":
-                committee_result["diagnosis"],
-
-            "committee_confidence":
-                committee_result["confidence"],
-
-            "committee_orientation":
-                committee_result["dominant_orientation"],
-
-            "diagnosis":
-                formulas["diagnosis"],
+            "cognitive_balance": core["cognitive_balance"],
+            "mecroyance_pressure": core["mecroyance_pressure"],
+            "mecroyance_risk": core["mecroyance_risk"],
+            "revisability": core["revisability"],
+            "surconfidence": derived["surconfidence"],
+            "cognitive_closure": derived["cognitive_closure"],
+            "forgotten_reduction_pressure": derived["forgotten_reduction_pressure"],
+            "committee_diagnosis": committee_result["diagnosis"],
+            "committee_confidence": committee_result["confidence"],
+            "committee_orientation": committee_result["dominant_orientation"],
+            "diagnosis": formulas["diagnosis"],
         }
