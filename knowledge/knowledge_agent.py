@@ -1,103 +1,80 @@
 """
 DeDe - Knowledge Agent
 
-Phase 2 compatible knowledge component.
+Phase 2 knowledge orchestrator.
 
-The KnowledgeAgent currently uses a local knowledge base.
-Later, it will orchestrate multiple knowledge providers:
-- local knowledge
-- web search
-- LLMs
-- documents
-- external databases
+The KnowledgeAgent no longer contains knowledge directly.
+It coordinates knowledge providers and writes structured knowledge
+results into the CognitiveWorkspace.
 """
 
 from typing import Any
 
+from knowledge.providers.local_provider import LocalProvider
+
 
 class KnowledgeAgent:
     """
-    Local knowledge provider and future knowledge orchestrator.
+    Knowledge orchestrator.
 
-    This component does not diagnose.
-    It retrieves knowledge and returns a structured knowledge result.
+    Current provider:
+    - LocalProvider
+
+    Future providers:
+    - WebProvider
+    - LLMProvider
+    - PDFProvider
+    - WikipediaProvider
     """
 
     name = "knowledge"
 
     def __init__(self):
-        self.knowledge_base = {
-            "what is gravity":
-                "Gravity is the attraction between masses.",
-
-            "who discovered relativity":
-                "Albert Einstein developed General Relativity.",
-
-            "what is cognition":
-                "Cognition refers to processes involved in acquiring and using knowledge.",
-
-            "what is mecroyance":
-                (
-                    "Mecroyance is a cognitive condition in which certainty "
-                    "stabilizes faster than understanding."
-                ),
-
-            "what is doxa":
-                (
-                    "Doxa refers to stabilized certainty that can become "
-                    "resistant to revision."
-                ),
-        }
+        self.providers = [
+            LocalProvider(),
+        ]
 
     def search(self, query: str) -> dict[str, Any]:
-        """
-        Search the local knowledge base.
-        """
-
         normalized_query = query.lower().strip()
 
-        answer = self.knowledge_base.get(
-            normalized_query,
-            "Knowledge not found in local knowledge base.",
-        )
+        results = [
+            provider.search(normalized_query)
+            for provider in self.providers
+        ]
 
-        found = "not found" not in answer.lower()
+        found_results = [
+            result for result in results
+            if result.get("found")
+        ]
 
-        confidence = 0.90 if found else 0.10
+        if found_results:
+            best_result = max(
+                found_results,
+                key=lambda result: result.get("confidence", 0.0),
+            )
+        else:
+            best_result = max(
+                results,
+                key=lambda result: result.get("confidence", 0.0),
+            )
 
         return {
             "agent": self.name,
             "query": normalized_query,
-            "answer": answer,
-            "found": found,
-            "confidence": confidence,
-            "sources": [
-                {
-                    "type": "local",
-                    "name": "local_knowledge_base",
-                    "confidence": confidence,
-                }
-            ],
-            "provider": "local_knowledge_base",
+            "answer": best_result.get("answer"),
+            "found": best_result.get("found", False),
+            "confidence": best_result.get("confidence", 0.0),
+            "provider": best_result.get("provider"),
+            "sources": best_result.get("sources", []),
+            "all_results": results,
         }
 
     def analyze(self, workspace) -> dict[str, Any]:
-        """
-        Phase 2 entry point.
-
-        Read the text from the CognitiveWorkspace and store
-        the knowledge result as an interpretation.
-        """
-
         result = self.search(workspace.text)
 
         workspace.add_interpretation(self.name, result)
 
         return result
-
-    # -----------------------------------------------------
-    # Legacy Phase 1 compatibility
-    # -----------------------------------------------------
 
     def can_handle(self, state) -> bool:
         return True
