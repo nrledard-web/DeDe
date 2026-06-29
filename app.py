@@ -72,6 +72,41 @@ if st.button("Analyze"):
         pct(summary["cognitive_balance"]),
     )
 
+    formulas = report["formulas"]
+    core = formulas["core"]
+    derived = formulas["derived"]
+
+    st.subheader("DOXA Formula Metrics")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        show_metric("Support", core["support"])
+        show_metric("Pressure", core["pressure"])
+
+    with col2:
+        show_metric("Mecroyance Pressure", core["mecroyance_pressure"])
+        show_metric("Mecroyance Risk", core["mecroyance_risk"])
+
+    with col3:
+        show_metric("Revisability", core["revisability"])
+        show_metric("Surconfidence", derived["surconfidence"])
+
+    st.subheader("Derived Cognitive Pressures")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        show_metric("Cognitive Closure", derived["cognitive_closure"])
+
+    with col2:
+        show_metric(
+            "Forgotten Reduction",
+            derived["forgotten_reduction_pressure"],
+        )
+
+    st.info(formulas["diagnosis"])
+
     st.subheader("Agent Interpretations")
 
     for name, result in agent_results.items():
