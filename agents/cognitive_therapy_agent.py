@@ -1,123 +1,106 @@
 """
 DeDe - Cognitive Therapy Agent
 
-The Cognitive Therapy Agent proposes cognitive recalibration strategies,
+Phase 2 cognitive agent.
+
+The Cognitive Therapy Agent no longer depends on CognitiveState
+or previous symbolic agent chains.
+
+It reads the CognitiveWorkspace and proposes recalibration strategies,
 alternative hypotheses and revisability improvements.
 """
 
 from typing import Any
 
-from core.cognitive_state import CognitiveState
-from interfaces.cognitive_agent import CognitiveAgent
+from core.cognitive_workspace import CognitiveWorkspace
 
 
-class CognitiveTherapyAgent(CognitiveAgent):
+class CognitiveTherapyAgent:
     """
-    Cognitive agent responsible for restoring revisability and cognitive balance.
+    Cognitive agent responsible for restoring revisability
+    and cognitive balance.
+
+    Cognitive Therapy reads:
+    - Grounding
+    - Integration
+    - Closure
+    - Reduction
+    - Agent interpretations already stored in the workspace
     """
 
     name = "cognitive_therapy"
 
-    def __init__(self):
-        self.workspace = None
+    def analyze(self, workspace: CognitiveWorkspace) -> dict[str, Any]:
+        """
+        Propose cognitive recalibration from the shared workspace.
+        """
 
-    def can_handle(self, state: CognitiveState) -> bool:
-        return bool(state.user_input.strip())
+        grounding = workspace.get("grounding")
+        integration = workspace.get("integration")
+        closure = workspace.get("closure")
+        reduction = workspace.get("reduction")
 
-    def analyze(self, state: CognitiveState) -> dict[str, Any]:
+        interpretations = workspace.interpretations
 
-        previous_context = ""
-        previous_signals = []
+        nous = interpretations.get("nous", {})
+        doxa = interpretations.get("doxa", {})
+        reduction_view = interpretations.get("reduction", {})
+        nouscope = interpretations.get("nouscope", {})
 
-        knowledge_quality = "unknown"
-        nous_level = None
-        doxa_level_from_committee = None
-        reduction_level_from_committee = None
-        cognitive_filter_level = None
+        nous_level = nous.get("nous_level")
+        doxa_level = doxa.get("doxa_level")
+        reduction_level = reduction_view.get("reduction_level")
+        cognitive_filter_level = nouscope.get("cognitive_filter_level")
 
-        if self.workspace is not None:
-            previous_context = self.workspace.previous_summary(
-                "Cognitive Therapy"
-            )
-
-            previous_signals = self.workspace.previous_signals(
-                "Cognitive Therapy"
-            )
-
-            for signal in previous_signals:
-                if signal.get("agent") == "knowledge":
-                    answer = signal.get("answer", "")
-
-                    if (
-                        answer
-                        and "not found" not in answer.lower()
-                    ):
-                        knowledge_quality = "available"
-                    else:
-                        knowledge_quality = "missing"
-
-                elif signal.get("agent") == "nous":
-                    nous_level = signal.get("nous_level")
-
-                elif signal.get("agent") == "doxa":
-                    doxa_level_from_committee = signal.get(
-                        "doxa_level"
-                    )
-
-                elif signal.get("agent") == "reduction":
-                    reduction_level_from_committee = signal.get(
-                        "reduction_level"
-                    )
-
-                elif signal.get("agent") == "nouscope":
-                    cognitive_filter_level = signal.get(
-                        "cognitive_filter_level"
-                    )
-
-        doxa_level = state.doxa_level or 0.0
-        reduction_level = state.reduction_level or 0.0
-        gnosis_level = state.gnosis_level or 0.0
-        nous_state_level = state.nous_level or 0.0
-
-        recalibration_needed = (
-            doxa_level > 0.65
-            or reduction_level > 0.60
-            or (gnosis_level + nous_state_level) < doxa_level
+        recalibration_pressure = max(
+            0.0,
+            min(
+                1.0,
+                (closure * 0.35)
+                + (reduction * 0.30)
+                - (grounding * 0.15)
+                - (integration * 0.15)
+                + 0.25,
+            ),
         )
+
+        recalibration_needed = recalibration_pressure >= 0.50
 
         strategies = []
 
-        if doxa_level > 0.65:
+        if closure >= 0.60:
             strategies.append(
-                "Reduce certainty by introducing alternative interpretations."
+                "Reduce certainty pressure by introducing alternative interpretations."
             )
 
-        if reduction_level > 0.60:
+        if reduction >= 0.60:
             strategies.append(
                 "Expand the frame by identifying hidden assumptions and missing dimensions."
             )
 
-        if gnosis_level < 0.40:
+        if grounding < 0.40:
             strategies.append(
                 "Strengthen factual grounding through verification, sources and evidence."
             )
 
-        if nous_state_level < 0.40:
+        if integration < 0.40:
             strategies.append(
                 "Improve integrated understanding by connecting facts, context and meaning."
             )
 
-        if (
-            cognitive_filter_level is not None
-            and cognitive_filter_level > 0.60
-        ):
+        if cognitive_filter_level is not None and cognitive_filter_level >= 0.60:
             strategies.append(
                 "Examine possible cognitive filters influencing interpretation."
             )
 
-        if knowledge_quality == "missing":
+        if doxa_level is not None and doxa_level >= 0.60:
             strategies.append(
-                "Clarify or retrieve missing knowledge before final interpretation."
+                "Preserve revisability by lowering doxastic pressure."
+            )
+
+        if reduction_level is not None and reduction_level >= 0.60:
+            strategies.append(
+                "Check whether reduction pressure is hiding relevant dimensions."
             )
 
         if not strategies:
@@ -125,80 +108,47 @@ class CognitiveTherapyAgent(CognitiveAgent):
                 "Maintain cognitive revisability while preserving the current interpretive structure."
             )
 
-        revisability_level = min(
-            1.0,
-            0.40
-            + len(strategies) * 0.10
-            + max(0.0, 1.0 - doxa_level) * 0.20,
+        revisability_level = max(
+            0.0,
+            min(
+                1.0,
+                (grounding * 0.25)
+                + (integration * 0.30)
+                - (closure * 0.20)
+                - (reduction * 0.15)
+                + 0.45,
+            ),
         )
 
-        summary = (
-            "Cognitive recalibration is recommended after reviewing the committee."
-            if recalibration_needed
-            else "Cognitive state appears sufficiently revisable after committee review."
-        )
-
-        if knowledge_quality == "missing":
+        if recalibration_needed:
+            summary = "Cognitive recalibration is recommended."
             committee_reply = (
-                "The committee should retrieve missing knowledge before consolidating interpretation."
+                "The committee should preserve revisability before stabilizing interpretation."
             )
-
-        elif (
-            nous_level is not None
-            and nous_level < 0.50
-        ):
-            committee_reply = (
-                "The committee should strengthen conceptual integration before increasing certainty."
-            )
-
-        elif (
-            doxa_level_from_committee is not None
-            and doxa_level_from_committee > 0.60
-        ):
-            committee_reply = (
-                "The committee should reduce certainty pressure and preserve revisability."
-            )
-
-        elif (
-            reduction_level_from_committee is not None
-            and reduction_level_from_committee > 0.60
-        ):
-            committee_reply = (
-                "The committee should expand the frame before stabilizing its conclusion."
-            )
-
-        elif (
-            cognitive_filter_level is not None
-            and cognitive_filter_level > 0.60
-        ):
-            committee_reply = (
-                "The committee should examine cognitive filters before final interpretation."
-            )
-
         else:
+            summary = "Cognitive state appears sufficiently revisable."
             committee_reply = (
-                "Current revisability is sufficient, but deeper integration would improve cognitive stability."
+                "Current revisability is sufficient, but deeper integration may improve stability."
             )
 
         result = {
             "agent": self.name,
             "recalibration_needed": recalibration_needed,
+            "recalibration_pressure": recalibration_pressure,
             "revisability_level": revisability_level,
             "strategies": strategies,
-
-            "previous_context": previous_context,
-            "previous_signals": previous_signals,
-
-            "knowledge_quality": knowledge_quality,
+            "grounding": grounding,
+            "integration": integration,
+            "closure": closure,
+            "reduction": reduction,
             "nous_level": nous_level,
-            "doxa_level_from_committee": doxa_level_from_committee,
-            "reduction_level_from_committee": reduction_level_from_committee,
+            "doxa_level_from_committee": doxa_level,
+            "reduction_level_from_committee": reduction_level,
             "cognitive_filter_level": cognitive_filter_level,
-
             "summary": summary,
             "committee_reply": committee_reply,
         }
 
-        state.revisability_level = revisability_level
+        workspace.add_interpretation(self.name, result)
 
         return result
