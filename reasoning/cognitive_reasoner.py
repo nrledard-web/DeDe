@@ -6,6 +6,8 @@ Intermediate reasoning layer between graph queries and agents.
 The Cognitive Reasoner uses:
 - semantic graph structure
 - graph query results
+- causal paths
+- key paths
 - workspace context
 
 It produces:
@@ -15,6 +17,7 @@ It produces:
 - missing links
 - predictions
 - counterfactuals
+- inference chains
 """
 
 from typing import Any
@@ -36,15 +39,11 @@ class CognitiveReasoner:
     ) -> dict[str, Any]:
 
         central_nodes = graph_queries.get("central_nodes", [])
-        important_nodes = graph_queries.get("important_nodes", [])
-        causal_paths = graph_queries.get("causal_paths", [])
-        key_paths = graph_queries.get("key_paths", [])
+        llm_context = graph_queries.get("llm_context", {})
+        causal_paths = llm_context.get("causal_paths", [])
+        key_paths = graph_queries.get("key_paths", {})
 
-        nodes = self._extract_node_names(
-            central_nodes,
-            important_nodes,
-        )
-
+        nodes = self._extract_node_names(central_nodes)
         node_set = set(nodes)
 
         hypotheses = []
@@ -53,6 +52,11 @@ class CognitiveReasoner:
         missing_links = []
         predictions = []
         counterfactuals = []
+        inference_chains = []
+
+        # --------------------------------------------------
+        # Node-based reasoning
+        # --------------------------------------------------
 
         if "certainty" in node_set and "understanding" in node_set:
             hypotheses.append(
@@ -86,15 +90,98 @@ class CognitiveReasoner:
                 "The reasoning may contain a risk of mecroyance if certainty exceeds integrated understanding."
             )
 
-        if causal_paths:
+        # --------------------------------------------------
+        # Causal path reasoning
+        # --------------------------------------------------
+
+        for path_data in causal_paths:
+            path = path_data.get("path", [])
+
+            readable_path = self._format_path(path)
+
+            if readable_path:
+                inference_chains.append(readable_path)
+
+            for edge in path:
+                source = edge.get("source")
+                relation = edge.get("relation")
+                target = edge.get("target")
+
+                if (
+                    source == "certainty"
+                    and relation == "can_increase"
+                    and target == "closure"
+                ):
+                    explanations.append(
+                        "The graph indicates that certainty may increase cognitive closure."
+                    )
+
+                    predictions.append(
+                        "If certainty rises without stronger grounding or integration, closure may increase."
+                    )
+
+                if (
+                    source == "closure"
+                    and relation == "reduces"
+                    and target == "revisability"
+                ):
+                    explanations.append(
+                        "The graph indicates that closure reduces revisability."
+                    )
+
+                    counterfactuals.append(
+                        "If closure decreases, revisability should become easier to preserve."
+                    )
+
+                if (
+                    source == "reduction"
+                    and relation == "can_produce"
+                    and target == "closure"
+                ):
+                    hypotheses.append(
+                        "Forgotten or unexamined reduction may contribute to cognitive closure."
+                    )
+
+                if (
+                    source == "revisability"
+                    and relation == "limits"
+                    and target == "mecroyance"
+                ):
+                    explanations.append(
+                        "Revisability appears as a limiting factor against mecroyance."
+                    )
+
+                if (
+                    source == "cognitive_filter"
+                    and relation == "shapes"
+                    and target == "understanding"
+                ):
+                    hypotheses.append(
+                        "The cognitive filter may influence how understanding is formed."
+                    )
+
+        # --------------------------------------------------
+        # Key path reasoning
+        # --------------------------------------------------
+
+        if key_paths.get("certainty_to_revisability"):
             explanations.append(
-                "Causal paths suggest that some concepts organize the direction of reasoning."
+                "A key path connects certainty to revisability, suggesting that certainty is not necessarily closed."
             )
 
-        if key_paths:
+        if key_paths.get("reduction_to_revisability"):
             hypotheses.append(
-                "Key semantic paths may reveal the internal architecture of the argument."
+                "The reduction-to-revisability path suggests that reduction may affect openness through closure."
             )
+
+        if key_paths.get("cognitive_filter_to_understanding"):
+            missing_links.append(
+                "The system should clarify which cognitive filters shape the current understanding."
+            )
+
+        # --------------------------------------------------
+        # Fallback
+        # --------------------------------------------------
 
         if not hypotheses:
             hypotheses.append(
@@ -104,12 +191,13 @@ class CognitiveReasoner:
         return {
             "status": "ready",
             "nodes_considered": sorted(node_set),
-            "hypotheses": hypotheses,
-            "contradictions": contradictions,
-            "explanations": explanations,
-            "missing_links": missing_links,
-            "predictions": predictions,
-            "counterfactuals": counterfactuals,
+            "hypotheses": self._unique(hypotheses),
+            "contradictions": self._unique(contradictions),
+            "explanations": self._unique(explanations),
+            "missing_links": self._unique(missing_links),
+            "predictions": self._unique(predictions),
+            "counterfactuals": self._unique(counterfactuals),
+            "inference_chains": self._unique(inference_chains),
         }
 
     def _extract_node_names(
@@ -124,6 +212,7 @@ class CognitiveReasoner:
         - dictionaries such as {"node": "..."}
         - dictionaries such as {"name": "..."}
         - dictionaries such as {"id": "..."}
+        - dictionaries such as {"label": "..."}
         """
 
         names = []
@@ -145,3 +234,41 @@ class CognitiveReasoner:
                         names.append(str(name))
 
         return names
+
+    def _format_path(
+        self,
+        path: list[dict[str, Any]],
+    ) -> str:
+        """
+        Converts a graph path into a readable inference chain.
+        """
+
+        parts = []
+
+        for edge in path:
+            source = edge.get("source")
+            relation = edge.get("relation")
+            target = edge.get("target")
+
+            if source and relation and target:
+                parts.append(f"{source} / {relation} / {target}")
+
+        return " → ".join(parts)
+
+    def _unique(
+        self,
+        values: list[str],
+    ) -> list[str]:
+        """
+        Removes duplicates while preserving order.
+        """
+
+        seen = set()
+        unique_values = []
+
+        for value in values:
+            if value not in seen:
+                seen.add(value)
+                unique_values.append(value)
+
+        return unique_values
