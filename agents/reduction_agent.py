@@ -30,7 +30,7 @@ class ReductionAgent:
         closure = workspace.get("closure")
         reduction = workspace.get("reduction")
 
-        semantic = workspace.interpretations.get("semantic", {})
+        semantic = workspace.interpretations.get("semantic_reasoner", {})
 
         assumptions = semantic.get("assumptions", [])
         uncertainties = semantic.get("uncertainties", [])
