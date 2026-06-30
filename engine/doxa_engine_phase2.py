@@ -37,6 +37,8 @@ Cognitive Dialogue Manager
     ↓
 LLM Connector
     ↓
+LLM Bridge
+    ↓
 LLM Response Interpreter
     ↓
 Committee
@@ -68,6 +70,7 @@ from dialogue.cognitive_dialogue_manager import CognitiveDialogueManager
 
 from llm.llm_connector import LLMConnector
 from llm.llm_response_interpreter import LLMResponseInterpreter
+from llm.llm_bridge import LLMBridge
 
 from committee.cognitive_committee import CognitiveCommittee
 
@@ -116,6 +119,7 @@ class DoxaEnginePhase2:
         # LLM preparation layers
         # --------------------------------------------------
         self.llm_connector = LLMConnector()
+        self.llm_bridge = LLMBridge()
         self.llm_response_interpreter = LLMResponseInterpreter()
 
         # --------------------------------------------------
@@ -279,35 +283,49 @@ class DoxaEnginePhase2:
 
         # --------------------------------------------------
         # Phase 4.12
+        # LLM Bridge
+        # --------------------------------------------------
+        llm_bridge_response = self.llm_bridge.ask(
+            llm_package=llm_package,
+            enabled=False,
+        )
+
+        workspace.add_interpretation(
+            "llm_bridge_response",
+            llm_bridge_response,
+        )
+
+        # --------------------------------------------------
+        # Phase 4.13
         # LLM Response Interpreter
         # --------------------------------------------------
         llm_interpretation = self.llm_response_interpreter.interpret(
             llm_package=llm_package,
+            llm_response=llm_bridge_response.get("response"),
         )
 
         workspace.add_interpretation(
             "llm_interpretation",
             llm_interpretation,
         )
-
         # --------------------------------------------------
-        # Phase 4.13
+        # Phase 4.14
         # Cognitive Committee
         # --------------------------------------------------
         committee_result = self.committee.synthesize(workspace)
 
         # --------------------------------------------------
-        # Phase 4.14
+        # Phase 4.15
         # Formula Engine
         # --------------------------------------------------
         formulas = self.formula_engine.compute(workspace)
 
         # --------------------------------------------------
-        # Phase 4.15
+        # Phase 4.16
         # Final Report
         # --------------------------------------------------
         report = {
-            "phase": "phase_4_10_dialogue_manager_ready",
+            "phase": "phase_4_11_llm_bridge_ready",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
@@ -342,6 +360,10 @@ class DoxaEnginePhase2:
             ),
             "llm_package": workspace.interpretations.get(
                 "llm_package",
+                {},
+            ),
+            "llm_bridge_response": workspace.interpretations.get(
+                "llm_bridge_response",
                 {},
             ),
             "llm_interpretation": workspace.interpretations.get(
