@@ -40,14 +40,19 @@ class CognitiveReasoner:
         causal_paths = graph_queries.get("causal_paths", [])
         key_paths = graph_queries.get("key_paths", [])
 
+        nodes = self._extract_node_names(
+            central_nodes,
+            important_nodes,
+        )
+
+        node_set = set(nodes)
+
         hypotheses = []
         contradictions = []
         explanations = []
         missing_links = []
         predictions = []
         counterfactuals = []
-
-        node_set = set(central_nodes + important_nodes)
 
         if "certainty" in node_set and "understanding" in node_set:
             hypotheses.append(
@@ -98,6 +103,7 @@ class CognitiveReasoner:
 
         return {
             "status": "ready",
+            "nodes_considered": sorted(node_set),
             "hypotheses": hypotheses,
             "contradictions": contradictions,
             "explanations": explanations,
@@ -105,3 +111,37 @@ class CognitiveReasoner:
             "predictions": predictions,
             "counterfactuals": counterfactuals,
         }
+
+    def _extract_node_names(
+        self,
+        *node_groups: list[Any],
+    ) -> list[str]:
+        """
+        Extracts node names from graph query results.
+
+        Supports:
+        - strings
+        - dictionaries such as {"node": "..."}
+        - dictionaries such as {"name": "..."}
+        - dictionaries such as {"id": "..."}
+        """
+
+        names = []
+
+        for group in node_groups:
+            for item in group:
+                if isinstance(item, str):
+                    names.append(item)
+
+                elif isinstance(item, dict):
+                    name = (
+                        item.get("node")
+                        or item.get("name")
+                        or item.get("id")
+                        or item.get("label")
+                    )
+
+                    if name:
+                        names.append(str(name))
+
+        return names
