@@ -1,13 +1,13 @@
 """
 DeDe - Cognitive Therapy Agent
 
-Phase 2 cognitive agent.
+Phase 3 cognitive agent.
 
-The Cognitive Therapy Agent no longer depends on CognitiveState
-or previous symbolic agent chains.
+The Cognitive Therapy Agent reads the CognitiveWorkspace and proposes
+recalibration strategies, alternative hypotheses and revisability
+improvements.
 
-It reads the CognitiveWorkspace and proposes recalibration strategies,
-alternative hypotheses and revisability improvements.
+It now uses both agent interpretations and semantic reasoning.
 """
 
 from typing import Any
@@ -19,13 +19,6 @@ class CognitiveTherapyAgent:
     """
     Cognitive agent responsible for restoring revisability
     and cognitive balance.
-
-    Cognitive Therapy reads:
-    - Grounding
-    - Integration
-    - Closure
-    - Reduction
-    - Agent interpretations already stored in the workspace
     """
 
     name = "cognitive_therapy"
@@ -46,11 +39,33 @@ class CognitiveTherapyAgent:
         doxa = interpretations.get("doxa", {})
         reduction_view = interpretations.get("reduction", {})
         nouscope = interpretations.get("nouscope", {})
+        semantic_reasoner = interpretations.get("semantic_reasoner", {})
 
         nous_level = nous.get("nous_level")
         doxa_level = doxa.get("doxa_level")
         reduction_level = reduction_view.get("reduction_level")
         cognitive_filter_level = nouscope.get("cognitive_filter_level")
+
+        assumptions = semantic_reasoner.get("assumptions", [])
+        uncertainties = semantic_reasoner.get("uncertainties", [])
+        alternative_hypotheses = semantic_reasoner.get(
+            "alternative_hypotheses",
+            [],
+        )
+
+        assumption_count = len(assumptions)
+        uncertainty_count = len(uncertainties)
+        alternative_count = len(alternative_hypotheses)
+
+        semantic_recalibration_pressure = max(
+            0.0,
+            min(
+                0.20,
+                assumption_count * 0.04
+                + uncertainty_count * 0.05
+                - alternative_count * 0.02,
+            ),
+        )
 
         recalibration_pressure = max(
             0.0,
@@ -60,7 +75,8 @@ class CognitiveTherapyAgent:
                 + (reduction * 0.30)
                 - (grounding * 0.15)
                 - (integration * 0.15)
-                + 0.25,
+                + 0.25
+                + semantic_recalibration_pressure,
             ),
         )
 
@@ -103,6 +119,21 @@ class CognitiveTherapyAgent:
                 "Check whether reduction pressure is hiding relevant dimensions."
             )
 
+        if assumptions:
+            strategies.append(
+                "Make implicit assumptions explicit before stabilizing the interpretation."
+            )
+
+        if uncertainties:
+            strategies.append(
+                "Clarify unresolved uncertainties before increasing confidence."
+            )
+
+        if alternative_hypotheses:
+            strategies.append(
+                "Compare the current interpretation with available alternative hypotheses."
+            )
+
         if not strategies:
             strategies.append(
                 "Maintain cognitive revisability while preserving the current interpretive structure."
@@ -128,13 +159,14 @@ class CognitiveTherapyAgent:
         else:
             summary = "Cognitive state appears sufficiently revisable."
             committee_reply = (
-                "Current revisability is sufficient, but deeper integration may improve stability."
+                "Current revisability is sufficient, while semantic alternatives should remain available."
             )
 
         result = {
             "agent": self.name,
             "recalibration_needed": recalibration_needed,
             "recalibration_pressure": recalibration_pressure,
+            "semantic_recalibration_pressure": semantic_recalibration_pressure,
             "revisability_level": revisability_level,
             "strategies": strategies,
             "grounding": grounding,
@@ -145,6 +177,9 @@ class CognitiveTherapyAgent:
             "doxa_level_from_committee": doxa_level,
             "reduction_level_from_committee": reduction_level,
             "cognitive_filter_level": cognitive_filter_level,
+            "semantic_assumptions": assumption_count,
+            "semantic_uncertainties": uncertainty_count,
+            "semantic_alternatives": alternative_count,
             "summary": summary,
             "committee_reply": committee_reply,
         }
