@@ -33,7 +33,11 @@ Cognitive Compiler
     ↓
 Cognitive Reasoner
     ↓
+Cognitive Dialogue Manager
+    ↓
 LLM Connector
+    ↓
+LLM Response Interpreter
     ↓
 Committee
     ↓
@@ -54,14 +58,16 @@ from semantic.semantic_reasoner import SemanticReasoner
 from semantic.semantic_graph import SemanticGraph
 from semantic.graph_query_engine import GraphQueryEngine
 
+from estimators.estimator_engine import EstimatorEngine
+
 from reasoning.inference_engine import InferenceEngine
 from reasoning.cognitive_compiler import CognitiveCompiler
 from reasoning.cognitive_reasoner import CognitiveReasoner
 
+from dialogue.cognitive_dialogue_manager import CognitiveDialogueManager
+
 from llm.llm_connector import LLMConnector
 from llm.llm_response_interpreter import LLMResponseInterpreter
-
-from estimators.estimator_engine import EstimatorEngine
 
 from committee.cognitive_committee import CognitiveCommittee
 
@@ -73,25 +79,54 @@ from agents.reduction_agent import ReductionAgent
 from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
 
+
 class DoxaEnginePhase2:
+    """
+    Main orchestrator for DeDe Phase 2.
+
+    This class coordinates all symbolic, semantic, cognitive,
+    inferential and LLM-preparation layers.
+    """
 
     def __init__(self):
+        # --------------------------------------------------
+        # Knowledge and semantic layers
+        # --------------------------------------------------
         self.knowledge = KnowledgeAgent()
         self.concept_extractor = ConceptExtractor()
         self.semantic_engine = SemanticEngine()
         self.semantic_reasoner = SemanticReasoner()
         self.semantic_graph = SemanticGraph()
+
+        # --------------------------------------------------
+        # Estimation layer
+        # --------------------------------------------------
+        self.estimator_engine = EstimatorEngine()
+
+        # --------------------------------------------------
+        # Graph and reasoning layers
+        # --------------------------------------------------
         self.graph_query_engine = GraphQueryEngine()
         self.inference_engine = InferenceEngine()
         self.cognitive_compiler = CognitiveCompiler()
         self.cognitive_reasoner = CognitiveReasoner()
+        self.dialogue_manager = CognitiveDialogueManager()
+
+        # --------------------------------------------------
+        # LLM preparation layers
+        # --------------------------------------------------
         self.llm_connector = LLMConnector()
         self.llm_response_interpreter = LLMResponseInterpreter()
 
-        self.estimator_engine = EstimatorEngine()
+        # --------------------------------------------------
+        # Committee and formula layers
+        # --------------------------------------------------
         self.committee = CognitiveCommittee()
         self.formula_engine = DoxaFormulaEngine()
 
+        # --------------------------------------------------
+        # Cognitive agents
+        # --------------------------------------------------
         self.agents = [
             NousAgent(),
             DoxaAgent(),
@@ -101,22 +136,42 @@ class DoxaEnginePhase2:
         ]
 
     def analyze(self, text: str) -> dict[str, Any]:
+        """
+        Run the complete DeDe Phase 2 cognitive pipeline.
+        """
+
         workspace = CognitiveWorkspace(text=text)
 
+        # --------------------------------------------------
+        # Phase 4.0
+        # Knowledge
+        # --------------------------------------------------
         knowledge_result = self.knowledge.analyze(workspace)
 
+        # --------------------------------------------------
+        # Phase 4.1
+        # Concept Extraction + Semantic Engine + Semantic Reasoner
+        # --------------------------------------------------
         workspace = self.concept_extractor.run(workspace)
         workspace = self.semantic_engine.run(workspace)
         workspace = self.semantic_reasoner.run(workspace)
 
         # --------------------------------------------------
-        # Phase 4.1
+        # Phase 4.2
         # Initial Semantic Graph
         # --------------------------------------------------
         workspace = self.semantic_graph.run(workspace)
 
+        # --------------------------------------------------
+        # Phase 4.3
+        # Estimators
+        # --------------------------------------------------
         workspace = self.estimator_engine.run(workspace)
 
+        # --------------------------------------------------
+        # Phase 4.4
+        # Cognitive Agents
+        # --------------------------------------------------
         agent_results = {}
 
         for agent in self.agents:
@@ -124,7 +179,7 @@ class DoxaEnginePhase2:
             agent_results[agent.name] = result
 
         # --------------------------------------------------
-        # Phase 4.2
+        # Phase 4.5
         # Cognitive Graph Enrichment
         # --------------------------------------------------
         workspace = self.semantic_graph.enrich_from_agents(
@@ -133,7 +188,7 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
-        # Phase 4.3
+        # Phase 4.6
         # Graph Query Engine
         # --------------------------------------------------
         graph_queries = self.graph_query_engine.analyze(
@@ -149,7 +204,7 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
-        # Phase 4.4
+        # Phase 4.7
         # Inference Engine
         # --------------------------------------------------
         inference_patterns = self.inference_engine.analyze(
@@ -162,7 +217,7 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
-        # Phase 4.5
+        # Phase 4.8
         # Cognitive Compiler
         # --------------------------------------------------
         cognitive_state = self.cognitive_compiler.compile(
@@ -176,7 +231,7 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
-        # Phase 4.6
+        # Phase 4.9
         # Cognitive Reasoner
         # --------------------------------------------------
         cognitive_reasoning = self.cognitive_reasoner.run(
@@ -191,7 +246,23 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
-        # Phase 4.7
+        # Phase 4.10
+        # Cognitive Dialogue Manager
+        # --------------------------------------------------
+        dialogue_decision = self.dialogue_manager.decide(
+            text=text,
+            knowledge=knowledge_result,
+            cognitive_state=cognitive_state,
+            cognitive_reasoning=cognitive_reasoning,
+        )
+
+        workspace.add_interpretation(
+            "dialogue_decision",
+            dialogue_decision,
+        )
+
+        # --------------------------------------------------
+        # Phase 4.11
         # LLM Connector
         # --------------------------------------------------
         llm_package = self.llm_connector.build_prompt_package(
@@ -207,24 +278,36 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
-        # Phase 4.8
+        # Phase 4.12
         # LLM Response Interpreter
         # --------------------------------------------------
         llm_interpretation = self.llm_response_interpreter.interpret(
             llm_package=llm_package,
         )
-        
+
         workspace.add_interpretation(
             "llm_interpretation",
             llm_interpretation,
         )
 
+        # --------------------------------------------------
+        # Phase 4.13
+        # Cognitive Committee
+        # --------------------------------------------------
         committee_result = self.committee.synthesize(workspace)
 
+        # --------------------------------------------------
+        # Phase 4.14
+        # Formula Engine
+        # --------------------------------------------------
         formulas = self.formula_engine.compute(workspace)
 
+        # --------------------------------------------------
+        # Phase 4.15
+        # Final Report
+        # --------------------------------------------------
         report = {
-            "phase": "phase_4_8_llm_response_interpreter_ready",
+            "phase": "phase_4_10_dialogue_manager_ready",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
@@ -251,6 +334,10 @@ class DoxaEnginePhase2:
             ),
             "cognitive_reasoning": workspace.interpretations.get(
                 "cognitive_reasoning",
+                {},
+            ),
+            "dialogue_decision": workspace.interpretations.get(
+                "dialogue_decision",
                 {},
             ),
             "llm_package": workspace.interpretations.get(
@@ -280,6 +367,10 @@ class DoxaEnginePhase2:
         committee_result: dict[str, Any],
         formulas: dict[str, Any],
     ) -> dict[str, Any]:
+        """
+        Build a compact final summary from workspace variables,
+        committee synthesis and formula results.
+        """
 
         core = formulas["core"]
         derived = formulas["derived"]
