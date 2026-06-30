@@ -138,6 +138,37 @@ if st.button("Analyze"):
 
     st.info(formulas["diagnosis"])
 
+    semantic_graph = report.get("semantic_graph", {})
+
+    st.subheader("Semantic Graph")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("Nodes", semantic_graph.get("node_count", 0))
+    
+    with col2:
+        st.metric("Edges", semantic_graph.get("edge_count", 0))
+    
+    with col3:
+        st.metric(
+            "Causal Paths",
+            semantic_graph.get("causal_path_count", 0),
+        )
+    
+    if semantic_graph.get("causal_paths"):
+        st.caption("Detected cognitive paths")
+    
+        for path in semantic_graph["causal_paths"]:
+            readable_path = " → ".join(
+                f'{step["source"]} / {step["relation"]} / {step["target"]}'
+                for step in path["path"]
+            )
+            st.write(f"- {readable_path}")
+    
+    with st.expander("Semantic Graph details"):
+        st.json(semantic_graph)
+
     st.subheader("Agent Interpretations")
 
     for name, result in agent_results.items():
