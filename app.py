@@ -169,6 +169,47 @@ if st.button("Analyze"):
     with st.expander("Semantic Graph details"):
         st.json(semantic_graph)
 
+    graph_queries = report.get("graph_queries", {})
+
+    st.subheader("Graph Queries")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric(
+            "Central Nodes",
+            len(graph_queries.get("central_nodes", [])),
+        )
+    
+    with col2:
+        key_paths = graph_queries.get("key_paths", {})
+        available_paths = sum(
+            1 for path in key_paths.values() if path
+        )
+        st.metric(
+            "Available Key Paths",
+            available_paths,
+        )
+    
+    if graph_queries.get("central_nodes"):
+        st.caption("Most connected cognitive nodes")
+    
+        for item in graph_queries["central_nodes"]:
+            st.write(
+                f'- {item["node"]} — degree {item["degree"]}'
+            )
+
+    with st.expander("LLM Context Preview"):
+        st.json(
+            graph_queries.get(
+                "llm_context",
+                {},
+            )
+        )
+    
+    with st.expander("Graph Query details"):
+        st.json(graph_queries)
+    
     st.subheader("Agent Interpretations")
 
     for name, result in agent_results.items():
