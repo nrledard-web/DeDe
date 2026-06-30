@@ -15,6 +15,8 @@ Semantic Engine
     ↓
 Semantic Reasoner
     ↓
+Semantic Graph
+    ↓
 Estimators
     ↓
 Cognitive Workspace
@@ -37,6 +39,7 @@ from knowledge.concept_extractor import ConceptExtractor
 
 from semantic.semantic_engine import SemanticEngine
 from semantic.semantic_reasoner import SemanticReasoner
+from semantic.semantic_graph import SemanticGraph
 
 from estimators.estimator_engine import EstimatorEngine
 
@@ -58,6 +61,7 @@ class DoxaEnginePhase2:
         self.concept_extractor = ConceptExtractor()
         self.semantic_engine = SemanticEngine()
         self.semantic_reasoner = SemanticReasoner()
+        self.semantic_graph = SemanticGraph()
 
         self.estimator_engine = EstimatorEngine()
         self.committee = CognitiveCommittee()
@@ -82,6 +86,12 @@ class DoxaEnginePhase2:
 
         workspace = self.semantic_reasoner.run(workspace)
 
+        # -----------------------------
+        # Phase 4
+        # Semantic Graph
+        # -----------------------------
+        workspace = self.semantic_graph.run(workspace)
+
         workspace = self.estimator_engine.run(workspace)
 
         agent_results = {}
@@ -102,6 +112,10 @@ class DoxaEnginePhase2:
             "semantic": workspace.interpretations.get("semantic", {}),
             "semantic_reasoning": workspace.interpretations.get(
                 "semantic_reasoner",
+                {},
+            ),
+            "semantic_graph": workspace.interpretations.get(
+                "semantic_graph",
                 {},
             ),
             "workspace": workspace.snapshot(),
