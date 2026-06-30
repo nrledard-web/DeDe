@@ -25,6 +25,8 @@ Agents
     ↓
 Cognitive Graph Enrichment
     ↓
+Graph Query Engine
+    ↓
 Committee
     ↓
 Formula Engine
@@ -42,6 +44,7 @@ from knowledge.concept_extractor import ConceptExtractor
 from semantic.semantic_engine import SemanticEngine
 from semantic.semantic_reasoner import SemanticReasoner
 from semantic.semantic_graph import SemanticGraph
+from semantic.graph_query_engine import GraphQueryEngine
 
 from estimators.estimator_engine import EstimatorEngine
 
@@ -64,6 +67,7 @@ class DoxaEnginePhase2:
         self.semantic_engine = SemanticEngine()
         self.semantic_reasoner = SemanticReasoner()
         self.semantic_graph = SemanticGraph()
+        self.graph_query_engine = GraphQueryEngine()
 
         self.estimator_engine = EstimatorEngine()
         self.committee = CognitiveCommittee()
@@ -86,8 +90,10 @@ class DoxaEnginePhase2:
         workspace = self.semantic_engine.run(workspace)
         workspace = self.semantic_reasoner.run(workspace)
 
+        # --------------------------------------------------
         # Phase 4.1
-        # Build initial semantic graph before estimators.
+        # Initial Semantic Graph
+        # --------------------------------------------------
         workspace = self.semantic_graph.run(workspace)
 
         workspace = self.estimator_engine.run(workspace)
@@ -98,11 +104,29 @@ class DoxaEnginePhase2:
             result = agent.analyze(workspace)
             agent_results[agent.name] = result
 
+        # --------------------------------------------------
         # Phase 4.2
-        # Agents now enrich the graph with cognitive relations.
+        # Cognitive Graph Enrichment
+        # --------------------------------------------------
         workspace = self.semantic_graph.enrich_from_agents(
             workspace,
             agent_results,
+        )
+
+        # --------------------------------------------------
+        # Phase 4.3
+        # Graph Query Engine
+        # --------------------------------------------------
+        graph_queries = self.graph_query_engine.analyze(
+            workspace.interpretations.get(
+                "semantic_graph",
+                {},
+            )
+        )
+
+        workspace.add_interpretation(
+            "graph_queries",
+            graph_queries,
         )
 
         committee_result = self.committee.synthesize(workspace)
@@ -110,7 +134,7 @@ class DoxaEnginePhase2:
         formulas = self.formula_engine.compute(workspace)
 
         report = {
-            "phase": "phase_4_2_cognitive_graph",
+            "phase": "phase_4_3_cognitive_graph_queries",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
@@ -121,6 +145,10 @@ class DoxaEnginePhase2:
             ),
             "semantic_graph": workspace.interpretations.get(
                 "semantic_graph",
+                {},
+            ),
+            "graph_queries": workspace.interpretations.get(
+                "graph_queries",
                 {},
             ),
             "workspace": workspace.snapshot(),
