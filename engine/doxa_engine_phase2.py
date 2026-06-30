@@ -27,6 +27,8 @@ Cognitive Graph Enrichment
     ↓
 Graph Query Engine
     ↓
+LLM Connector
+    ↓
 Committee
     ↓
 Formula Engine
@@ -45,6 +47,8 @@ from semantic.semantic_engine import SemanticEngine
 from semantic.semantic_reasoner import SemanticReasoner
 from semantic.semantic_graph import SemanticGraph
 from semantic.graph_query_engine import GraphQueryEngine
+
+from llm.llm_connector import LLMConnector
 
 from estimators.estimator_engine import EstimatorEngine
 
@@ -68,6 +72,7 @@ class DoxaEnginePhase2:
         self.semantic_reasoner = SemanticReasoner()
         self.semantic_graph = SemanticGraph()
         self.graph_query_engine = GraphQueryEngine()
+        self.llm_connector = LLMConnector()
 
         self.estimator_engine = EstimatorEngine()
         self.committee = CognitiveCommittee()
@@ -129,12 +134,26 @@ class DoxaEnginePhase2:
             graph_queries,
         )
 
+        # --------------------------------------------------
+        # Phase 4.4
+        # LLM Connector
+        # --------------------------------------------------
+        llm_package = self.llm_connector.build_prompt_package(
+            text=text,
+            graph_queries=graph_queries,
+        )
+
+        workspace.add_interpretation(
+            "llm_package",
+            llm_package,
+        )
+
         committee_result = self.committee.synthesize(workspace)
 
         formulas = self.formula_engine.compute(workspace)
 
         report = {
-            "phase": "phase_4_3_cognitive_graph_queries",
+            "phase": "phase_4_4_llm_connector_ready",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
@@ -149,6 +168,10 @@ class DoxaEnginePhase2:
             ),
             "graph_queries": workspace.interpretations.get(
                 "graph_queries",
+                {},
+            ),
+            "llm_package": workspace.interpretations.get(
+                "llm_package",
                 {},
             ),
             "workspace": workspace.snapshot(),
