@@ -353,6 +353,53 @@ if st.button("Analyze"):
     with st.expander("Full LLM Prompt Package"):
         st.json(llm_package)
 
+    # --------------------------------------------------
+    # LLM Bridge
+    # --------------------------------------------------
+
+    llm_bridge_response = report.get("llm_bridge_response", {})
+
+    st.subheader("LLM Bridge")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(
+            "Bridge Status",
+            llm_bridge_response.get("status", "N/A"),
+        )
+
+    with col2:
+        st.metric(
+            "Provider",
+            llm_bridge_response.get("provider", "N/A"),
+        )
+
+    st.write(
+        llm_bridge_response.get(
+            "summary",
+            "",
+        )
+    )
+
+    if llm_bridge_response.get("error"):
+        st.error(
+            llm_bridge_response["error"]
+        )
+
+    if llm_bridge_response.get("response"):
+        with st.expander("LLM Raw Response"):
+            st.write(
+                llm_bridge_response["response"]
+            )
+
+    with st.expander("Full LLM Bridge Response"):
+        st.json(llm_bridge_response)
+
+    # --------------------------------------------------
+    # Cognitive Reasoner
+    # --------------------------------------------------
+
     cognitive_reasoning = report.get("cognitive_reasoning", {})
 
     st.subheader("Cognitive Reasoner")
