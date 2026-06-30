@@ -1,19 +1,19 @@
 """
 DeDe - LLM Connector
 
-Prepares structured prompts for future LLM integration.
+Builds a prompt package for future LLM reasoning.
 
-This connector does not call an external LLM yet.
-It transforms DeDe's cognitive graph context into a clean prompt package.
+The connector does not call an LLM yet.
+It prepares structured context from:
+- graph queries
+- compiled cognitive state
+- cognitive reasoning
 """
 
 from typing import Any
 
 
 class LLMConnector:
-    """
-    Builds LLM-ready cognitive prompts from graph query outputs.
-    """
 
     name = "llm_connector"
 
@@ -21,18 +21,34 @@ class LLMConnector:
         self,
         text: str,
         graph_queries: dict[str, Any],
+        cognitive_state: dict[str, Any] | None = None,
+        cognitive_reasoning: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        llm_context = graph_queries.get("llm_context", {})
-        central_nodes = graph_queries.get("central_nodes", [])
-        key_paths = graph_queries.get("key_paths", {})
+
+        cognitive_state = cognitive_state or {}
+        cognitive_reasoning = cognitive_reasoning or {}
 
         system_prompt = self._build_system_prompt()
+
         cognitive_context = self._build_cognitive_context(
-            llm_context,
-            central_nodes,
-            key_paths,
+            graph_queries=graph_queries,
+            cognitive_state=cognitive_state,
+            cognitive_reasoning=cognitive_reasoning,
         )
-        user_prompt = self._build_user_prompt(text)
+
+        user_prompt = (
+            "Analyze the following input using the provided cognitive context:\n\n"
+            f"{text}"
+        )
+
+        full_prompt = (
+            "SYSTEM:\n\n"
+            f"{system_prompt}\n\n"
+            "CONTEXT:\n\n"
+            f"{cognitive_context}\n\n"
+            "USER:\n\n"
+            f"{user_prompt}"
+        )
 
         return {
             "connector": self.name,
@@ -40,69 +56,71 @@ class LLMConnector:
             "system_prompt": system_prompt,
             "cognitive_context": cognitive_context,
             "user_prompt": user_prompt,
-            "full_prompt": self._build_full_prompt(
-                system_prompt,
-                cognitive_context,
-                user_prompt,
-            ),
+            "full_prompt": full_prompt,
             "summary": (
-                "LLM prompt package prepared from DeDe's structured "
-                "cognitive graph context."
+                "LLM prompt package prepared from DeDe's graph, "
+                "compiled cognitive state and cognitive reasoning."
             ),
         }
 
     def _build_system_prompt(self) -> str:
         return (
             "You are a cognitive reasoning assistant connected to DeDe, "
-            "a symbolic cognitive architecture. "
-            "You must not replace DeDe's analysis. "
-            "You must use the provided cognitive graph context to explain, "
-            "clarify, question, or refine the interpretation. "
-            "You should preserve revisability, identify assumptions, "
-            "avoid overconfidence, and make missing dimensions explicit."
-        )
-
-    def _build_user_prompt(self, text: str) -> str:
-        return (
-            "Analyze the following input using the provided cognitive context:\n\n"
-            f"{text}"
+            "a symbolic cognitive architecture. You must not replace DeDe's "
+            "analysis. You must use the provided cognitive graph context, "
+            "compiled cognitive state and reasoner output to explain, clarify, "
+            "question, or refine the interpretation. Preserve revisability, "
+            "identify assumptions, avoid overconfidence, and make missing "
+            "dimensions explicit."
         )
 
     def _build_cognitive_context(
         self,
-        llm_context: dict[str, Any],
-        central_nodes: list[dict[str, Any]],
-        key_paths: dict[str, Any],
+        graph_queries: dict[str, Any],
+        cognitive_state: dict[str, Any],
+        cognitive_reasoning: dict[str, Any],
     ) -> str:
-        nodes = llm_context.get("nodes", [])
-        relations = llm_context.get("relations", [])
-        causal_paths = llm_context.get("causal_paths", [])
 
-        lines = []
+        lines = ["COGNITIVE GRAPH CONTEXT", ""]
 
-        lines.append("COGNITIVE GRAPH CONTEXT")
-        lines.append("")
         lines.append("Central nodes:")
-
-        for item in central_nodes:
+        for item in graph_queries.get("central_nodes", []):
             lines.append(
-                f'- {item.get("node")} '
-                f'(degree: {item.get("degree")})'
+                f'- {item.get("node")} (degree: {item.get("degree")})'
             )
 
         lines.append("")
-        lines.append("Important nodes:")
+        lines.append("Compiled cognitive state:")
+        lines.append(
+            f'- orientation: {cognitive_state.get("orientation", "N/A")}'
+        )
+        lines.append(
+            f'- confidence: {cognitive_state.get("confidence", "N/A")}'
+        )
+        lines.append(
+            f'- summary: {cognitive_state.get("summary", "")}'
+        )
 
-        for node in nodes:
-            lines.append(
-                f'- {node.get("id")} '
-                f'[{node.get("type")}]: {node.get("label")}'
-            )
+        lines.append("")
+        lines.append("Pressure:")
+        for item in cognitive_state.get("pressure", []):
+            lines.append(f'- {item.get("name")}: {item.get("description")}')
+
+        lines.append("")
+        lines.append("Protective mechanisms:")
+        for item in cognitive_state.get("protective_mechanisms", []):
+            lines.append(f'- {item.get("name")}: {item.get("description")}')
+
+        lines.append("")
+        lines.append("Missing dimensions:")
+        for item in cognitive_state.get("missing_dimensions", []):
+            lines.append(f"- {item}")
+
+        llm_context = graph_queries.get("llm_context", {})
 
         lines.append("")
         lines.append("Important relations:")
-
-        for relation in relations:
+        for relation in llm_context.get("relations", []):
             lines.append(
                 f'- {relation.get("source")} '
                 f'--{relation.get("relation")}--> '
@@ -111,48 +129,33 @@ class LLMConnector:
 
         lines.append("")
         lines.append("Detected causal paths:")
-
-        for path in causal_paths:
+        for path_data in llm_context.get("causal_paths", []):
+            path = path_data.get("path", [])
             readable = " -> ".join(
-                f'{step.get("source")} '
-                f'/{step.get("relation")} '
-                f'/ {step.get("target")}'
-                for step in path.get("path", [])
+                f'{edge.get("source")} /{edge.get("relation")} / {edge.get("target")}'
+                for edge in path
             )
             lines.append(f"- {readable}")
 
         lines.append("")
-        lines.append("Key graph paths:")
+        lines.append("Cognitive Reasoner output:")
+        lines.append(
+            f'- orientation: {cognitive_reasoning.get("compiled_orientation", "N/A")}'
+        )
+        lines.append(
+            f'- confidence: {cognitive_reasoning.get("compiled_confidence", "N/A")}'
+        )
 
-        for name, path in key_paths.items():
-            if not path:
-                lines.append(f"- {name}: not found")
-                continue
-
-            readable = " -> ".join(
-                f'{step.get("source")} '
-                f'/{step.get("relation")} '
-                f'/ {step.get("target")}'
-                for step in path
-            )
-
-            lines.append(f"- {name}: {readable}")
+        for key in [
+            "hypotheses",
+            "explanations",
+            "missing_links",
+            "predictions",
+            "counterfactuals",
+        ]:
+            lines.append("")
+            lines.append(f"{key}:")
+            for item in cognitive_reasoning.get(key, []):
+                lines.append(f"- {item}")
 
         return "\n".join(lines)
-
-    def _build_full_prompt(
-        self,
-        system_prompt: str,
-        cognitive_context: str,
-        user_prompt: str,
-    ) -> str:
-        return "\n\n".join(
-            [
-                "SYSTEM:",
-                system_prompt,
-                "CONTEXT:",
-                cognitive_context,
-                "USER:",
-                user_prompt,
-            ]
-        )
