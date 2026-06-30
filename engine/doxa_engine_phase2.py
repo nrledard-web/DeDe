@@ -13,6 +13,8 @@ Concept Extraction
     ↓
 Semantic Engine
     ↓
+Semantic Reasoner
+    ↓
 Estimators
     ↓
 Cognitive Workspace
@@ -34,6 +36,7 @@ from knowledge.knowledge_agent import KnowledgeAgent
 from knowledge.concept_extractor import ConceptExtractor
 
 from semantic.semantic_engine import SemanticEngine
+from semantic.semantic_reasoner import SemanticReasoner
 
 from estimators.estimator_engine import EstimatorEngine
 
@@ -54,6 +57,7 @@ class DoxaEnginePhase2:
         self.knowledge = KnowledgeAgent()
         self.concept_extractor = ConceptExtractor()
         self.semantic_engine = SemanticEngine()
+        self.semantic_reasoner = SemanticReasoner()
 
         self.estimator_engine = EstimatorEngine()
         self.committee = CognitiveCommittee()
@@ -76,6 +80,8 @@ class DoxaEnginePhase2:
 
         workspace = self.semantic_engine.run(workspace)
 
+        workspace = self.semantic_reasoner.run(workspace)
+
         workspace = self.estimator_engine.run(workspace)
 
         agent_results = {}
@@ -94,6 +100,10 @@ class DoxaEnginePhase2:
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
             "semantic": workspace.interpretations.get("semantic", {}),
+            "semantic_reasoning": workspace.interpretations.get(
+                "semantic_reasoner",
+                {},
+            ),
             "workspace": workspace.snapshot(),
             "agent_results": agent_results,
             "committee": committee_result,
@@ -128,7 +138,9 @@ class DoxaEnginePhase2:
             "revisability": core["revisability"],
             "surconfidence": derived["surconfidence"],
             "cognitive_closure": derived["cognitive_closure"],
-            "forgotten_reduction_pressure": derived["forgotten_reduction_pressure"],
+            "forgotten_reduction_pressure": derived[
+                "forgotten_reduction_pressure"
+            ],
             "committee_diagnosis": committee_result["diagnosis"],
             "committee_confidence": committee_result["confidence"],
             "committee_orientation": committee_result["dominant_orientation"],
