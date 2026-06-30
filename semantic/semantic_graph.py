@@ -3,8 +3,11 @@ DeDe - Semantic Graph
 
 Phase 4 symbolic semantic graph.
 
-Transforms semantic descriptions and semantic reasoning into a structured
-graph of concepts and relations.
+Builds and enriches a cognitive semantic graph from:
+- concepts
+- claims
+- semantic reasoning
+- agent interpretations
 """
 
 from __future__ import annotations
@@ -53,7 +56,7 @@ class SemanticEdge:
 
 class SemanticGraph:
     """
-    Builds a symbolic semantic graph from the current workspace.
+    Builds and enriches a symbolic cognitive graph.
     """
 
     name = "semantic_graph"
@@ -144,7 +147,12 @@ class SemanticGraph:
             )
 
         self._attach_reasoning_nodes(
-            nodes, edges, assumptions, "assumption", "has_assumption", "mecroyance"
+            nodes,
+            edges,
+            assumptions,
+            "assumption",
+            "has_assumption",
+            "mecroyance",
         )
 
         self._attach_reasoning_nodes(
@@ -177,34 +185,305 @@ class SemanticGraph:
         self._add_dede_core_relations(nodes, edges)
 
         result = self._build_result(nodes, edges)
-
-        workspace.set_raw(
-            "semantic_node_count",
-            result["node_count"],
-            {"engine": self.name, "summary": "Number of semantic graph nodes."},
-        )
-
-        workspace.set_raw(
-            "semantic_edge_count",
-            result["edge_count"],
-            {"engine": self.name, "summary": "Number of semantic graph edges."},
-        )
-
-        workspace.set_raw(
-            "semantic_graph_density",
-            result["density"],
-            {"engine": self.name, "summary": "Semantic graph density."},
-        )
-
-        workspace.set_raw(
-            "semantic_causal_path_count",
-            result["causal_path_count"],
-            {"engine": self.name, "summary": "Detected cognitive causal paths."},
-        )
-
-        workspace.add_interpretation(self.name, result)
+        self._store_result(workspace, result)
 
         return workspace
+
+    def enrich_from_agents(
+        self,
+        workspace: CognitiveWorkspace,
+        agent_results: dict[str, dict[str, Any]],
+    ) -> CognitiveWorkspace:
+        """
+        Phase 4.2.
+
+        Agents add cognitive nodes and relations to the existing graph.
+        """
+
+        graph = workspace.interpretations.get(self.name, {})
+
+        nodes: dict[str, SemanticNode] = {
+            node["id"]: SemanticNode(
+                id=node["id"],
+                label=node["label"],
+                type=node.get("type", "concept"),
+                weight=node.get("weight", 1.0),
+                metadata=node.get("metadata", {}),
+            )
+            for node in graph.get("nodes", [])
+        }
+
+        edges: list[SemanticEdge] = [
+            SemanticEdge(
+                source=edge["source"],
+                relation=edge["relation"],
+                target=edge["target"],
+                weight=edge.get("weight", 1.0),
+                metadata=edge.get("metadata", {}),
+            )
+            for edge in graph.get("edges", [])
+        ]
+
+        for agent_name, result in agent_results.items():
+            agent_node = f"agent:{agent_name}"
+
+            self._add_node(
+                nodes,
+                agent_node,
+                "cognitive_agent",
+                label=agent_name,
+                weight=0.9,
+                metadata={"source": "agent_interpretation"},
+            )
+
+            summary = result.get("summary")
+
+            if summary:
+                summary_node = f"{agent_name}:summary"
+
+                self._add_node(
+                    nodes,
+                    summary_node,
+                    "agent_summary",
+                    label=summary,
+                    weight=0.7,
+                    metadata={"agent": agent_name},
+                )
+
+                self._add_edge(
+                    edges,
+                    agent_node,
+                    "produces",
+                    summary_node,
+                    weight=0.8,
+                    metadata={"source": agent_name},
+                )
+
+            self._enrich_by_agent_type(
+                nodes,
+                edges,
+                agent_name,
+                result,
+            )
+
+        enriched_result = self._build_result(nodes, edges)
+        enriched_result["enriched_by_agents"] = True
+        enriched_result["agent_enrichment_count"] = len(agent_results)
+        enriched_result[
+            "summary"
+        ] = "Semantic graph enriched by cognitive agent interpretations."
+
+        self._store_result(workspace, enriched_result)
+
+        return workspace
+
+    def _enrich_by_agent_type(
+        self,
+        nodes: dict[str, SemanticNode],
+        edges: list[SemanticEdge],
+        agent_name: str,
+        result: dict[str, Any],
+    ) -> None:
+        agent_node = f"agent:{agent_name}"
+
+        if agent_name == "nous":
+            self._add_cognitive_assessment(
+                nodes,
+                edges,
+                agent_node,
+                "understanding",
+                "assesses",
+                "nous_level",
+                result.get("nous_level"),
+            )
+
+            if result.get("integrated_understanding_needed"):
+                self._add_cognitive_relation(
+                    nodes,
+                    edges,
+                    "understanding",
+                    "requires",
+                    "integration",
+                    agent_name,
+                )
+
+        elif agent_name == "doxa":
+            self._add_cognitive_assessment(
+                nodes,
+                edges,
+                agent_node,
+                "certainty",
+                "assesses",
+                "doxa_level",
+                result.get("doxa_level"),
+            )
+
+            if result.get("cognitive_closure"):
+                self._add_cognitive_relation(
+                    nodes,
+                    edges,
+                    "certainty",
+                    "risks_producing",
+                    "closure",
+                    agent_name,
+                )
+            else:
+                self._add_cognitive_relation(
+                    nodes,
+                    edges,
+                    "certainty",
+                    "remains_revisable_through",
+                    "revisability",
+                    agent_name,
+                )
+
+        elif agent_name == "reduction":
+            self._add_cognitive_assessment(
+                nodes,
+                edges,
+                agent_node,
+                "reduction",
+                "assesses",
+                "reduction_level",
+                result.get("reduction_level"),
+            )
+
+            if result.get("possible_hidden_assumptions"):
+                self._add_cognitive_relation(
+                    nodes,
+                    edges,
+                    "reduction",
+                    "depends_on_hidden_assumption",
+                    "assumption",
+                    agent_name,
+                )
+            else:
+                self._add_cognitive_relation(
+                    nodes,
+                    edges,
+                    "reduction",
+                    "currently_limited_by",
+                    "grounding",
+                    agent_name,
+                )
+
+        elif agent_name == "nouscope":
+            self._add_cognitive_assessment(
+                nodes,
+                edges,
+                agent_node,
+                "cognitive_filter",
+                "assesses",
+                "cognitive_filter_level",
+                result.get("cognitive_filter_level"),
+            )
+
+            self._add_cognitive_relation(
+                nodes,
+                edges,
+                "cognitive_filter",
+                "shapes",
+                "understanding",
+                agent_name,
+            )
+
+        elif agent_name == "cognitive_therapy":
+            self._add_cognitive_assessment(
+                nodes,
+                edges,
+                agent_node,
+                "revisability",
+                "assesses",
+                "revisability_level",
+                result.get("revisability_level"),
+            )
+
+            strategies = result.get("strategies", [])
+
+            for index, strategy in enumerate(strategies):
+                strategy_node = f"strategy:{index}"
+
+                self._add_node(
+                    nodes,
+                    strategy_node,
+                    "recalibration_strategy",
+                    label=strategy,
+                    weight=0.75,
+                    metadata={"agent": agent_name},
+                )
+
+                self._add_edge(
+                    edges,
+                    "revisability",
+                    "can_be_supported_by",
+                    strategy_node,
+                    weight=0.75,
+                    metadata={"source": agent_name},
+                )
+
+    def _add_cognitive_assessment(
+        self,
+        nodes: dict[str, SemanticNode],
+        edges: list[SemanticEdge],
+        agent_node: str,
+        target: str,
+        relation: str,
+        metric_name: str,
+        value: Any,
+    ) -> None:
+        metric_node = f"metric:{metric_name}"
+
+        self._add_node(
+            nodes,
+            metric_node,
+            "cognitive_metric",
+            label=metric_name,
+            weight=0.7,
+            metadata={"value": value},
+        )
+
+        self._add_edge(
+            edges,
+            agent_node,
+            relation,
+            target,
+            weight=0.8,
+            metadata={"metric": metric_name, "value": value},
+        )
+
+        self._add_edge(
+            edges,
+            target,
+            "has_metric",
+            metric_node,
+            weight=0.7,
+            metadata={"value": value},
+        )
+
+    def _add_cognitive_relation(
+        self,
+        nodes: dict[str, SemanticNode],
+        edges: list[SemanticEdge],
+        source: str,
+        relation: str,
+        target: str,
+        agent_name: str,
+    ) -> None:
+        self._add_node(nodes, source, "core_concept")
+        self._add_node(nodes, target, "core_concept")
+
+        self._add_edge(
+            edges,
+            source,
+            relation,
+            target,
+            weight=0.8,
+            metadata={
+                "source": agent_name,
+                "type": "agent_cognitive_relation",
+                "revisable": True,
+            },
+        )
 
     def _node_id(self, value: str) -> str:
         return str(value).strip().lower().replace(" ", "_")
@@ -230,6 +509,26 @@ class SemanticGraph:
             )
 
         return node_id
+
+    def _add_edge(
+        self,
+        edges: list[SemanticEdge],
+        source: str,
+        relation: str,
+        target: str,
+        weight: float = 1.0,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        edge = SemanticEdge(
+            source=self._node_id(source),
+            relation=relation,
+            target=self._node_id(target),
+            weight=weight,
+            metadata=metadata or {},
+        )
+
+        if not self._edge_exists(edges, edge):
+            edges.append(edge)
 
     def _attach_reasoning_nodes(
         self,
@@ -260,14 +559,13 @@ class SemanticGraph:
                 metadata={"index": index},
             )
 
-            edges.append(
-                SemanticEdge(
-                    source=anchor_id,
-                    relation=relation,
-                    target=node_id,
-                    weight=0.8,
-                    metadata={"source": "semantic_reasoner"},
-                )
+            self._add_edge(
+                edges,
+                anchor_id,
+                relation,
+                node_id,
+                weight=0.8,
+                metadata={"source": "semantic_reasoner"},
             )
 
     def _add_dede_core_relations(
@@ -291,19 +589,17 @@ class SemanticGraph:
             self._add_node(nodes, source, "core_concept")
             self._add_node(nodes, target, "core_concept")
 
-            edge = SemanticEdge(
-                source=self._node_id(source),
-                relation=relation,
-                target=self._node_id(target),
+            self._add_edge(
+                edges,
+                source,
+                relation,
+                target,
                 weight=0.9,
                 metadata={
                     "source": "dede_core_ontology",
                     "revisable": True,
                 },
             )
-
-            if not self._edge_exists(edges, edge):
-                edges.append(edge)
 
     def _edge_exists(self, edges: list[SemanticEdge], edge: SemanticEdge) -> bool:
         return any(
@@ -339,6 +635,37 @@ class SemanticGraph:
             "summary": "Semantic graph built from concepts, claims and semantic reasoning.",
         }
 
+    def _store_result(
+        self,
+        workspace: CognitiveWorkspace,
+        result: dict[str, Any],
+    ) -> None:
+        workspace.set_raw(
+            "semantic_node_count",
+            result["node_count"],
+            {"engine": self.name, "summary": "Number of semantic graph nodes."},
+        )
+
+        workspace.set_raw(
+            "semantic_edge_count",
+            result["edge_count"],
+            {"engine": self.name, "summary": "Number of semantic graph edges."},
+        )
+
+        workspace.set_raw(
+            "semantic_graph_density",
+            result["density"],
+            {"engine": self.name, "summary": "Semantic graph density."},
+        )
+
+        workspace.set_raw(
+            "semantic_causal_path_count",
+            result["causal_path_count"],
+            {"engine": self.name, "summary": "Detected cognitive causal paths."},
+        )
+
+        workspace.add_interpretation(self.name, result)
+
     def _detect_cognitive_paths(
         self,
         edges: list[SemanticEdge],
@@ -360,6 +687,12 @@ class SemanticGraph:
             ],
             [
                 ("certainty", "can_stabilize_faster_than", "understanding"),
+            ],
+            [
+                ("cognitive_filter", "shapes", "understanding"),
+            ],
+            [
+                ("revisability", "can_be_supported_by", "strategy:0"),
             ],
         ]
 
