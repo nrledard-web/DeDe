@@ -11,6 +11,8 @@ Knowledge
     ↓
 Concept Extraction
     ↓
+Semantic Engine
+    ↓
 Estimators
     ↓
 Cognitive Workspace
@@ -31,6 +33,8 @@ from core.cognitive_workspace import CognitiveWorkspace
 from knowledge.knowledge_agent import KnowledgeAgent
 from knowledge.concept_extractor import ConceptExtractor
 
+from semantic.semantic_engine import SemanticEngine
+
 from estimators.estimator_engine import EstimatorEngine
 
 from committee.cognitive_committee import CognitiveCommittee
@@ -45,15 +49,11 @@ from agents.cognitive_therapy_agent import CognitiveTherapyAgent
 
 
 class DoxaEnginePhase2:
-    """
-    Main Phase 2 engine.
-
-    Coordinates the complete cognitive mechanics pipeline.
-    """
 
     def __init__(self):
         self.knowledge = KnowledgeAgent()
         self.concept_extractor = ConceptExtractor()
+        self.semantic_engine = SemanticEngine()
 
         self.estimator_engine = EstimatorEngine()
         self.committee = CognitiveCommittee()
@@ -68,30 +68,15 @@ class DoxaEnginePhase2:
         ]
 
     def analyze(self, text: str) -> dict[str, Any]:
-
         workspace = CognitiveWorkspace(text=text)
-
-        # -------------------------------------------------
-        # Knowledge
-        # -------------------------------------------------
 
         knowledge_result = self.knowledge.analyze(workspace)
 
-        # -------------------------------------------------
-        # Concept extraction
-        # -------------------------------------------------
-
         workspace = self.concept_extractor.run(workspace)
 
-        # -------------------------------------------------
-        # Estimation layer
-        # -------------------------------------------------
+        workspace = self.semantic_engine.run(workspace)
 
         workspace = self.estimator_engine.run(workspace)
-
-        # -------------------------------------------------
-        # Cognitive agents
-        # -------------------------------------------------
 
         agent_results = {}
 
@@ -99,27 +84,16 @@ class DoxaEnginePhase2:
             result = agent.analyze(workspace)
             agent_results[agent.name] = result
 
-        # -------------------------------------------------
-        # Committee
-        # -------------------------------------------------
-
         committee_result = self.committee.synthesize(workspace)
 
-        # -------------------------------------------------
-        # Formula engine
-        # -------------------------------------------------
-
         formulas = self.formula_engine.compute(workspace)
-
-        # -------------------------------------------------
-        # Report
-        # -------------------------------------------------
 
         report = {
             "phase": "phase_2_cognitive_mechanics",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
+            "semantic": workspace.interpretations.get("semantic", {}),
             "workspace": workspace.snapshot(),
             "agent_results": agent_results,
             "committee": committee_result,
