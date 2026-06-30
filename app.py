@@ -37,10 +37,17 @@ text = st.text_area(
     ),
     height=180,
 )
+enable_llm = st.toggle(
+    "Enable external LLM call",
+    value=False,
+)
 
 if st.button("Analyze"):
     engine = DoxaEnginePhase2()
-    report = engine.analyze(text)
+    report = engine.analyze(
+        text,
+        enable_llm=enable_llm,
+    )
 
     workspace = report["workspace"]
     variables = workspace["variables"]
