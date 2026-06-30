@@ -23,6 +23,8 @@ Cognitive Workspace
     ↓
 Agents
     ↓
+Cognitive Graph Enrichment
+    ↓
 Committee
     ↓
 Formula Engine
@@ -81,15 +83,11 @@ class DoxaEnginePhase2:
         knowledge_result = self.knowledge.analyze(workspace)
 
         workspace = self.concept_extractor.run(workspace)
-
         workspace = self.semantic_engine.run(workspace)
-
         workspace = self.semantic_reasoner.run(workspace)
 
-        # -----------------------------
-        # Phase 4
-        # Semantic Graph
-        # -----------------------------
+        # Phase 4.1
+        # Build initial semantic graph before estimators.
         workspace = self.semantic_graph.run(workspace)
 
         workspace = self.estimator_engine.run(workspace)
@@ -100,12 +98,19 @@ class DoxaEnginePhase2:
             result = agent.analyze(workspace)
             agent_results[agent.name] = result
 
+        # Phase 4.2
+        # Agents now enrich the graph with cognitive relations.
+        workspace = self.semantic_graph.enrich_from_agents(
+            workspace,
+            agent_results,
+        )
+
         committee_result = self.committee.synthesize(workspace)
 
         formulas = self.formula_engine.compute(workspace)
 
         report = {
-            "phase": "phase_2_cognitive_mechanics",
+            "phase": "phase_4_2_cognitive_graph",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
