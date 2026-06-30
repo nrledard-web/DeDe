@@ -59,6 +59,7 @@ from reasoning.cognitive_compiler import CognitiveCompiler
 from reasoning.cognitive_reasoner import CognitiveReasoner
 
 from llm.llm_connector import LLMConnector
+from llm.llm_response_interpreter import LLMResponseInterpreter
 
 from estimators.estimator_engine import EstimatorEngine
 
@@ -71,7 +72,6 @@ from agents.doxa_agent import DoxaAgent
 from agents.reduction_agent import ReductionAgent
 from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
-
 
 class DoxaEnginePhase2:
 
@@ -86,6 +86,7 @@ class DoxaEnginePhase2:
         self.cognitive_compiler = CognitiveCompiler()
         self.cognitive_reasoner = CognitiveReasoner()
         self.llm_connector = LLMConnector()
+        self.llm_response_interpreter = LLMResponseInterpreter()
 
         self.estimator_engine = EstimatorEngine()
         self.committee = CognitiveCommittee()
@@ -205,12 +206,25 @@ class DoxaEnginePhase2:
             llm_package,
         )
 
+        # --------------------------------------------------
+        # Phase 4.8
+        # LLM Response Interpreter
+        # --------------------------------------------------
+        llm_interpretation = self.llm_response_interpreter.interpret(
+            llm_package=llm_package,
+        )
+        
+        workspace.add_interpretation(
+            "llm_interpretation",
+            llm_interpretation,
+        )
+
         committee_result = self.committee.synthesize(workspace)
 
         formulas = self.formula_engine.compute(workspace)
 
         report = {
-            "phase": "phase_4_7_cognitive_compiler_ready",
+            "phase": "phase_4_8_llm_response_interpreter_ready",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
@@ -241,6 +255,10 @@ class DoxaEnginePhase2:
             ),
             "llm_package": workspace.interpretations.get(
                 "llm_package",
+                {},
+            ),
+            "llm_interpretation": workspace.interpretations.get(
+                "llm_interpretation",
                 {},
             ),
             "workspace": workspace.snapshot(),
