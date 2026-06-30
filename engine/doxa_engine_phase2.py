@@ -181,6 +181,7 @@ class DoxaEnginePhase2:
         cognitive_reasoning = self.cognitive_reasoner.run(
             workspace=workspace,
             graph_queries=graph_queries,
+            cognitive_state=cognitive_state,
         )
 
         workspace.add_interpretation(
@@ -195,6 +196,8 @@ class DoxaEnginePhase2:
         llm_package = self.llm_connector.build_prompt_package(
             text=text,
             graph_queries=graph_queries,
+            cognitive_state=cognitive_state,
+            cognitive_reasoning=cognitive_reasoning,
         )
 
         workspace.add_interpretation(
