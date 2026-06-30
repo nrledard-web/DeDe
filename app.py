@@ -209,7 +209,54 @@ if st.button("Analyze"):
 
     with st.expander("Graph Query details"):
         st.json(graph_queries)
-
+    
+    inference_patterns = report.get("inference_patterns", {})
+    
+    st.subheader("Inference Patterns")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric(
+            "Available Patterns",
+            inference_patterns.get("available_pattern_count", 0),
+        )
+    
+    with col2:
+        st.metric(
+            "Detected Patterns",
+            inference_patterns.get("detected_pattern_count", 0),
+        )
+    
+    st.write(
+        inference_patterns.get(
+            "summary",
+            "",
+        )
+    )
+    
+    patterns = inference_patterns.get("patterns", [])
+    
+    if patterns:
+        for pattern in patterns:
+            confidence = pattern.get("confidence", 0)
+    
+            st.write(
+                f'- **{pattern.get("name", "unknown")}** '
+                f'[{pattern.get("type", "pattern")}] '
+                f'— confidence {round(confidence * 100)}%'
+            )
+    
+            st.caption(
+                pattern.get(
+                    "description",
+                    "",
+                )
+            )
+    
+    with st.expander("Inference Pattern details"):
+        st.json(inference_patterns)
+    
     llm_package = report.get("llm_package", {})
 
     st.subheader("LLM Connector")
