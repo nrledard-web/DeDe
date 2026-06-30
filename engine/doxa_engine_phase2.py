@@ -139,7 +139,11 @@ class DoxaEnginePhase2:
             CognitiveTherapyAgent(),
         ]
 
-    def analyze(self, text: str) -> dict[str, Any]:
+    def analyze(
+        self,
+        text: str,
+        enable_llm: bool = False,
+    ) -> dict[str, Any]:
         """
         Run the complete DeDe Phase 2 cognitive pipeline.
         """
@@ -287,7 +291,7 @@ class DoxaEnginePhase2:
         # --------------------------------------------------
         llm_bridge_response = self.llm_bridge.ask(
             llm_package=llm_package,
-            enabled=False,
+            enabled=enable_llm,
         )
 
         workspace.add_interpretation(
@@ -308,6 +312,7 @@ class DoxaEnginePhase2:
             "llm_interpretation",
             llm_interpretation,
         )
+        
         # --------------------------------------------------
         # Phase 4.14
         # Cognitive Committee
@@ -325,7 +330,7 @@ class DoxaEnginePhase2:
         # Final Report
         # --------------------------------------------------
         report = {
-            "phase": "phase_4_11_llm_bridge_ready",
+            "phase": "phase_4_16_pipeline_ready",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
