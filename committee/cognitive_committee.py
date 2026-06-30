@@ -15,10 +15,6 @@ from core.cognitive_workspace import CognitiveWorkspace
 class CognitiveCommittee:
     """
     Synthesizes cognitive agent interpretations.
-
-    The committee does not estimate variables.
-    The committee does not compute formulas.
-    The committee listens to agents and produces a shared diagnosis.
     """
 
     def synthesize(self, workspace: CognitiveWorkspace) -> dict[str, Any]:
@@ -38,11 +34,30 @@ class CognitiveCommittee:
         reduction_view = interpretations.get("reduction", {})
         nouscope = interpretations.get("nouscope", {})
         therapy = interpretations.get("cognitive_therapy", {})
+        semantic = interpretations.get("semantic", {})
 
         concerns = []
         recommendations = []
 
-        if nous.get("integrated_understanding_needed"):
+        nous_level = nous.get("nous_level", 0.0)
+
+        semantic_claims = semantic.get("claim_count", 0)
+        semantic_relations = semantic.get("relation_count", 0)
+
+        semantic_structure_sufficient = (
+            semantic_claims >= 1
+            and semantic_relations >= 3
+        )
+
+        integration_concern = (
+            nous_level < 0.55
+            or (
+                nous.get("integrated_understanding_needed")
+                and not semantic_structure_sufficient
+            )
+        )
+
+        if integration_concern:
             concerns.append("integration")
             recommendations.append(
                 "Strengthen conceptual integration before stabilizing interpretation."
@@ -93,7 +108,12 @@ class CognitiveCommittee:
                 1.0,
                 0.50
                 + abs(support - pressure) * 0.25
-                - len(concerns) * 0.05,
+                - len(concerns) * 0.05
+                + (
+                    0.05
+                    if semantic_structure_sufficient
+                    else 0.0
+                ),
             ),
         )
 
@@ -114,6 +134,9 @@ class CognitiveCommittee:
             "dominant_orientation": dominant_orientation,
             "confidence": confidence,
             "diagnosis": diagnosis,
+            "semantic_structure_sufficient": semantic_structure_sufficient,
+            "semantic_claims": semantic_claims,
+            "semantic_relations": semantic_relations,
             "inputs": {
                 "grounding": grounding,
                 "integration": integration,
