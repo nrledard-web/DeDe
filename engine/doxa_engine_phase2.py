@@ -27,6 +27,8 @@ Cognitive Graph Enrichment
     ↓
 Graph Query Engine
     ↓
+Cognitive Reasoner
+    ↓
 LLM Connector
     ↓
 Committee
@@ -47,6 +49,8 @@ from semantic.semantic_engine import SemanticEngine
 from semantic.semantic_reasoner import SemanticReasoner
 from semantic.semantic_graph import SemanticGraph
 from semantic.graph_query_engine import GraphQueryEngine
+
+from reasoning.cognitive_reasoner import CognitiveReasoner
 
 from llm.llm_connector import LLMConnector
 
@@ -72,6 +76,7 @@ class DoxaEnginePhase2:
         self.semantic_reasoner = SemanticReasoner()
         self.semantic_graph = SemanticGraph()
         self.graph_query_engine = GraphQueryEngine()
+        self.cognitive_reasoner = CognitiveReasoner()
         self.llm_connector = LLMConnector()
 
         self.estimator_engine = EstimatorEngine()
@@ -136,6 +141,20 @@ class DoxaEnginePhase2:
 
         # --------------------------------------------------
         # Phase 4.4
+        # Cognitive Reasoner
+        # --------------------------------------------------
+        cognitive_reasoning = self.cognitive_reasoner.run(
+            workspace=workspace,
+            graph_queries=graph_queries,
+        )
+
+        workspace.add_interpretation(
+            "cognitive_reasoning",
+            cognitive_reasoning,
+        )
+
+        # --------------------------------------------------
+        # Phase 4.5
         # LLM Connector
         # --------------------------------------------------
         llm_package = self.llm_connector.build_prompt_package(
@@ -153,7 +172,7 @@ class DoxaEnginePhase2:
         formulas = self.formula_engine.compute(workspace)
 
         report = {
-            "phase": "phase_4_4_llm_connector_ready",
+            "phase": "phase_4_5_cognitive_reasoner_ready",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
@@ -168,6 +187,10 @@ class DoxaEnginePhase2:
             ),
             "graph_queries": workspace.interpretations.get(
                 "graph_queries",
+                {},
+            ),
+            "cognitive_reasoning": workspace.interpretations.get(
+                "cognitive_reasoning",
                 {},
             ),
             "llm_package": workspace.interpretations.get(
