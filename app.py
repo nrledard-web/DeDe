@@ -256,6 +256,82 @@ if st.button("Analyze"):
     
     with st.expander("Inference Pattern details"):
         st.json(inference_patterns)
+
+    cognitive_state = report.get("cognitive_state", {})
+
+    st.subheader("Cognitive State Compiler")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(
+            "Compiled Orientation",
+            cognitive_state.get("orientation", "N/A"),
+        )
+
+    with col2:
+        show_metric(
+            "Compiled Confidence",
+            cognitive_state.get("confidence"),
+        )
+
+    st.write(
+        cognitive_state.get(
+            "summary",
+            "",
+        )
+    )
+
+    with st.expander("Cognitive Focus"):
+        st.json(
+            cognitive_state.get(
+                "cognitive_focus",
+                [],
+            )
+        )
+
+    with st.expander("Support"):
+        st.json(
+            cognitive_state.get(
+                "support",
+                [],
+            )
+        )
+
+    with st.expander("Pressure"):
+        st.json(
+            cognitive_state.get(
+                "pressure",
+                [],
+            )
+        )
+
+    with st.expander("Protective Mechanisms"):
+        st.json(
+            cognitive_state.get(
+                "protective_mechanisms",
+                [],
+            )
+        )
+
+    with st.expander("Detected Dynamics"):
+        st.json(
+            cognitive_state.get(
+                "detected_dynamics",
+                [],
+            )
+        )
+
+    with st.expander("Missing Dimensions"):
+        st.json(
+            cognitive_state.get(
+                "missing_dimensions",
+                [],
+            )
+        )
+
+    with st.expander("Full Cognitive State"):
+        st.json(cognitive_state)
     
     llm_package = report.get("llm_package", {})
 
