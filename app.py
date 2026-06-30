@@ -141,46 +141,46 @@ if st.button("Analyze"):
     semantic_graph = report.get("semantic_graph", {})
 
     st.subheader("Semantic Graph")
-    
+
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         st.metric("Nodes", semantic_graph.get("node_count", 0))
-    
+
     with col2:
         st.metric("Edges", semantic_graph.get("edge_count", 0))
-    
+
     with col3:
         st.metric(
             "Causal Paths",
             semantic_graph.get("causal_path_count", 0),
         )
-    
+
     if semantic_graph.get("causal_paths"):
         st.caption("Detected cognitive paths")
-    
+
         for path in semantic_graph["causal_paths"]:
             readable_path = " → ".join(
                 f'{step["source"]} / {step["relation"]} / {step["target"]}'
                 for step in path["path"]
             )
             st.write(f"- {readable_path}")
-    
+
     with st.expander("Semantic Graph details"):
         st.json(semantic_graph)
 
     graph_queries = report.get("graph_queries", {})
 
     st.subheader("Graph Queries")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.metric(
             "Central Nodes",
             len(graph_queries.get("central_nodes", [])),
         )
-    
+
     with col2:
         key_paths = graph_queries.get("key_paths", {})
         available_paths = sum(
@@ -190,10 +190,10 @@ if st.button("Analyze"):
             "Available Key Paths",
             available_paths,
         )
-    
+
     if graph_queries.get("central_nodes"):
         st.caption("Most connected cognitive nodes")
-    
+
         for item in graph_queries["central_nodes"]:
             st.write(
                 f'- {item["node"]} — degree {item["degree"]}'
@@ -206,10 +206,66 @@ if st.button("Analyze"):
                 {},
             )
         )
-    
+
     with st.expander("Graph Query details"):
         st.json(graph_queries)
-    
+
+    llm_package = report.get("llm_package", {})
+
+    st.subheader("LLM Connector")
+
+    st.metric(
+        "LLM Package Status",
+        llm_package.get("status", "N/A"),
+    )
+
+    st.write(llm_package.get("summary", ""))
+
+    with st.expander("LLM System Prompt"):
+        st.write(llm_package.get("system_prompt", ""))
+
+    with st.expander("LLM Cognitive Context"):
+        st.text(llm_package.get("cognitive_context", ""))
+
+    with st.expander("Full LLM Prompt Package"):
+        st.json(llm_package)
+
+    cognitive_reasoning = report.get("cognitive_reasoning", {})
+
+    st.subheader("Cognitive Reasoner")
+
+    st.metric(
+        "Reasoner Status",
+        cognitive_reasoning.get("status", "N/A"),
+    )
+
+    nodes = cognitive_reasoning.get("nodes_considered", [])
+
+    if nodes:
+        st.caption("Nodes considered")
+        st.write(", ".join(nodes))
+
+    with st.expander("Hypotheses"):
+        st.json(cognitive_reasoning.get("hypotheses", []))
+
+    with st.expander("Contradictions"):
+        st.json(cognitive_reasoning.get("contradictions", []))
+
+    with st.expander("Explanations"):
+        st.json(cognitive_reasoning.get("explanations", []))
+
+    with st.expander("Missing Links"):
+        st.json(cognitive_reasoning.get("missing_links", []))
+
+    with st.expander("Predictions"):
+        st.json(cognitive_reasoning.get("predictions", []))
+
+    with st.expander("Counterfactuals"):
+        st.json(cognitive_reasoning.get("counterfactuals", []))
+
+    with st.expander("Inference Chains"):
+        st.json(cognitive_reasoning.get("inference_chains", []))
+
     st.subheader("Agent Interpretations")
 
     for name, result in agent_results.items():
