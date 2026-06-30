@@ -29,6 +29,8 @@ Graph Query Engine
     ↓
 Inference Engine
     ↓
+Cognitive Compiler
+    ↓
 Cognitive Reasoner
     ↓
 LLM Connector
@@ -53,6 +55,7 @@ from semantic.semantic_graph import SemanticGraph
 from semantic.graph_query_engine import GraphQueryEngine
 
 from reasoning.inference_engine import InferenceEngine
+from reasoning.cognitive_compiler import CognitiveCompiler
 from reasoning.cognitive_reasoner import CognitiveReasoner
 
 from llm.llm_connector import LLMConnector
@@ -80,6 +83,7 @@ class DoxaEnginePhase2:
         self.semantic_graph = SemanticGraph()
         self.graph_query_engine = GraphQueryEngine()
         self.inference_engine = InferenceEngine()
+        self.cognitive_compiler = CognitiveCompiler()
         self.cognitive_reasoner = CognitiveReasoner()
         self.llm_connector = LLMConnector()
 
@@ -158,6 +162,20 @@ class DoxaEnginePhase2:
 
         # --------------------------------------------------
         # Phase 4.5
+        # Cognitive Compiler
+        # --------------------------------------------------
+        cognitive_state = self.cognitive_compiler.compile(
+            graph_queries=graph_queries,
+            inference_patterns=inference_patterns,
+        )
+
+        workspace.add_interpretation(
+            "cognitive_state",
+            cognitive_state,
+        )
+
+        # --------------------------------------------------
+        # Phase 4.6
         # Cognitive Reasoner
         # --------------------------------------------------
         cognitive_reasoning = self.cognitive_reasoner.run(
@@ -171,7 +189,7 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
-        # Phase 4.6
+        # Phase 4.7
         # LLM Connector
         # --------------------------------------------------
         llm_package = self.llm_connector.build_prompt_package(
@@ -189,7 +207,7 @@ class DoxaEnginePhase2:
         formulas = self.formula_engine.compute(workspace)
 
         report = {
-            "phase": "phase_4_6_inference_engine_ready",
+            "phase": "phase_4_7_cognitive_compiler_ready",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
@@ -208,6 +226,10 @@ class DoxaEnginePhase2:
             ),
             "inference_patterns": workspace.interpretations.get(
                 "inference_patterns",
+                {},
+            ),
+            "cognitive_state": workspace.interpretations.get(
+                "cognitive_state",
                 {},
             ),
             "cognitive_reasoning": workspace.interpretations.get(
