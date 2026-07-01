@@ -382,26 +382,6 @@ if st.button("Analyze"):
 
     with st.expander("Inference Chains"):
         st.json(cognitive_reasoning.get("inference_chains", []))
-
-    # --------------------------------------------------
-    # Dialogue Decision
-    # --------------------------------------------------
-    
-    dialogue_decision = report.get("dialogue_decision", {})
-
-    st.subheader("Dialogue Strategy")
-    
-    st.metric(
-        "Dialogue Mode",
-        dialogue_decision.get("mode", "N/A"),
-    )
-    
-    st.write(
-        dialogue_decision.get("summary", "")
-    )
-    
-    with st.expander("Dialogue Decision"):
-        st.json(dialogue_decision)
     
     # --------------------------------------------------
     # LLM Connector
@@ -447,6 +427,11 @@ if st.button("Analyze"):
         st.metric(
             "Provider",
             llm_bridge_response.get("provider", "N/A"),
+        )
+
+        st.metric(
+            "JSON Valid",
+            str(llm_bridge_response.get("json_valid", False)),
         )
 
     st.write(
@@ -551,6 +536,26 @@ if st.button("Analyze"):
         st.json(cognitive_feedback)
 
     # --------------------------------------------------
+    # Dialogue Decision
+    # --------------------------------------------------
+    
+    dialogue_decision = report.get("dialogue_decision", {})
+
+    st.subheader("Dialogue Strategy")
+    
+    st.metric(
+        "Dialogue Mode",
+        dialogue_decision.get("mode", "N/A"),
+    )
+    
+    st.write(
+        dialogue_decision.get("summary", "")
+    )
+    
+    with st.expander("Dialogue Decision"):
+        st.json(dialogue_decision)
+
+    # --------------------------------------------------
     # Agent Interpretations
     # --------------------------------------------------
     
@@ -589,12 +594,16 @@ if st.button("Analyze"):
 
     st.info(committee["diagnosis"])
 
+    # --------------------------------------------------
+    # Committee Concerns
+    # --------------------------------------------------
+
     if committee["concerns"]:
         st.subheader("Committee Concerns")
 
         for concern in committee["concerns"]:
             st.warning(concern)
-            
+
     # --------------------------------------------------
     # Committee Recommendations
     # --------------------------------------------------
@@ -603,7 +612,7 @@ if st.button("Analyze"):
 
     for recommendation in committee["recommendations"]:
         st.write(f"- {recommendation}")
-
+            
     # --------------------------------------------------
     # Full Phase 2 Report
     # --------------------------------------------------
