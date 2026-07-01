@@ -70,6 +70,7 @@ from reasoning.cognitive_feedback import CognitiveFeedback
 from dialogue.cognitive_dialogue_manager import CognitiveDialogueManager
 from dialogue.response_builder import ResponseBuilder
 from dialogue.conversation_manager import ConversationManager
+from dialogue.conversation_reasoner import ConversationReasoner
 
 from llm.llm_connector import LLMConnector
 from llm.llm_response_interpreter import LLMResponseInterpreter
@@ -120,6 +121,7 @@ class DoxaEnginePhase2:
         self.dialogue_manager = CognitiveDialogueManager()
         self.response_builder = ResponseBuilder()
         self.conversation_manager = ConversationManager()
+        self.conversation_reasoner = ConversationReasoner()
 
         # --------------------------------------------------
         # LLM preparation layers
@@ -357,12 +359,34 @@ class DoxaEnginePhase2:
 
         # --------------------------------------------------
         # Phase 4.17
+        # Conversation Reasoner
+        # --------------------------------------------------
+        conversation_reasoning = self.conversation_reasoner.reason(
+            text=text,
+            conversation_context=conversation_context,
+            dialogue_decision=dialogue_decision,
+            cognitive_feedback=cognitive_feedback,
+            summary=self._build_summary(
+                workspace,
+                committee_result,
+                formulas,
+            ),
+        )
+
+        workspace.add_interpretation(
+            "conversation_reasoning",
+            conversation_reasoning,
+        )
+
+        # --------------------------------------------------
+        # Phase 4.18
         # Response Builder
         # --------------------------------------------------
         
         dialogue_context = {
             "knowledge": knowledge_result,
             "dialogue_decision": dialogue_decision,
+            "conversation_reasoning": conversation_reasoning,
             "cognitive_feedback": cognitive_feedback,
             "llm_bridge_response": llm_bridge_response,
             "committee": committee_result,
@@ -385,7 +409,7 @@ class DoxaEnginePhase2:
         
     
         # --------------------------------------------------
-        # Phase 4.18
+        # Phase 4.19
         # Final Report
         # --------------------------------------------------
         report = {
@@ -424,6 +448,10 @@ class DoxaEnginePhase2:
             ),
             "dialogue_decision": workspace.interpretations.get(
                 "dialogue_decision",
+                {},
+            ),
+            "conversation_reasoning": workspace.interpretations.get(
+                "conversation_reasoning",
                 {},
             ),
             "llm_package": workspace.interpretations.get(
