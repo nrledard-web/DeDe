@@ -182,16 +182,25 @@ class ConversationReasoner:
             if detected:
                 return detected
 
+        forbidden_topics = [
+            "mecroyance",
+            "certainty",
+            "understanding",
+            "revisability",
+            "reduction",
+            "closure",
+            "cognitive_filter",
+        ]
+
         for topic in reversed(recent_topics):
-            if topic not in [
-                "mecroyance",
-                "certainty",
-                "understanding",
-                "revisability",
-                "reduction",
-                "closure",
-                "cognitive_filter",
-            ]:
+            if (
+                topic
+                and topic not in forbidden_topics
+                and not topic.startswith("claim:")
+                and not topic.startswith("metric:")
+                and not topic.startswith("agent:")
+                and not topic.startswith("strategy:")
+            ):
                 return topic
 
         return None
