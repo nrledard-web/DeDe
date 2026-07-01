@@ -321,6 +321,7 @@ class DoxaEnginePhase2:
         # --------------------------------------------------
         cognitive_feedback = self.cognitive_feedback.analyze(
             llm_response=llm_bridge_response.get("response"),
+            parsed_json=llm_bridge_response.get("parsed_json"),
         )
 
         workspace.add_interpretation(
