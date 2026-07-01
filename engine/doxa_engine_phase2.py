@@ -68,6 +68,7 @@ from reasoning.cognitive_reasoner import CognitiveReasoner
 from reasoning.cognitive_feedback import CognitiveFeedback
 
 from dialogue.cognitive_dialogue_manager import CognitiveDialogueManager
+from dialogue.response_builder import ResponseBuilder
 
 from llm.llm_connector import LLMConnector
 from llm.llm_response_interpreter import LLMResponseInterpreter
@@ -116,6 +117,7 @@ class DoxaEnginePhase2:
         self.cognitive_reasoner = CognitiveReasoner()
         self.cognitive_feedback = CognitiveFeedback()
         self.dialogue_manager = CognitiveDialogueManager()
+        self.response_builder = ResponseBuilder()
 
         # --------------------------------------------------
         # LLM preparation layers
@@ -328,7 +330,7 @@ class DoxaEnginePhase2:
             "cognitive_feedback",
             cognitive_feedback,
         )
-        
+
         # --------------------------------------------------
         # Phase 4.15
         # Cognitive Committee
@@ -340,9 +342,38 @@ class DoxaEnginePhase2:
         # Formula Engine
         # --------------------------------------------------
         formulas = self.formula_engine.compute(workspace)
-    
+
         # --------------------------------------------------
         # Phase 4.17
+        # Response Builder
+        # --------------------------------------------------
+        
+        dialogue_context = {
+            "knowledge": knowledge_result,
+            "dialogue_decision": dialogue_decision,
+            "cognitive_feedback": cognitive_feedback,
+            "llm_bridge_response": llm_bridge_response,
+            "committee": committee_result,
+            "formulas": formulas,
+            "summary": self._build_summary(
+                workspace,
+                committee_result,
+                formulas,
+            ),
+        }
+
+        user_response = self.response_builder.build(
+            dialogue_context,
+        )
+
+        workspace.add_interpretation(
+            "user_response",
+            user_response,
+        )
+        
+    
+        # --------------------------------------------------
+        # Phase 4.18
         # Final Report
         # --------------------------------------------------
         report = {
@@ -393,6 +424,10 @@ class DoxaEnginePhase2:
             ),
             "cognitive_feedback": workspace.interpretations.get(
                 "cognitive_feedback",
+                {},
+            ),
+            "user_response": workspace.interpretations.get(
+                "user_response",
                 {},
             ),
             "workspace": workspace.snapshot(),
