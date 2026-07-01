@@ -652,6 +652,40 @@ if st.button("Analyze"):
         st.json(dialogue_decision)
 
     # --------------------------------------------------
+    # Conversation Reasoning
+    # --------------------------------------------------
+
+    conversation_reasoning = report.get("conversation_reasoning", {})
+
+    st.subheader("Conversation Reasoning")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(
+            "Next Move",
+            conversation_reasoning.get("move", "N/A"),
+        )
+
+    with col2:
+        st.metric(
+            "Follow-up",
+            str(conversation_reasoning.get("is_follow_up", False)),
+        )
+
+    st.write(
+        conversation_reasoning.get("summary", "")
+    )
+
+    if conversation_reasoning.get("next_prompt"):
+        st.info(
+            conversation_reasoning["next_prompt"]
+        )
+
+    with st.expander("Conversation Reasoning details"):
+        st.json(conversation_reasoning)
+
+    # --------------------------------------------------
     # Agent Interpretations
     # --------------------------------------------------
     
