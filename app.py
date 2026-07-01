@@ -53,7 +53,11 @@ if st.button("Analyze"):
     variables = workspace["variables"]
     agent_results = report["agent_results"]
     summary = report["summary"]
-
+    
+    # --------------------------------------------------
+    # Phase 2 Cognitive Variables
+    # --------------------------------------------------
+    
     st.subheader("Phase 2 Cognitive Variables")
 
     col1, col2, col3, col4 = st.columns(4)
@@ -69,7 +73,11 @@ if st.button("Analyze"):
 
     with col4:
         show_metric("Reduction", variables["reduction"])
-
+        
+    # --------------------------------------------------
+    # Phase 2 Cognitive Summary
+    # --------------------------------------------------
+    
     st.subheader("Phase 2 Cognitive Summary")
 
     st.write(summary["diagnosis"])
@@ -81,39 +89,14 @@ if st.button("Analyze"):
 
     committee = report["committee"]
 
-    st.subheader("Cognitive Committee")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        show_metric(
-            "Committee Confidence",
-            committee["confidence"],
-        )
-
-    with col2:
-        st.metric(
-            "Dominant Orientation",
-            committee["dominant_orientation"],
-        )
-
-    st.info(committee["diagnosis"])
-
-    if committee["concerns"]:
-        st.subheader("Committee Concerns")
-
-        for concern in committee["concerns"]:
-            st.warning(concern)
-
-    st.subheader("Committee Recommendations")
-
-    for recommendation in committee["recommendations"]:
-        st.write(f"- {recommendation}")
-
     formulas = report["formulas"]
     core = formulas["core"]
     derived = formulas["derived"]
-
+    
+    # --------------------------------------------------
+    # DOXA Formula Metrics
+    # --------------------------------------------------
+    
     st.subheader("DOXA Formula Metrics")
 
     col1, col2, col3 = st.columns(3)
@@ -129,7 +112,11 @@ if st.button("Analyze"):
     with col3:
         show_metric("Revisability", core["revisability"])
         show_metric("Surconfidence", derived["surconfidence"])
-
+        
+    # --------------------------------------------------
+    # Derived Cognitive Pressures
+    # --------------------------------------------------
+    
     st.subheader("Derived Cognitive Pressures")
 
     col1, col2 = st.columns(2)
@@ -144,9 +131,13 @@ if st.button("Analyze"):
         )
 
     st.info(formulas["diagnosis"])
+    
+    # --------------------------------------------------
+    # Semantic Graph
+    # --------------------------------------------------
 
     semantic_graph = report.get("semantic_graph", {})
-
+    
     st.subheader("Semantic Graph")
 
     col1, col2, col3 = st.columns(3)
@@ -175,9 +166,13 @@ if st.button("Analyze"):
 
     with st.expander("Semantic Graph details"):
         st.json(semantic_graph)
+    
+    # --------------------------------------------------
+    # Graph Queries
+    # --------------------------------------------------
 
     graph_queries = report.get("graph_queries", {})
-
+    
     st.subheader("Graph Queries")
 
     col1, col2 = st.columns(2)
@@ -205,7 +200,7 @@ if st.button("Analyze"):
             st.write(
                 f'- {item["node"]} — degree {item["degree"]}'
             )
-
+    
     with st.expander("LLM Context Preview"):
         st.json(
             graph_queries.get(
@@ -213,10 +208,14 @@ if st.button("Analyze"):
                 {},
             )
         )
-
+    
     with st.expander("Graph Query details"):
         st.json(graph_queries)
     
+    # --------------------------------------------------
+    # Inference Pattern 
+    # --------------------------------------------------
+
     inference_patterns = report.get("inference_patterns", {})
     
     st.subheader("Inference Patterns")
@@ -264,8 +263,12 @@ if st.button("Analyze"):
     with st.expander("Inference Pattern details"):
         st.json(inference_patterns)
 
-    cognitive_state = report.get("cognitive_state", {})
+    # --------------------------------------------------
+    # Cognitive State Compiler
+    # --------------------------------------------------
 
+    cognitive_state = report.get("cognitive_state", {})
+    
     st.subheader("Cognitive State Compiler")
 
     col1, col2 = st.columns(2)
@@ -339,9 +342,73 @@ if st.button("Analyze"):
 
     with st.expander("Full Cognitive State"):
         st.json(cognitive_state)
-    
-    llm_package = report.get("llm_package", {})
 
+    # --------------------------------------------------
+    # Cognitive Reasoner
+    # --------------------------------------------------
+
+    cognitive_reasoning = report.get("cognitive_reasoning", {})
+
+    st.subheader("Cognitive Reasoner")
+
+    st.metric(
+        "Reasoner Status",
+        cognitive_reasoning.get("status", "N/A"),
+    )
+
+    nodes = cognitive_reasoning.get("nodes_considered", [])
+
+    if nodes:
+        st.caption("Nodes considered")
+        st.write(", ".join(nodes))
+
+    with st.expander("Hypotheses"):
+        st.json(cognitive_reasoning.get("hypotheses", []))
+
+    with st.expander("Contradictions"):
+        st.json(cognitive_reasoning.get("contradictions", []))
+
+    with st.expander("Explanations"):
+        st.json(cognitive_reasoning.get("explanations", []))
+
+    with st.expander("Missing Links"):
+        st.json(cognitive_reasoning.get("missing_links", []))
+
+    with st.expander("Predictions"):
+        st.json(cognitive_reasoning.get("predictions", []))
+
+    with st.expander("Counterfactuals"):
+        st.json(cognitive_reasoning.get("counterfactuals", []))
+
+    with st.expander("Inference Chains"):
+        st.json(cognitive_reasoning.get("inference_chains", []))
+
+    # --------------------------------------------------
+    # Dialogue Decision
+    # --------------------------------------------------
+    
+    dialogue_decision = report.get("dialogue_decision", {})
+
+    st.subheader("Dialogue Strategy")
+    
+    st.metric(
+        "Dialogue Mode",
+        dialogue_decision.get("mode", "N/A"),
+    )
+    
+    st.write(
+        dialogue_decision.get("summary", "")
+    )
+    
+    with st.expander("Dialogue Decision"):
+        st.json(dialogue_decision)
+    
+    # --------------------------------------------------
+    # LLM Connector
+    # --------------------------------------------------
+
+    llm_package = report.get("llm_package", {})
+    
     st.subheader("LLM Connector")
 
     st.metric(
@@ -404,45 +471,89 @@ if st.button("Analyze"):
         st.json(llm_bridge_response)
 
     # --------------------------------------------------
-    # Cognitive Reasoner
+    # Cognitive Feedback
     # --------------------------------------------------
 
-    cognitive_reasoning = report.get("cognitive_reasoning", {})
+    cognitive_feedback = report.get("cognitive_feedback", {})
 
-    st.subheader("Cognitive Reasoner")
+    st.subheader("Cognitive Feedback")
 
-    st.metric(
-        "Reasoner Status",
-        cognitive_reasoning.get("status", "N/A"),
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(
+            "Feedback Status",
+            cognitive_feedback.get("status", "N/A"),
+        )
+
+    with col2:
+        show_metric(
+            "Feedback Confidence",
+            cognitive_feedback.get("confidence"),
+        )
+
+    st.write(
+        cognitive_feedback.get(
+            "summary",
+            "",
+        )
     )
 
-    nodes = cognitive_reasoning.get("nodes_considered", [])
+    with st.expander("New Concepts"):
+        st.json(
+            cognitive_feedback.get(
+                "new_concepts",
+                [],
+            )
+        )
 
-    if nodes:
-        st.caption("Nodes considered")
-        st.write(", ".join(nodes))
+    with st.expander("New Relations"):
+        st.json(
+            cognitive_feedback.get(
+                "new_relations",
+                [],
+            )
+        )
 
-    with st.expander("Hypotheses"):
-        st.json(cognitive_reasoning.get("hypotheses", []))
+    with st.expander("New Hypotheses"):
+        st.json(
+            cognitive_feedback.get(
+                "new_hypotheses",
+                [],
+            )
+        )
 
-    with st.expander("Contradictions"):
-        st.json(cognitive_reasoning.get("contradictions", []))
+    with st.expander("New Questions"):
+        st.json(
+            cognitive_feedback.get(
+                "new_questions",
+                [],
+            )
+        )
 
-    with st.expander("Explanations"):
-        st.json(cognitive_reasoning.get("explanations", []))
+    with st.expander("New Missing Dimensions"):
+        st.json(
+            cognitive_feedback.get(
+                "new_missing_dimensions",
+                [],
+            )
+        )
 
-    with st.expander("Missing Links"):
-        st.json(cognitive_reasoning.get("missing_links", []))
+    with st.expander("New Counterfactuals"):
+        st.json(
+            cognitive_feedback.get(
+                "new_counterfactuals",
+                [],
+            )
+        )
 
-    with st.expander("Predictions"):
-        st.json(cognitive_reasoning.get("predictions", []))
+    with st.expander("Full Cognitive Feedback"):
+        st.json(cognitive_feedback)
 
-    with st.expander("Counterfactuals"):
-        st.json(cognitive_reasoning.get("counterfactuals", []))
-
-    with st.expander("Inference Chains"):
-        st.json(cognitive_reasoning.get("inference_chains", []))
-
+    # --------------------------------------------------
+    # Agent Interpretations
+    # --------------------------------------------------
+    
     st.subheader("Agent Interpretations")
 
     for name, result in agent_results.items():
@@ -456,5 +567,46 @@ if st.button("Analyze"):
         with st.expander(f"{name} details"):
             st.json(result)
 
-    with st.expander("Full Phase 2 Report"):
-        st.json(report)
+    # --------------------------------------------------
+    # Cognitive Committee
+    # --------------------------------------------------
+    
+    st.subheader("Cognitive Committee")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        show_metric(
+            "Committee Confidence",
+            committee["confidence"],
+        )
+
+    with col2:
+        st.metric(
+            "Dominant Orientation",
+            committee["dominant_orientation"],
+        )
+
+    st.info(committee["diagnosis"])
+
+    if committee["concerns"]:
+        st.subheader("Committee Concerns")
+
+        for concern in committee["concerns"]:
+            st.warning(concern)
+            
+    # --------------------------------------------------
+    # Committee Recommendations
+    # --------------------------------------------------
+    
+    st.subheader("Committee Recommendations")
+
+    for recommendation in committee["recommendations"]:
+        st.write(f"- {recommendation}")
+
+# --------------------------------------------------
+# Full Phase 2 Report
+# --------------------------------------------------
+
+with st.expander("Full Phase 2 Report"):
+    st.json(report)
