@@ -11,7 +11,7 @@ It prepares structured context from:
 """
 
 from typing import Any
-
+from llm.llm_json_schema import build_json_instruction
 
 class LLMConnector:
 
@@ -64,15 +64,18 @@ class LLMConnector:
         }
 
     def _build_system_prompt(self) -> str:
-        return (
+        system_prompt = (
             "You are a cognitive reasoning assistant connected to DeDe, "
-            "a symbolic cognitive architecture. You must not replace DeDe's "
-            "analysis. You must use the provided cognitive graph context, "
-            "compiled cognitive state and reasoner output to explain, clarify, "
-            "question, or refine the interpretation. Preserve revisability, "
-            "identify assumptions, avoid overconfidence, and make missing "
-            "dimensions explicit."
+            "a symbolic cognitive architecture. You must not replace DeDe's analysis. "
+            "You must use the provided cognitive graph context, compiled cognitive state "
+            "and reasoner output to explain, clarify, question, or refine the interpretation. "
+            "Preserve revisability, identify assumptions, avoid overconfidence, "
+            "and make missing dimensions explicit."
+            + "\n\n"
+            + build_json_instruction()
         )
+
+        return system_prompt
 
     def _build_cognitive_context(
         self,
