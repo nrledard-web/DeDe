@@ -40,6 +40,13 @@ class ResponseBuilder:
 
         answer_parts = []
 
+        conversational_intro = self._build_conversational_intro(
+            conversation_reasoning,
+        )
+
+        if conversational_intro:
+            answer_parts.append(conversational_intro)
+
         if knowledge.get("found"):
             answer_parts.append(
                 knowledge.get("answer", "")
@@ -107,6 +114,37 @@ class ResponseBuilder:
         }
 
     # --------------------------------------------------
+    # Conversational Intro Builder
+    # --------------------------------------------------
+
+    def _build_conversational_intro(
+        self,
+        conversation_reasoning: dict[str, Any],
+    ) -> str | None:
+
+        move = conversation_reasoning.get("move")
+        current_topic = conversation_reasoning.get("current_topic")
+        reference_topic = conversation_reasoning.get("reference_topic")
+
+        if move != "continue_thread":
+            return None
+
+        if current_topic and reference_topic:
+            return (
+                f"En continuité avec {reference_topic}, "
+                f"on peut appliquer la même mécanique à {current_topic}."
+            )
+
+        if current_topic:
+            return (
+                f"Oui, on peut prolonger la réflexion vers {current_topic}."
+            )
+
+        return (
+            "Oui, on peut poursuivre dans le même fil de réflexion."
+        )
+
+    # --------------------------------------------------
     # Follow-up Question Builder
     # --------------------------------------------------
 
@@ -127,6 +165,20 @@ class ResponseBuilder:
 
         if conversation_reasoning.get("next_prompt"):
             return conversation_reasoning["next_prompt"]
+
+        if conversation_reasoning.get("move") == "continue_thread":
+            current_topic = conversation_reasoning.get("current_topic")
+
+            if current_topic:
+                return (
+                    f"Souhaites-tu maintenant comparer {current_topic} "
+                    "avec un autre domaine, ou approfondir ce cas précis ?"
+                )
+
+            return (
+                "Souhaites-tu continuer avec un autre domaine "
+                "ou approfondir ce fil ?"
+            )
 
         # --------------------------------------------------
         # LLM Questions
