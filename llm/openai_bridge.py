@@ -9,6 +9,7 @@ Requires:
 """
 
 from typing import Any
+import json
 
 
 class OpenAIBridge:
@@ -58,12 +59,28 @@ class OpenAIBridge:
             if not output_text:
                 output_text = str(response)
 
+            parsed_json = None
+            
+            cleaned = output_text.strip()
+            
+            if cleaned.startswith("```"):
+                cleaned = cleaned.replace("```json", "")
+                cleaned = cleaned.replace("```", "")
+                cleaned = cleaned.strip()
+            
+            try:
+                parsed_json = json.loads(cleaned)
+            except Exception:
+                parsed_json = None
+
             return {
                 "bridge": self.name,
                 "status": "success",
                 "provider": "openai",
                 "model": self.model,
-                "response": output_text,
+                "response": cleaned,
+                "parsed_json": parsed_json,
+                "json_valid": parsed_json is not None,
                 "raw_response": response.model_dump()
                 if hasattr(response, "model_dump")
                 else str(response),
