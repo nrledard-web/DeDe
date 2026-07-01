@@ -65,6 +65,7 @@ from estimators.estimator_engine import EstimatorEngine
 from reasoning.inference_engine import InferenceEngine
 from reasoning.cognitive_compiler import CognitiveCompiler
 from reasoning.cognitive_reasoner import CognitiveReasoner
+from reasoning.cognitive_feedback import CognitiveFeedback
 
 from dialogue.cognitive_dialogue_manager import CognitiveDialogueManager
 
@@ -113,6 +114,7 @@ class DoxaEnginePhase2:
         self.inference_engine = InferenceEngine()
         self.cognitive_compiler = CognitiveCompiler()
         self.cognitive_reasoner = CognitiveReasoner()
+        self.cognitive_feedback = CognitiveFeedback()
         self.dialogue_manager = CognitiveDialogueManager()
 
         # --------------------------------------------------
@@ -312,25 +314,38 @@ class DoxaEnginePhase2:
             "llm_interpretation",
             llm_interpretation,
         )
-        
+
         # --------------------------------------------------
         # Phase 4.14
+        # Cognitive Feedback
+        # --------------------------------------------------
+        cognitive_feedback = self.cognitive_feedback.analyze(
+            llm_response=llm_bridge_response.get("response"),
+        )
+
+        workspace.add_interpretation(
+            "cognitive_feedback",
+            cognitive_feedback,
+        )
+        
+        # --------------------------------------------------
+        # Phase 4.15
         # Cognitive Committee
         # --------------------------------------------------
         committee_result = self.committee.synthesize(workspace)
-
+    
         # --------------------------------------------------
-        # Phase 4.15
+        # Phase 4.16
         # Formula Engine
         # --------------------------------------------------
         formulas = self.formula_engine.compute(workspace)
-
+    
         # --------------------------------------------------
-        # Phase 4.16
+        # Phase 4.17
         # Final Report
         # --------------------------------------------------
         report = {
-            "phase": "phase_4_16_pipeline_ready",
+            "phase": "phase_5_0_cognitive_feedback_ready",
             "text": text,
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
@@ -375,6 +390,10 @@ class DoxaEnginePhase2:
                 "llm_interpretation",
                 {},
             ),
+            "cognitive_feedback": workspace.interpretations.get(
+                "cognitive_feedback",
+                {},
+            ),
             "workspace": workspace.snapshot(),
             "agent_results": agent_results,
             "committee": committee_result,
@@ -385,7 +404,7 @@ class DoxaEnginePhase2:
                 formulas,
             ),
         }
-
+    
         return report
 
     def _build_summary(
