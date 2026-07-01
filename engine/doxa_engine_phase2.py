@@ -69,6 +69,7 @@ from reasoning.cognitive_feedback import CognitiveFeedback
 
 from dialogue.cognitive_dialogue_manager import CognitiveDialogueManager
 from dialogue.response_builder import ResponseBuilder
+from dialogue.conversation_manager import ConversationManager
 
 from llm.llm_connector import LLMConnector
 from llm.llm_response_interpreter import LLMResponseInterpreter
@@ -118,6 +119,7 @@ class DoxaEnginePhase2:
         self.cognitive_feedback = CognitiveFeedback()
         self.dialogue_manager = CognitiveDialogueManager()
         self.response_builder = ResponseBuilder()
+        self.conversation_manager = ConversationManager()
 
         # --------------------------------------------------
         # LLM preparation layers
@@ -147,12 +149,22 @@ class DoxaEnginePhase2:
         self,
         text: str,
         enable_llm: bool = False,
+        conversation_history: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """
         Run the complete DeDe Phase 2 cognitive pipeline.
         """
 
         workspace = CognitiveWorkspace(text=text)
+
+        conversation_context = self.conversation_manager.build_context(
+            conversation_history,
+        )
+        
+        workspace.add_interpretation(
+            "conversation_context",
+            conversation_context,
+        )
 
         # --------------------------------------------------
         # Phase 4.0
@@ -379,6 +391,10 @@ class DoxaEnginePhase2:
         report = {
             "phase": "phase_5_0_cognitive_feedback_ready",
             "text": text,
+            "conversation_context": workspace.interpretations.get(
+                "conversation_context",
+                {},
+            ),
             "knowledge": knowledge_result,
             "concepts": workspace.interpretations.get("concepts", {}),
             "semantic": workspace.interpretations.get("semantic", {}),
@@ -440,6 +456,15 @@ class DoxaEnginePhase2:
                 formulas,
             ),
         }
+        updated_conversation_history = self.conversation_manager.add_turn(
+            history=conversation_history,
+            user_input=text,
+            user_response=user_response,
+            report=report,
+        )
+        
+        report["conversation_history"] = updated_conversation_history
+
     
         return report
 
