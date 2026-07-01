@@ -604,9 +604,9 @@ if st.button("Analyze"):
     for recommendation in committee["recommendations"]:
         st.write(f"- {recommendation}")
 
-# --------------------------------------------------
-# Full Phase 2 Report
-# --------------------------------------------------
+    # --------------------------------------------------
+    # Full Phase 2 Report
+    # --------------------------------------------------
 
-with st.expander("Full Phase 2 Report"):
-    st.json(report)
+    with st.expander("Full Phase 2 Report"):
+        st.json(report)
