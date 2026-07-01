@@ -27,7 +27,13 @@ st.caption(
     "Current status: CognitiveWorkspace, estimator layer, "
     "agent interpretation and shared cognitive mechanics."
 )
+# --------------------------------------------------
+# Conversation Session
+# --------------------------------------------------
 
+if "conversation_history" not in st.session_state:
+    st.session_state.conversation_history = []
+    
 text = st.text_area(
     "Text to analyze",
     value=(
@@ -41,18 +47,85 @@ enable_llm = st.toggle(
     "Enable external LLM call",
     value=False,
 )
+if st.button("Reset conversation"):
+    st.session_state.conversation_history = []
+    st.success("Conversation reset.")
 
 if st.button("Analyze"):
+
     engine = DoxaEnginePhase2()
+
     report = engine.analyze(
-        text,
+        text=text,
         enable_llm=enable_llm,
+        conversation_history=st.session_state.conversation_history,
+    )
+
+    st.session_state.conversation_history = report.get(
+        "conversation_history",
+        st.session_state.conversation_history,
     )
 
     workspace = report["workspace"]
     variables = workspace["variables"]
     agent_results = report["agent_results"]
     summary = report["summary"]
+
+    # --------------------------------------------------
+    # DeDe Answer
+    # --------------------------------------------------
+
+    user_response = report.get("user_response", {})
+
+    st.subheader("DeDe Answer")
+
+    st.success(
+        user_response.get(
+            "final_answer",
+            "No user-facing answer generated yet.",
+        )
+    )
+
+    follow_up = user_response.get("follow_up_question")
+
+    if follow_up:
+        st.info(follow_up)
+
+    with st.expander("User Response details"):
+        st.json(user_response)
+
+    # --------------------------------------------------
+    # Conversation Context
+    # --------------------------------------------------
+
+    conversation_context = report.get("conversation_context", {})
+
+    st.subheader("Conversation Context")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(
+            "Previous Turns",
+            conversation_context.get("turn_count", 0),
+        )
+
+    with col2:
+        st.metric(
+            "Context Status",
+            conversation_context.get("status", "N/A"),
+        )
+
+    if conversation_context.get("recent_topics"):
+        st.caption("Recent topics")
+        st.write(
+            ", ".join(
+                conversation_context.get("recent_topics", [])
+            )
+        )
+
+    with st.expander("Conversation Context details"):
+        st.json(conversation_context)
     
     # --------------------------------------------------
     # Phase 2 Cognitive Variables
