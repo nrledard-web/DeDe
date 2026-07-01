@@ -35,7 +35,7 @@ if "conversation_history" not in st.session_state:
     st.session_state.conversation_history = []
     
 text = st.text_area(
-    "Text to analyze",
+    "Message to DeDe",
     value=(
         "The climate debate is completely settled. Anyone who disagrees is "
         "simply ignorant. There is no need to examine alternative hypotheses "
