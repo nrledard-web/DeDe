@@ -21,8 +21,41 @@ class CognitiveFeedback:
     def analyze(
         self,
         llm_response: str | None,
+        parsed_json: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
+        # --------------------------------------------------
+        # Preferred path: structured JSON from the LLM
+        # --------------------------------------------------
+        if parsed_json:
+            return {
+                "engine": self.name,
+                "status": "ready_from_json",
+                "new_concepts": parsed_json.get("concepts", []),
+                "new_relations": parsed_json.get("relations", []),
+                "new_hypotheses": parsed_json.get("hypotheses", []),
+                "new_questions": parsed_json.get("questions", []),
+                "new_missing_dimensions": parsed_json.get(
+                    "missing_dimensions",
+                    [],
+                ),
+                "new_counterfactuals": parsed_json.get(
+                    "counterfactuals",
+                    [],
+                ),
+                "confidence": parsed_json.get("confidence", 0.0),
+                "summary": parsed_json.get(
+                    "summary",
+                    "Structured LLM feedback extracted from JSON.",
+                ),
+                "recommendations": parsed_json.get("recommendations", []),
+                "contradictions": parsed_json.get("contradictions", []),
+                "source": "llm_json",
+            }
+
+        # --------------------------------------------------
+        # Fallback path: no LLM response available
+        # --------------------------------------------------
         if not llm_response:
             return {
                 "engine": self.name,
@@ -35,8 +68,14 @@ class CognitiveFeedback:
                 "new_counterfactuals": [],
                 "confidence": 0.0,
                 "summary": "No LLM response available for feedback extraction.",
+                "recommendations": [],
+                "contradictions": [],
+                "source": "none",
             }
 
+        # --------------------------------------------------
+        # Fallback path: heuristic extraction from text
+        # --------------------------------------------------
         text = llm_response.lower()
 
         new_concepts = self._extract_concepts(text)
@@ -56,7 +95,7 @@ class CognitiveFeedback:
 
         return {
             "engine": self.name,
-            "status": "ready",
+            "status": "ready_from_text",
             "new_concepts": new_concepts,
             "new_relations": new_relations,
             "new_hypotheses": new_hypotheses,
@@ -72,6 +111,9 @@ class CognitiveFeedback:
                 new_counterfactuals,
                 confidence,
             ),
+            "recommendations": [],
+            "contradictions": [],
+            "source": "llm_text_fallback",
         }
 
     def _extract_concepts(
