@@ -126,6 +126,29 @@ if st.button("Analyze"):
 
     with st.expander("Conversation Context details"):
         st.json(conversation_context)
+
+    # --------------------------------------------------
+    # Conversation History
+    # --------------------------------------------------
+
+    st.subheader("Conversation History")
+
+    history = st.session_state.conversation_history
+
+    if history:
+        for index, turn in enumerate(history, start=1):
+            st.markdown(f"### Turn {index}")
+
+            st.markdown("**User**")
+            st.write(turn.get("user_input", ""))
+
+            st.markdown("**DeDe**")
+            st.write(turn.get("answer", ""))
+
+            if turn.get("follow_up_question"):
+                st.info(turn["follow_up_question"])
+    else:
+        st.caption("No previous conversation turns yet.")
     
     # --------------------------------------------------
     # Phase 2 Cognitive Variables
