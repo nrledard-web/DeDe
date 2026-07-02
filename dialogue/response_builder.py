@@ -6,10 +6,15 @@ Builds a clear user-facing answer from DeDe's cognitive report.
 
 from typing import Any
 
+from dialogue.language_pack import LanguagePack
+
 
 class ResponseBuilder:
 
     name = "response_builder"
+
+    def __init__(self):
+        self.language_pack = LanguagePack()
 
     # --------------------------------------------------
     # Main Builder
@@ -140,84 +145,24 @@ class ResponseBuilder:
         if move != "continue_thread":
             return None
 
-        # --------------------------------------------------
-        # French
-        # --------------------------------------------------
-
-        if language == "fr":
-            if current_topic and reference_topic:
-                return (
-                    f"En continuité avec {reference_topic}, "
-                    f"on peut appliquer la même mécanique à {current_topic}."
-                )
-
-            if current_topic:
-                return (
-                    f"Oui, on peut prolonger la réflexion vers {current_topic}."
-                )
-
-            return (
-                "Oui, on peut poursuivre dans le même fil de réflexion."
-            )
-
-        # --------------------------------------------------
-        # Spanish
-        # --------------------------------------------------
-
-        if language == "es":
-
-            if current_topic and reference_topic:
-                return (
-                    f"En continuidad con {reference_topic}, "
-                    f"podemos aplicar la misma mecánica a {current_topic}."
-                )
-
-            if current_topic:
-                return (
-                    f"Sí, podemos prolongar la reflexión hacia {current_topic}."
-                )
-
-            return (
-                "Sí, podemos continuar en la misma línea de reflexión."
-            )
-        # --------------------------------------------------
-        # Filipino
-        # --------------------------------------------------
-
-        if language == "fil":
-
-            if current_topic and reference_topic:
-                return (
-                    f"Sa pagpapatuloy ng usapan tungkol sa {reference_topic}, "
-                    f"maaari nating ilapat ang parehong mekanismo sa {current_topic}."
-                )
-
-            if current_topic:
-                return (
-                    f"Oo, maaari nating palawakin ang pagtalakay tungkol sa {current_topic}."
-                )
-
-            return (
-                "Oo, maaari nating ipagpatuloy ang parehong linya ng pag-iisip."
-            )
-
-        # --------------------------------------------------
-        # English / Default
-        # --------------------------------------------------
-
         if current_topic and reference_topic:
-            return (
-                f"Continuing from {reference_topic}, "
-                f"we can apply the same mechanism to {current_topic}."
+            return self.language_pack.get(
+                language,
+                "continue_with_reference",
+                reference_topic=reference_topic,
+                current_topic=current_topic,
             )
 
         if current_topic:
-            return (
-                f"Yes, we can extend the reflection toward {current_topic}."
+            return self.language_pack.get(
+                language,
+                "continue_with_topic",
+                current_topic=current_topic,
             )
 
-        return (
-            "Yes, we can continue in the same line of thought."
+        return self.language_pack.get(
+            language,
+            "continue_generic",
         )
 
     # --------------------------------------------------
@@ -247,53 +192,16 @@ class ResponseBuilder:
         if conversation_reasoning.get("move") == "continue_thread":
             current_topic = conversation_reasoning.get("current_topic")
 
-            if language == "fr":
-                if current_topic:
-                    return (
-                        f"Souhaites-tu maintenant comparer {current_topic} "
-                        "avec un autre domaine, ou approfondir ce cas précis ?"
-                    )
-
-                return (
-                    "Souhaites-tu continuer avec un autre domaine "
-                    "ou approfondir ce fil ?"
-                )
-
-            if language == "es":
-
-                if current_topic:
-                    return (
-                        f"¿Quieres comparar ahora {current_topic} "
-                        "con otro dominio, o profundizar este caso?"
-                    )
-
-                return (
-                    "¿Quieres continuar con otro dominio "
-                    "o profundizar esta línea?"
-                )
-
-            if language == "fil":
-
-                
-                if current_topic:
-                    return (
-                        f"Gusto mo bang ihambing ang {current_topic} "
-                        "sa ibang larangan, o palalimin pa natin ito?"
-                    )
-
-                return (
-                    "Gusto mo bang magpatuloy sa ibang larangan "
-                    "o palalimin pa natin ang usaping ito?"
-                )
             if current_topic:
-                return (
-                    f"Would you like to compare {current_topic} "
-                    "with another domain, or go deeper into this case?"
+                return self.language_pack.get(
+                    language,
+                    "follow_up_with_topic",
+                    current_topic=current_topic,
                 )
 
-            return (
-                "Would you like to continue with another domain, "
-                "or go deeper into this thread?"
+            return self.language_pack.get(
+                language,
+                "follow_up_generic",
             )
 
         # --------------------------------------------------
@@ -318,27 +226,10 @@ class ResponseBuilder:
         )
 
         if missing_dimensions:
-            if language == "fr":
-                return (
-                    "Souhaites-tu préciser cette dimension : "
-                    f"{missing_dimensions[0]}"
-                )
-
-            if language == "es":
-                return (
-                    "¿Quieres precisar esta dimensión: "
-                    f"{missing_dimensions[0]}?"
-                )
-
-            if language == "fil":
-                return (
-                    "Gusto mo bang linawin ang aspektong ito: "
-                    f"{missing_dimensions[0]}?"
-                )
-
-            return (
-                "Would you like to clarify this dimension: "
-                f"{missing_dimensions[0]}?"
+            return self.language_pack.get(
+                language,
+                "missing_dimension",
+                dimension=missing_dimensions[0],
             )
 
         # --------------------------------------------------
@@ -348,28 +239,9 @@ class ResponseBuilder:
         if dialogue_decision.get(
             "needs_clarification",
         ):
-            if language == "fr":
-                return (
-                    "Souhaites-tu une réponse courte, "
-                    "technique, philosophique ou "
-                    "orientée application ?"
-                )
-
-            if language == "es":
-                return (
-                    "¿Quieres una respuesta breve, técnica, "
-                    "filosófica u orientada a la aplicación?"
-                )
-
-            if language == "fil":
-                return (
-                    "Gusto mo ba ng maikli, teknikal, pilosopikal, "
-                    "o praktikal na paliwanag?"
-                )
-
-            return (
-                "Would you like a short, technical, philosophical, "
-                "or application-oriented answer?"
+            return self.language_pack.get(
+                language,
+                "clarification",
             )
 
         # --------------------------------------------------
