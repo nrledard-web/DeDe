@@ -59,6 +59,52 @@ class DialogueProfile:
         lowered = cleaned.lower()
         padded = f" {lowered} "
 
+        # --------------------------------------------------
+        # Strong greeting shortcuts
+        # --------------------------------------------------
+        
+        french_greetings = [
+            "bonjour",
+            "bonsoir",
+            "salut",
+            "coucou",
+        ]
+        
+        english_greetings = [
+            "hello",
+            "hi",
+            "hey",
+            "good morning",
+            "good evening",
+        ]
+        
+        spanish_greetings = [
+            "hola",
+            "buenos días",
+            "buenas tardes",
+            "buenas noches",
+        ]
+        
+        filipino_greetings = [
+            "kumusta",
+            "kamusta",
+            "magandang araw",
+            "magandang umaga",
+            "magandang gabi",
+        ]
+        
+        if any(greeting in lowered for greeting in french_greetings):
+            return "fr"
+        
+        if any(greeting in lowered for greeting in english_greetings):
+            return "en"
+        
+        if any(greeting in lowered for greeting in spanish_greetings):
+            return "es"
+        
+        if any(greeting in lowered for greeting in filipino_greetings):
+            return "fil"
+
         if "¿" in cleaned or "¡" in cleaned:
             return "es"
 
