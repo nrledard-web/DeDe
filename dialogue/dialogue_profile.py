@@ -103,6 +103,9 @@ class DialogueProfile:
                 "tl",
             }
 
+            if detected == "tl":
+                return "fil"
+            
             if detected in supported:
                 return detected
 
