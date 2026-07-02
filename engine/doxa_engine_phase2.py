@@ -71,6 +71,7 @@ from dialogue.cognitive_dialogue_manager import CognitiveDialogueManager
 from dialogue.response_builder import ResponseBuilder
 from dialogue.conversation_manager import ConversationManager
 from dialogue.conversation_reasoner import ConversationReasoner
+from dialogue.dialogue_profile import DialogueProfile
 
 from llm.llm_connector import LLMConnector
 from llm.llm_response_interpreter import LLMResponseInterpreter
@@ -122,6 +123,7 @@ class DoxaEnginePhase2:
         self.response_builder = ResponseBuilder()
         self.conversation_manager = ConversationManager()
         self.conversation_reasoner = ConversationReasoner()
+        self.dialogue_profile = DialogueProfile()
 
         # --------------------------------------------------
         # LLM preparation layers
@@ -166,6 +168,20 @@ class DoxaEnginePhase2:
         workspace.add_interpretation(
             "conversation_context",
             conversation_context,
+        )
+        
+        # --------------------------------------------------
+        # Phase 5.1
+        # Dialogue Profile
+        # --------------------------------------------------
+        dialogue_profile = self.dialogue_profile.analyze(
+            text=text,
+            conversation_context=conversation_context,
+        )
+
+        workspace.add_interpretation(
+            "dialogue_profile",
+            dialogue_profile,
         )
 
         # --------------------------------------------------
@@ -387,6 +403,7 @@ class DoxaEnginePhase2:
             "knowledge": knowledge_result,
             "dialogue_decision": dialogue_decision,
             "conversation_reasoning": conversation_reasoning,
+            "dialogue_profile": dialogue_profile,
             "cognitive_feedback": cognitive_feedback,
             "llm_bridge_response": llm_bridge_response,
             "committee": committee_result,
@@ -417,6 +434,10 @@ class DoxaEnginePhase2:
             "text": text,
             "conversation_context": workspace.interpretations.get(
                 "conversation_context",
+                {},
+            ),
+            "dialogue_profile": workspace.interpretations.get(
+                "dialogue_profile",
                 {},
             ),
             "knowledge": knowledge_result,
