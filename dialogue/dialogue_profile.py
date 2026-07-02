@@ -3,7 +3,7 @@ DeDe - Dialogue Profile
 
 Detects the user's conversational profile for the current turn.
 
-Initial scope:
+Current scope:
 - language detection
 - tone placeholder
 - verbosity placeholder
@@ -47,7 +47,80 @@ class DialogueProfile:
         text: str,
     ) -> str:
 
+        cleaned = text.strip()
+
+        if not cleaned:
+            return "unknown"
+
+        # --------------------------------------------------
+        # Strong shortcuts for very short messages
+        # --------------------------------------------------
+
+        lowered = cleaned.lower()
+        padded = f" {lowered} "
+
+        if "¿" in cleaned or "¡" in cleaned:
+            return "es"
+
+        if any(char in lowered for char in ["é", "è", "ê", "à", "ç", "ù"]):
+            return "fr"
+
+        if padded.startswith(" et ") or " et " in padded:
+            return "fr"
+
+        if padded.startswith(" and ") or " and " in padded:
+            return "en"
+
+        if padded.startswith(" y ") or " y " in padded:
+            return "es"
+
+        # --------------------------------------------------
+        # Library-based language detection
+        # --------------------------------------------------
+
+        try:
+            from langdetect import DetectorFactory
+            from langdetect import detect
+
+            DetectorFactory.seed = 0
+
+            detected = detect(cleaned)
+
+            supported = {
+                "en",
+                "fr",
+                "es",
+                "de",
+                "it",
+                "pt",
+                "nl",
+                "ru",
+                "zh-cn",
+                "zh-tw",
+                "ja",
+                "ko",
+                "ar",
+                "tl",
+            }
+
+            if detected in supported:
+                return detected
+
+            if detected.startswith("zh"):
+                return "zh"
+
+            return detected
+
+        except Exception:
+            return self._fallback_detect_language(cleaned)
+
+    def _fallback_detect_language(
+        self,
+        text: str,
+    ) -> str:
+
         lowered = text.lower()
+        padded = f" {lowered} "
 
         french_markers = [
             " le ",
@@ -64,6 +137,11 @@ class DialogueProfile:
             " quoi ",
             " peux ",
             " tu ",
+            " et ",
+            " en ",
+            " religion ",
+            " science ",
+            " politique ",
             "ça",
             "c'est",
             "mécroyance",
@@ -80,7 +158,7 @@ class DialogueProfile:
             " with ",
             " can ",
             " you ",
-            "the ",
+            " the ",
             "what is",
             "and in",
         ]
@@ -96,19 +174,15 @@ class DialogueProfile:
             " que ",
             " por qué ",
             " cómo ",
-            " en ",
             " con ",
-            "es ",
+            " y ",
+            " es ",
         ]
 
-        fr_score = self._score_markers(lowered, french_markers)
-        en_score = self._score_markers(lowered, english_markers)
-        es_score = self._score_markers(lowered, spanish_markers)
-
         scores = {
-            "fr": fr_score,
-            "en": en_score,
-            "es": es_score,
+            "fr": self._score_markers(padded, french_markers),
+            "en": self._score_markers(padded, english_markers),
+            "es": self._score_markers(padded, spanish_markers),
         }
 
         best_language = max(
@@ -127,12 +201,10 @@ class DialogueProfile:
         markers: list[str],
     ) -> int:
 
-        padded = f" {text} "
-
         score = 0
 
         for marker in markers:
-            if marker in padded:
+            if marker in text:
                 score += 1
 
         return score
