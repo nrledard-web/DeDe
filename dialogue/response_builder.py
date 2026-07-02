@@ -30,6 +30,10 @@ class ResponseBuilder:
             "conversation_reasoning",
             {},
         )
+        dialogue_profile = report.get(
+            "dialogue_profile",
+            {},
+        )
         cognitive_feedback = report.get("cognitive_feedback", {})
         llm_bridge_response = report.get("llm_bridge_response", {})
         summary = report.get("summary", {})
@@ -42,6 +46,7 @@ class ResponseBuilder:
 
         conversational_intro = self._build_conversational_intro(
             conversation_reasoning,
+            dialogue_profile,
         )
 
         if conversational_intro:
@@ -84,6 +89,7 @@ class ResponseBuilder:
             dialogue_decision,
             cognitive_feedback,
             conversation_reasoning,
+            dialogue_profile,
         )
 
         # --------------------------------------------------
@@ -120,7 +126,12 @@ class ResponseBuilder:
     def _build_conversational_intro(
         self,
         conversation_reasoning: dict[str, Any],
+        dialogue_profile: dict[str, Any] | None = None,
     ) -> str | None:
+
+        dialogue_profile = dialogue_profile or {}
+
+        language = dialogue_profile.get("language", "en")
 
         move = conversation_reasoning.get("move")
         current_topic = conversation_reasoning.get("current_topic")
@@ -129,19 +140,63 @@ class ResponseBuilder:
         if move != "continue_thread":
             return None
 
+        # --------------------------------------------------
+        # French
+        # --------------------------------------------------
+
+        if language == "fr":
+            if current_topic and reference_topic:
+                return (
+                    f"En continuité avec {reference_topic}, "
+                    f"on peut appliquer la même mécanique à {current_topic}."
+                )
+
+            if current_topic:
+                return (
+                    f"Oui, on peut prolonger la réflexion vers {current_topic}."
+                )
+
+            return (
+                "Oui, on peut poursuivre dans le même fil de réflexion."
+            )
+
+        # --------------------------------------------------
+        # Spanish
+        # --------------------------------------------------
+
+        if language == "es":
+            if current_topic and reference_topic:
+                return (
+                    f"En continuidad con {reference_topic}, "
+                    f"podemos aplicar la misma mecánica a {current_topic}."
+                )
+
+            if current_topic:
+                return (
+                    f"Sí, podemos prolongar la reflexión hacia {current_topic}."
+                )
+
+            return (
+                "Sí, podemos continuar en la misma línea de reflexión."
+            )
+
+        # --------------------------------------------------
+        # English / Default
+        # --------------------------------------------------
+
         if current_topic and reference_topic:
             return (
-                f"En continuité avec {reference_topic}, "
-                f"on peut appliquer la même mécanique à {current_topic}."
+                f"Continuing from {reference_topic}, "
+                f"we can apply the same mechanism to {current_topic}."
             )
 
         if current_topic:
             return (
-                f"Oui, on peut prolonger la réflexion vers {current_topic}."
+                f"Yes, we can extend the reflection toward {current_topic}."
             )
 
         return (
-            "Oui, on peut poursuivre dans le même fil de réflexion."
+            "Yes, we can continue in the same line of thought."
         )
 
     # --------------------------------------------------
@@ -153,11 +208,13 @@ class ResponseBuilder:
         dialogue_decision: dict[str, Any],
         cognitive_feedback: dict[str, Any],
         conversation_reasoning: dict[str, Any] | None = None,
+        dialogue_profile: dict[str, Any] | None = None,
     ) -> str | None:
 
-        conversation_reasoning = (
-            conversation_reasoning or {}
-        )
+        conversation_reasoning = conversation_reasoning or {}
+        dialogue_profile = dialogue_profile or {}
+
+        language = dialogue_profile.get("language", "en")
 
         # --------------------------------------------------
         # Conversation Reasoner
@@ -169,15 +226,39 @@ class ResponseBuilder:
         if conversation_reasoning.get("move") == "continue_thread":
             current_topic = conversation_reasoning.get("current_topic")
 
+            if language == "fr":
+                if current_topic:
+                    return (
+                        f"Souhaites-tu maintenant comparer {current_topic} "
+                        "avec un autre domaine, ou approfondir ce cas précis ?"
+                    )
+
+                return (
+                    "Souhaites-tu continuer avec un autre domaine "
+                    "ou approfondir ce fil ?"
+                )
+
+            if language == "es":
+                if current_topic:
+                    return (
+                        f"¿Quieres comparar ahora {current_topic} "
+                        "con otro dominio, o profundizar este caso?"
+                    )
+
+                return (
+                    "¿Quieres continuar con otro dominio "
+                    "o profundizar esta línea?"
+                )
+
             if current_topic:
                 return (
-                    f"Souhaites-tu maintenant comparer {current_topic} "
-                    "avec un autre domaine, ou approfondir ce cas précis ?"
+                    f"Would you like to compare {current_topic} "
+                    "with another domain, or go deeper into this case?"
                 )
 
             return (
-                "Souhaites-tu continuer avec un autre domaine "
-                "ou approfondir ce fil ?"
+                "Would you like to continue with another domain, "
+                "or go deeper into this thread?"
             )
 
         # --------------------------------------------------
@@ -202,9 +283,21 @@ class ResponseBuilder:
         )
 
         if missing_dimensions:
+            if language == "fr":
+                return (
+                    "Souhaites-tu préciser cette dimension : "
+                    f"{missing_dimensions[0]}"
+                )
+
+            if language == "es":
+                return (
+                    "¿Quieres precisar esta dimensión: "
+                    f"{missing_dimensions[0]}?"
+                )
+
             return (
-                "Souhaites-tu préciser cette dimension : "
-                f"{missing_dimensions[0]}"
+                "Would you like to clarify this dimension: "
+                f"{missing_dimensions[0]}?"
             )
 
         # --------------------------------------------------
@@ -214,10 +307,22 @@ class ResponseBuilder:
         if dialogue_decision.get(
             "needs_clarification",
         ):
+            if language == "fr":
+                return (
+                    "Souhaites-tu une réponse courte, "
+                    "technique, philosophique ou "
+                    "orientée application ?"
+                )
+
+            if language == "es":
+                return (
+                    "¿Quieres una respuesta breve, técnica, "
+                    "filosófica u orientada a la aplicación?"
+                )
+
             return (
-                "Souhaites-tu une réponse courte, "
-                "technique, philosophique ou "
-                "orientée application ?"
+                "Would you like a short, technical, philosophical, "
+                "or application-oriented answer?"
             )
 
         # --------------------------------------------------
