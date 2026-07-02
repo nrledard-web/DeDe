@@ -62,6 +62,8 @@ from semantic.graph_query_engine import GraphQueryEngine
 
 from estimators.estimator_engine import EstimatorEngine
 
+from identity.onboarding import Onboarding
+
 from reasoning.inference_engine import InferenceEngine
 from reasoning.cognitive_compiler import CognitiveCompiler
 from reasoning.cognitive_reasoner import CognitiveReasoner
@@ -105,7 +107,8 @@ class DoxaEnginePhase2:
         self.semantic_engine = SemanticEngine()
         self.semantic_reasoner = SemanticReasoner()
         self.semantic_graph = SemanticGraph()
-
+        self.onboarding = Onboarding()
+        
         # --------------------------------------------------
         # Estimation layer
         # --------------------------------------------------
@@ -182,6 +185,24 @@ class DoxaEnginePhase2:
         workspace.add_interpretation(
             "dialogue_profile",
             dialogue_profile,
+        )
+
+        # --------------------------------------------------
+        # Phase 5.2
+        # Onboarding
+        # --------------------------------------------------
+        is_first_contact = conversation_context.get("turn_count", 0) == 0
+
+        onboarding = {}
+
+        if is_first_contact:
+            onboarding = self.onboarding.build(
+                dialogue_profile=dialogue_profile,
+            )
+
+        workspace.add_interpretation(
+            "onboarding",
+            onboarding,
         )
 
         # --------------------------------------------------
@@ -404,6 +425,7 @@ class DoxaEnginePhase2:
             "dialogue_decision": dialogue_decision,
             "conversation_reasoning": conversation_reasoning,
             "dialogue_profile": dialogue_profile,
+            "onboarding": onboarding,
             "cognitive_feedback": cognitive_feedback,
             "llm_bridge_response": llm_bridge_response,
             "committee": committee_result,
@@ -438,6 +460,10 @@ class DoxaEnginePhase2:
             ),
             "dialogue_profile": workspace.interpretations.get(
                 "dialogue_profile",
+                {},
+            ),
+            "onboarding": workspace.interpretations.get(
+                "onboarding",
                 {},
             ),
             "knowledge": knowledge_result,
