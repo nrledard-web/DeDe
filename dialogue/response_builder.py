@@ -165,6 +165,7 @@ class ResponseBuilder:
         # --------------------------------------------------
 
         if language == "es":
+
             if current_topic and reference_topic:
                 return (
                     f"En continuidad con {reference_topic}, "
@@ -178,6 +179,26 @@ class ResponseBuilder:
 
             return (
                 "Sí, podemos continuar en la misma línea de reflexión."
+            )
+        # --------------------------------------------------
+        # Filipino
+        # --------------------------------------------------
+
+        if language == "fil":
+
+            if current_topic and reference_topic:
+                return (
+                    f"Sa pagpapatuloy ng usapan tungkol sa {reference_topic}, "
+                    f"maaari nating ilapat ang parehong mekanismo sa {current_topic}."
+                )
+
+            if current_topic:
+                return (
+                    f"Oo, maaari nating palawakin ang pagtalakay tungkol sa {current_topic}."
+                )
+
+            return (
+                "Oo, maaari nating ipagpatuloy ang parehong linya ng pag-iisip."
             )
 
         # --------------------------------------------------
@@ -239,6 +260,7 @@ class ResponseBuilder:
                 )
 
             if language == "es":
+
                 if current_topic:
                     return (
                         f"¿Quieres comparar ahora {current_topic} "
@@ -250,6 +272,19 @@ class ResponseBuilder:
                     "o profundizar esta línea?"
                 )
 
+            if language == "fil":
+
+                
+                if current_topic:
+                    return (
+                        f"Gusto mo bang ihambing ang {current_topic} "
+                        "sa ibang larangan, o palalimin pa natin ito?"
+                    )
+
+                return (
+                    "Gusto mo bang magpatuloy sa ibang larangan "
+                    "o palalimin pa natin ang usaping ito?"
+                )
             if current_topic:
                 return (
                     f"Would you like to compare {current_topic} "
@@ -295,6 +330,12 @@ class ResponseBuilder:
                     f"{missing_dimensions[0]}?"
                 )
 
+            if language == "fil":
+                return (
+                    "Gusto mo bang linawin ang aspektong ito: "
+                    f"{missing_dimensions[0]}?"
+                )
+
             return (
                 "Would you like to clarify this dimension: "
                 f"{missing_dimensions[0]}?"
@@ -318,6 +359,12 @@ class ResponseBuilder:
                 return (
                     "¿Quieres una respuesta breve, técnica, "
                     "filosófica u orientada a la aplicación?"
+                )
+
+            if language == "fil":
+                return (
+                    "Gusto mo ba ng maikli, teknikal, pilosopikal, "
+                    "o praktikal na paliwanag?"
                 )
 
             return (
