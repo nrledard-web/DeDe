@@ -183,6 +183,7 @@ class ConversationReasoner:
                 return detected
 
         forbidden_topics = [
+            # Core DeDe concepts
             "mecroyance",
             "certainty",
             "understanding",
@@ -190,18 +191,109 @@ class ConversationReasoner:
             "reduction",
             "closure",
             "cognitive_filter",
+            "grounding",
+            "integration",
+
+            # English grammar / noise
+            "a",
+            "an",
+            "the",
+            "and",
+            "or",
+            "but",
+            "if",
+            "then",
+            "than",
+            "with",
+            "from",
+            "to",
+            "in",
+            "on",
+            "of",
+            "for",
+            "this",
+            "that",
+            "it",
+            "is",
+            "are",
+            "be",
+            "being",
+            "can",
+            "could",
+            "would",
+            "should",
+
+            # French grammar / noise
+            "le",
+            "la",
+            "les",
+            "un",
+            "une",
+            "des",
+            "et",
+            "ou",
+            "mais",
+            "dans",
+            "avec",
+            "pour",
+            "sur",
+            "ce",
+            "cette",
+            "ça",
+            "est",
+
+            # Spanish grammar / noise
+            "el",
+            "los",
+            "las",
+            "y",
+            "en",
+            "con",
+            "para",
+            "por",
+            "que",
+            "es",
+
+            # Generic extracted words
+            "cognitive",
+            "condition",
+            "belief",
+            "state",
+            "stabilizes",
+            "faster",
         ]
 
         for topic in reversed(recent_topics):
-            if (
-                topic
-                and topic not in forbidden_topics
-                and not topic.startswith("claim:")
-                and not topic.startswith("metric:")
-                and not topic.startswith("agent:")
-                and not topic.startswith("strategy:")
-            ):
-                return topic
+            if not topic:
+                continue
+
+            clean_topic = topic.lower().strip()
+
+            if clean_topic in forbidden_topics:
+                continue
+
+            if clean_topic.startswith("claim:"):
+                continue
+
+            if clean_topic.startswith("metric:"):
+                continue
+
+            if clean_topic.startswith("agent:"):
+                continue
+
+            if clean_topic.startswith("strategy:"):
+                continue
+
+            if clean_topic.startswith("assumption:"):
+                continue
+
+            if clean_topic.startswith("missing_dimension:"):
+                continue
+
+            if clean_topic.startswith("alternative_hypothesis:"):
+                continue
+
+            return topic
 
         return None
 
