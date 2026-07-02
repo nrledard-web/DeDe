@@ -650,6 +650,41 @@ if text:
     
         with st.expander("Conversation Reasoning details"):
             st.json(conversation_reasoning)
+
+        # --------------------------------------------------
+        # Dialogue Profile
+        # --------------------------------------------------
+
+        dialogue_profile = report.get("dialogue_profile", {})
+
+        st.subheader("Dialogue Profile")
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric(
+                "Language",
+                dialogue_profile.get("language", "N/A"),
+            )
+
+        with col2:
+            st.metric(
+                "Tone",
+                dialogue_profile.get("tone", "N/A"),
+            )
+
+        with col3:
+            st.metric(
+                "Verbosity",
+                dialogue_profile.get("verbosity", "N/A"),
+            )
+
+        st.write(
+            dialogue_profile.get("summary", "")
+        )
+
+        with st.expander("Dialogue Profile details"):
+            st.json(dialogue_profile)
     
         # --------------------------------------------------
         # Agent Interpretations
