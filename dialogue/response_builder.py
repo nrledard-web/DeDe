@@ -30,6 +30,7 @@ class ResponseBuilder:
         # --------------------------------------------------
 
         knowledge = report.get("knowledge", {})
+        onboarding = report.get("onboarding", {})
         dialogue_decision = report.get("dialogue_decision", {})
         conversation_reasoning = report.get(
             "conversation_reasoning",
@@ -48,7 +49,12 @@ class ResponseBuilder:
         # --------------------------------------------------
 
         answer_parts = []
-
+        
+        if onboarding.get("message"):
+            answer_parts.append(
+                onboarding["message"]
+            )
+            
         conversational_intro = self._build_conversational_intro(
             conversation_reasoning,
             dialogue_profile,
