@@ -1,12 +1,19 @@
 """
 DeDe - LLM JSON Schema
 
-Expected structured cognitive response from external LLMs.
+Expected structured cognitive response from an external LLM.
+
+The LLM supports DeDe's reasoning but does not replace DeDe.
+It produces both:
+- a natural user-facing response
+- a structured cognitive analysis
 """
 
 LLM_RESPONSE_SCHEMA = {
+    "user_facing_response": "",
     "summary": "",
     "confidence": 0.0,
+    "language": "",
     "concepts": [],
     "relations": [],
     "hypotheses": [],
@@ -26,12 +33,25 @@ Do not use markdown.
 Do not add explanations outside the JSON.
 Do not wrap the JSON in code fences.
 
+The field "user_facing_response" must contain the natural response
+that DeDe should say to the user.
+
+The field "summary" must contain a short internal cognitive summary,
+not intended to be shown directly to the user.
+
+The language of "user_facing_response" MUST match the language used
+by the user in the current message.
+
 Use exactly this schema:
 
 {
+  "user_facing_response": "string",
   "summary": "string",
   "confidence": 0.0,
-  "concepts": ["string"],
+  "language": "string",
+  "concepts": [
+    "string"
+  ],
   "relations": [
     {
       "source": "string",
@@ -39,11 +59,23 @@ Use exactly this schema:
       "target": "string"
     }
   ],
-  "hypotheses": ["string"],
-  "contradictions": ["string"],
-  "questions": ["string"],
-  "missing_dimensions": ["string"],
-  "counterfactuals": ["string"],
-  "recommendations": ["string"]
+  "hypotheses": [
+    "string"
+  ],
+  "contradictions": [
+    "string"
+  ],
+  "questions": [
+    "string"
+  ],
+  "missing_dimensions": [
+    "string"
+  ],
+  "counterfactuals": [
+    "string"
+  ],
+  "recommendations": [
+    "string"
+  ]
 }
 """
