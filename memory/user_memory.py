@@ -69,6 +69,7 @@ class UserMemory:
             # French
             r"\bje suis\s+([A-Za-zÀ-ÿ\-']+)",
             r"\bje m[' ]appelle\s+([A-Za-zÀ-ÿ\-']+)",
+            r"\bje m[' ]appel\s+([A-Za-zÀ-ÿ\-']+)",
             r"\bje me nomme\s+([A-Za-zÀ-ÿ\-']+)",
             r"\bmon nom est\s+([A-Za-zÀ-ÿ\-']+)",
 
