@@ -62,6 +62,10 @@ from semantic.graph_query_engine import GraphQueryEngine
 
 from estimators.estimator_engine import EstimatorEngine
 
+from core.dede_identity import DeDeIdentity
+from memory.user_memory import UserMemory
+from dialogue.dialogue_manager import DialogueManager
+
 from identity.onboarding import Onboarding
 
 from reasoning.inference_engine import InferenceEngine
@@ -108,6 +112,8 @@ class DoxaEnginePhase2:
         self.semantic_reasoner = SemanticReasoner()
         self.semantic_graph = SemanticGraph()
         self.onboarding = Onboarding()
+        self.user_memory = UserMemory()
+        self.dede_identity = DeDeIdentity()
         
         # --------------------------------------------------
         # Estimation layer
@@ -122,7 +128,8 @@ class DoxaEnginePhase2:
         self.cognitive_compiler = CognitiveCompiler()
         self.cognitive_reasoner = CognitiveReasoner()
         self.cognitive_feedback = CognitiveFeedback()
-        self.dialogue_manager = CognitiveDialogueManager()
+        self.dialogue_manager = DialogueManager()
+        self.cognitive_dialogue_manager = CognitiveDialogueManager()
         self.response_builder = ResponseBuilder()
         self.conversation_manager = ConversationManager()
         self.conversation_reasoner = ConversationReasoner()
@@ -172,9 +179,31 @@ class DoxaEnginePhase2:
             "conversation_context",
             conversation_context,
         )
-        
         # --------------------------------------------------
-        # Phase 5.1
+        # Phase 5.2
+        # User Memory Update
+        # --------------------------------------------------
+        user_memory = self.user_memory.update_from_text(text)
+
+        workspace.add_interpretation(
+            "user_memory",
+            user_memory,
+        )
+
+        # --------------------------------------------------
+        # Phase 5.3
+        # DeDe Identity State
+        # --------------------------------------------------
+        identity_state = self.dede_identity.build_identity_state(
+            user_memory=user_memory,
+        )
+
+        workspace.add_interpretation(
+            "dede_identity",
+            identity_state,
+        )
+        # --------------------------------------------------
+        # Phase 5.4
         # Dialogue Profile
         # --------------------------------------------------
         dialogue_profile = self.dialogue_profile.analyze(
@@ -188,7 +217,7 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
-        # Phase 5.2
+        # Phase 5.5
         # Onboarding
         # --------------------------------------------------
         is_first_contact = conversation_context.get("turn_count", 0) == 0
@@ -312,7 +341,7 @@ class DoxaEnginePhase2:
         # Phase 4.10
         # Cognitive Dialogue Manager
         # --------------------------------------------------
-        dialogue_decision = self.dialogue_manager.decide(
+        dialogue_decision = self.cognitive_dialogue_manager.decide(
             text=text,
             knowledge=knowledge_result,
             cognitive_state=cognitive_state,
@@ -393,7 +422,7 @@ class DoxaEnginePhase2:
         # Formula Engine
         # --------------------------------------------------
         formulas = self.formula_engine.compute(workspace)
-
+    
         # --------------------------------------------------
         # Phase 4.17
         # Conversation Reasoner
@@ -409,7 +438,7 @@ class DoxaEnginePhase2:
                 formulas,
             ),
         )
-
+    
         workspace.add_interpretation(
             "conversation_reasoning",
             conversation_reasoning,
@@ -417,6 +446,31 @@ class DoxaEnginePhase2:
 
         # --------------------------------------------------
         # Phase 4.18
+        # Natural Dialogue Manager
+        # --------------------------------------------------
+        dialogue = self.dialogue_manager.generate_response(
+            user_text=text,
+            identity_state=workspace.interpretations.get(
+                "dede_identity",
+                {},
+            ),
+            llm_result=workspace.interpretations.get(
+                "llm_interpretation",
+                {},
+            ),
+            cognitive_state=workspace.interpretations.get(
+                "cognitive_state",
+                {},
+            ),
+        )
+
+        workspace.add_interpretation(
+            "dialogue",
+            dialogue,
+        )
+        
+        # --------------------------------------------------
+        # Phase 4.19
         # Response Builder
         # --------------------------------------------------
         
@@ -430,17 +484,20 @@ class DoxaEnginePhase2:
             "llm_bridge_response": llm_bridge_response,
             "committee": committee_result,
             "formulas": formulas,
+            "dialogue": dialogue,
+            "user_memory": user_memory,
+            "dede_identity": identity_state,
             "summary": self._build_summary(
                 workspace,
                 committee_result,
                 formulas,
             ),
         }
-
+    
         user_response = self.response_builder.build(
             dialogue_context,
         )
-
+    
         workspace.add_interpretation(
             "user_response",
             user_response,
@@ -448,11 +505,11 @@ class DoxaEnginePhase2:
         
     
         # --------------------------------------------------
-        # Phase 4.19
+        # Phase 4.20
         # Final Report
         # --------------------------------------------------
         report = {
-            "phase": "phase_5_0_cognitive_feedback_ready",
+            "phase": "phase_5_4_identity_memory_dialogue",
             "text": text,
             "conversation_context": workspace.interpretations.get(
                 "conversation_context",
@@ -464,6 +521,18 @@ class DoxaEnginePhase2:
             ),
             "onboarding": workspace.interpretations.get(
                 "onboarding",
+                {},
+            ),
+            "user_memory": workspace.interpretations.get(
+                "user_memory",
+                {},
+            ),
+            "dede_identity": workspace.interpretations.get(
+                "dede_identity",
+                {},
+            ),
+            "dialogue": workspace.interpretations.get(
+                "dialogue",
                 {},
             ),
             "knowledge": knowledge_result,
@@ -539,7 +608,7 @@ class DoxaEnginePhase2:
         )
         
         report["conversation_history"] = updated_conversation_history
-
+    
     
         return report
 
