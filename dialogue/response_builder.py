@@ -232,7 +232,7 @@ class ResponseBuilder:
             [],
         )
 
-        if questions:
+        if questions and language == "en":
             return questions[0]
 
         # --------------------------------------------------
