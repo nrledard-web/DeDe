@@ -79,9 +79,13 @@ class ResponseBuilder:
 
         llm_json = llm_bridge_response.get("parsed_json")
 
-        if llm_json and llm_json.get("summary"):
+        if (
+            llm_json
+            and llm_json.get("user_facing_response")
+            and not dialogue.get("response")
+        ):
             answer_parts.append(
-                llm_json["summary"]
+                llm_json["user_facing_response"]
             )
 
         if not answer_parts:
