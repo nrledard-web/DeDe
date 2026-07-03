@@ -477,7 +477,7 @@ class DoxaEnginePhase2:
                 {},
             ),
             llm_result=workspace.interpretations.get(
-                "llm_interpretation",
+                "llm_bridge_response",
                 {},
             ),
             cognitive_state=workspace.interpretations.get(
