@@ -63,6 +63,7 @@ from semantic.graph_query_engine import GraphQueryEngine
 from estimators.estimator_engine import EstimatorEngine
 
 from core.dede_identity import DeDeIdentity
+from core.dede_state import DeDeState
 from memory.user_memory import UserMemory
 from dialogue.dialogue_manager import DialogueManager
 
@@ -114,6 +115,7 @@ class DoxaEnginePhase2:
         self.onboarding = Onboarding()
         self.user_memory = UserMemory()
         self.dede_identity = DeDeIdentity()
+        self.dede_state = DeDeState()
         
         # --------------------------------------------------
         # Estimation layer
@@ -215,9 +217,25 @@ class DoxaEnginePhase2:
             "dialogue_profile",
             dialogue_profile,
         )
-
         # --------------------------------------------------
         # Phase 5.5
+        # DeDe Internal State
+        # --------------------------------------------------
+        dede_state = self.dede_state.build(
+            text=text,
+            user_memory=user_memory,
+            dede_identity=identity_state,
+            dialogue_profile=dialogue_profile,
+            conversation_context=conversation_context,
+        )
+
+        workspace.add_interpretation(
+            "dede_state",
+            dede_state,
+        )
+
+        # --------------------------------------------------
+        # Phase 5.6
         # Onboarding
         # --------------------------------------------------
         is_first_contact = conversation_context.get("turn_count", 0) == 0
@@ -454,6 +472,10 @@ class DoxaEnginePhase2:
                 "dede_identity",
                 {},
             ),
+            dede_state=workspace.interpretations.get(
+                "dede_state",
+                {},
+            ),
             llm_result=workspace.interpretations.get(
                 "llm_interpretation",
                 {},
@@ -479,6 +501,7 @@ class DoxaEnginePhase2:
             "dialogue_decision": dialogue_decision,
             "conversation_reasoning": conversation_reasoning,
             "dialogue_profile": dialogue_profile,
+            "dede_state": dede_state,
             "onboarding": onboarding,
             "cognitive_feedback": cognitive_feedback,
             "llm_bridge_response": llm_bridge_response,
@@ -517,6 +540,10 @@ class DoxaEnginePhase2:
             ),
             "dialogue_profile": workspace.interpretations.get(
                 "dialogue_profile",
+                {},
+            ),
+            "dede_state": workspace.interpretations.get(
+                "dede_state",
                 {},
             ),
             "onboarding": workspace.interpretations.get(
