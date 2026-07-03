@@ -52,126 +52,25 @@ class DialogueProfile:
         if not cleaned:
             return "unknown"
 
-        # --------------------------------------------------
-        # Strong shortcuts for very short messages
-        # --------------------------------------------------
-
         lowered = cleaned.lower()
         padded = f" {lowered} "
 
         # --------------------------------------------------
-        # Strong greeting shortcuts
+        # Strong French identity / dialogue shortcuts
         # --------------------------------------------------
-        
-        french_greetings = [
-            "bonjour",
-            "bonsoir",
-            "salut",
-            "coucou",
-        ]
-        
-        english_greetings = [
-            "hello",
-            "hi",
-            "hey",
-            "good morning",
-            "good evening",
-        ]
-        
-        spanish_greetings = [
-            "hola",
-            "buenos días",
-            "buenas tardes",
-            "buenas noches",
-        ]
-        
-        filipino_greetings = [
-            "kumusta",
-            "kamusta",
-            "magandang araw",
-            "magandang umaga",
-            "magandang gabi",
-        ]
-        
-        if any(greeting in lowered for greeting in french_greetings):
-            return "fr"
-        
-        if any(greeting in lowered for greeting in english_greetings):
-            return "en"
-        
-        if any(greeting in lowered for greeting in spanish_greetings):
-            return "es"
-        
-        if any(greeting in lowered for greeting in filipino_greetings):
-            return "fil"
-
-        if "¿" in cleaned or "¡" in cleaned:
-            return "es"
-
-        if any(char in lowered for char in ["é", "è", "ê", "à", "ç", "ù"]):
-            return "fr"
-
-        if padded.startswith(" et ") or " et " in padded:
-            return "fr"
-
-        if padded.startswith(" and ") or " and " in padded:
-            return "en"
-
-        if padded.startswith(" y ") or " y " in padded:
-            return "es"
-
-        # --------------------------------------------------
-        # Library-based language detection
-        # --------------------------------------------------
-
-        try:
-            from langdetect import DetectorFactory
-            from langdetect import detect
-
-            DetectorFactory.seed = 0
-
-            detected = detect(cleaned)
-
-            supported = {
-                "en",
-                "fr",
-                "es",
-                "de",
-                "it",
-                "pt",
-                "nl",
-                "ru",
-                "zh-cn",
-                "zh-tw",
-                "ja",
-                "ko",
-                "ar",
-                "tl",
-            }
-
-            if detected == "tl":
-                return "fil"
-            
-            if detected in supported:
-                return detected
-
-            if detected.startswith("zh"):
-                return "zh"
-
-            return detected
-
-        except Exception:
-            return self._fallback_detect_language(cleaned)
-
-    def _fallback_detect_language(
-        self,
-        text: str,
-    ) -> str:
-
-        lowered = text.lower()
-        padded = f" {lowered} "
 
         french_markers = [
+            " je ",
+            " j'",
+            " mon ",
+            " ma ",
+            " mes ",
+            " nom ",
+            " nicolas ",
+            " pas input ",
+            " m'appelle ",
+            " m'appel ",
+            " appelle ",
             " le ",
             " la ",
             " les ",
@@ -195,54 +94,101 @@ class DialogueProfile:
             "c'est",
             "mécroyance",
         ]
-
-        english_markers = [
-            " what ",
-            " is ",
-            " are ",
-            " and ",
-            " in ",
-            " why ",
-            " how ",
-            " with ",
-            " can ",
-            " you ",
-            " the ",
+        strong_english_markers = [
+            "what ",
             "what is",
-            "and in",
+            "why ",
+            "how ",
+            "hello",
+            "can you",
+            "explain",
         ]
 
-        spanish_markers = [
-            " el ",
-            " la ",
-            " los ",
-            " las ",
-            " una ",
-            " uno ",
-            " qué ",
-            " que ",
-            " por qué ",
-            " cómo ",
-            " con ",
-            " y ",
-            " es ",
+        strong_spanish_markers = [
+            "hola",
+            "qué",
+            "que ",
+            "por qué",
+            "cómo",
+            "buenos días",
+            "buenas tardes",
         ]
+
+        fr_score = self._score_markers(padded, strong_french_markers)
+        en_score = self._score_markers(padded, strong_english_markers)
+        es_score = self._score_markers(padded, strong_spanish_markers)
 
         scores = {
-            "fr": self._score_markers(padded, french_markers),
-            "en": self._score_markers(padded, english_markers),
-            "es": self._score_markers(padded, spanish_markers),
+            "fr": fr_score,
+            "en": en_score,
+            "es": es_score,
         }
 
-        best_language = max(
-            scores,
-            key=scores.get,
-        )
+        best_language = max(scores, key=scores.get)
 
-        if scores[best_language] == 0:
-            return "unknown"
+        if scores[best_language] > 0:
+            return best_language
 
-        return best_language
+        # --------------------------------------------------
+        # Strong punctuation / accents
+        # --------------------------------------------------
+
+        if "¿" in cleaned or "¡" in cleaned:
+            return "es"
+
+        if any(char in lowered for char in ["é", "è", "ê", "à", "ç", "ù"]):
+            return "fr"
+
+        # --------------------------------------------------
+        # Library-based language detection
+        # --------------------------------------------------
+
+        try:
+            from langdetect import DetectorFactory
+            from langdetect import detect
+
+            DetectorFactory.seed = 0
+
+            detected = detect(cleaned)
+
+            if detected == "tl":
+                return "fil"
+
+            # Important correction:
+            # very short French messages are often misdetected as Portuguese.
+            if detected == "pt":
+                fallback = self._fallback_detect_language(cleaned)
+
+                if fallback != "unknown":
+                    return fallback
+
+            supported = {
+                "en",
+                "fr",
+                "es",
+                "de",
+                "it",
+                "pt",
+                "nl",
+                "ru",
+                "zh-cn",
+                "zh-tw",
+                "ja",
+                "ko",
+                "ar",
+                "tl",
+            }
+
+            if detected in supported:
+                return detected
+
+            if detected.startswith("zh"):
+                return "zh"
+
+            return detected
+
+        except Exception:
+            return self._fallback_detect_language(cleaned)
 
     def _score_markers(
         self,
