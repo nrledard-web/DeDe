@@ -77,7 +77,12 @@ class DialogueManager:
         lowered = user_text.lower()
         display_name = user_name or self._default_address(language)
 
-        llm_json = llm_result.get("parsed_json", {})
+        llm_json = (
+            llm_result.get("parsed_json")
+            or llm_result.get("llm_response", {})
+            or llm_result
+        )
+        
         llm_response = llm_json.get("user_facing_response")
 
         # --------------------------------------------------
