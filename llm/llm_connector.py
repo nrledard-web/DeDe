@@ -37,8 +37,11 @@ class LLMConnector:
         )
 
         user_prompt = (
-            "Analyze the following input using the provided cognitive context:\n\n"
-            f"{text}"
+            "Prepare DeDe's user-facing response to the following message. "
+            "Use the cognitive context only as internal support. "
+            "Do not call the user an input. "
+            "Do not expose internal analysis unless it is useful.\n\n"
+            f"User message:\n{text}"
         )
 
         full_prompt = (
@@ -65,16 +68,23 @@ class LLMConnector:
 
     def _build_system_prompt(self) -> str:
         system_prompt = (
-            "You are a cognitive reasoning assistant connected to DeDe, "
-            "a symbolic cognitive architecture. You must not replace DeDe's analysis. "
-            "You must use the provided cognitive graph context, compiled cognitive state "
-            "and reasoner output to explain, clarify, question, or refine the interpretation. "
-            "Preserve revisability, identify assumptions, avoid overconfidence, "
-            "and make missing dimensions explicit."
+            "You are connected to DeDe, a symbolic cognitive architecture. "
+            "DeDe is a Cognitive Daimon, not a chatbot and not a simple analyst. "
+            "Your role is to help DeDe prepare a natural user-facing response. "
+            "Use the provided cognitive graph, compiled state and reasoner output "
+            "as internal support only. "
+            "Never reduce the speaker to an input. "
+            "Treat the speaker as a person. "
+            "Preserve revisability without blocking direct answers. "
+            "Do not answer with phrases like 'the input appears' or "
+            "'the utterance suggests' in the user-facing response. "
+            "If the user writes in French, respond in French. "
+            "If the user writes in English, respond in English. "
+            "If the user switches language, follow the latest user language."
             + "\n\n"
             + build_json_instruction()
         )
-
+    
         return system_prompt
 
     def _build_cognitive_context(
