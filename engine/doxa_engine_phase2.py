@@ -62,6 +62,8 @@ from semantic.graph_query_engine import GraphQueryEngine
 
 from estimators.estimator_engine import EstimatorEngine
 
+from memory.persistent_memory import PersistentMemory
+
 from core.dede_identity import DeDeIdentity
 from core.dede_state import DeDeState
 from memory.user_memory import UserMemory
@@ -114,6 +116,7 @@ class DoxaEnginePhase2:
         self.semantic_graph = SemanticGraph()
         self.onboarding = Onboarding()
         self.user_memory = UserMemory()
+        self.persistent_memory = PersistentMemory()
         self.dede_identity = DeDeIdentity()
         self.dede_state = DeDeState()
         
@@ -186,6 +189,14 @@ class DoxaEnginePhase2:
         # User Memory Update
         # --------------------------------------------------
         user_memory = self.user_memory.update_from_text(text)
+
+        persistent_memory = self.persistent_memory.merge_user_memory(
+            user_memory,
+        )
+
+        user_memory.update(
+            persistent_memory,
+        )
 
         workspace.add_interpretation(
             "user_memory",
@@ -563,6 +574,7 @@ class DoxaEnginePhase2:
                 {},
             ),
             "knowledge": knowledge_result,
+            "persistent_memory": self.persistent_memory.get_memory(),
             "concepts": workspace.interpretations.get("concepts", {}),
             "semantic": workspace.interpretations.get("semantic", {}),
             "semantic_reasoning": workspace.interpretations.get(
