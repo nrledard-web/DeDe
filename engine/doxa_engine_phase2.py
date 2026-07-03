@@ -88,8 +88,9 @@ from llm.llm_bridge import LLMBridge
 
 from committee.cognitive_committee import CognitiveCommittee
 
-from formulas.doxa_formula_engine import DoxaFormulaEngine
+from core.daimon_filter import DaimonFilter
 
+from formulas.doxa_formula_engine import DoxaFormulaEngine
 from agents.nous_agent import NousAgent
 from agents.doxa_agent import DoxaAgent
 from agents.reduction_agent import ReductionAgent
@@ -119,6 +120,7 @@ class DoxaEnginePhase2:
         self.persistent_memory = PersistentMemory()
         self.dede_identity = DeDeIdentity()
         self.dede_state = DeDeState()
+        self.daimon_filter = DaimonFilter()
         
         # --------------------------------------------------
         # Estimation layer
@@ -531,6 +533,11 @@ class DoxaEnginePhase2:
         user_response = self.response_builder.build(
             dialogue_context,
         )
+
+        user_response = self.daimon_filter.filter_response(
+            response=user_response,
+            dede_state=dede_state,
+        )
     
         workspace.add_interpretation(
             "user_response",
@@ -623,6 +630,10 @@ class DoxaEnginePhase2:
             ),
             "cognitive_feedback": workspace.interpretations.get(
                 "cognitive_feedback",
+                {},
+            ),
+            "daimon_filter": user_response.get(
+                "daimon_filter",
                 {},
             ),
             "user_response": workspace.interpretations.get(
