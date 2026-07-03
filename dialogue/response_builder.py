@@ -44,6 +44,10 @@ class ResponseBuilder:
         llm_bridge_response = report.get("llm_bridge_response", {})
         summary = report.get("summary", {})
 
+        dialogue = report.get("dialogue", {})
+        user_memory = report.get("user_memory", {})
+        dede_identity = report.get("dede_identity", {})
+
         # --------------------------------------------------
         # Build answer
         # --------------------------------------------------
@@ -53,6 +57,11 @@ class ResponseBuilder:
         if onboarding.get("message"):
             answer_parts.append(
                 onboarding["message"]
+            )
+        
+        if dialogue.get("response"):
+            answer_parts.append(
+                dialogue["response"]
             )
             
         conversational_intro = self._build_conversational_intro(
