@@ -8,6 +8,7 @@ It prepares persistent cognitive memory.
 """
 
 from typing import Any
+import re
 
 
 class UserMemory:
@@ -31,27 +32,77 @@ class UserMemory:
 
         lowered = text.lower()
 
-        if "mon nom est nicolas" in lowered:
-            self.data["preferred_name"] = "Nicolas"
+        # --------------------------------------------------
+        # User name extraction
+        # --------------------------------------------------
+
+        name = self._extract_preferred_name(text)
+
+        if name:
+            self.data["preferred_name"] = name
+
             self._add_note(
-                "The user explicitly corrected DeDe: his name is Nicolas, not input."
+                f"The user identified themselves as {name}."
             )
 
-        if "je m'appelle nicolas" in lowered or "je me nomme nicolas" in lowered:
-            self.data["preferred_name"] = "Nicolas"
-            self._add_note(
-                "The user identified himself as Nicolas."
-            )
+        # --------------------------------------------------
+        # User rejects being reduced to an input
+        # --------------------------------------------------
 
-        if "pas input" in lowered:
+        if "input" in lowered:
             self._add_note(
-                "The user rejects being reduced to the label 'input'."
+                "The user rejects being reduced to an input-like label."
             )
 
         return self.data
 
     def get_memory(self) -> dict[str, Any]:
         return self.data
+
+    def _extract_preferred_name(
+        self,
+        text: str,
+    ) -> str | None:
+
+        patterns = [
+
+            # French
+            r"\bje suis\s+([A-Za-zÀ-ÿ\-']+)",
+            r"\bje m[' ]appelle\s+([A-Za-zÀ-ÿ\-']+)",
+            r"\bje me nomme\s+([A-Za-zÀ-ÿ\-']+)",
+            r"\bmon nom est\s+([A-Za-zÀ-ÿ\-']+)",
+
+            # English
+            r"\bi am\s+([A-Za-z\-']+)",
+            r"\bmy name is\s+([A-Za-z\-']+)",
+
+            # Spanish
+            r"\bme llamo\s+([A-Za-zÀ-ÿ\-']+)",
+            r"\bmi nombre es\s+([A-Za-zÀ-ÿ\-']+)",
+
+            # Filipino
+            r"\bako si\s+([A-Za-z\-']+)",
+            r"\bpangalan ko ay\s+([A-Za-z\-']+)",
+        ]
+
+        for pattern in patterns:
+
+            match = re.search(
+                pattern,
+                text,
+                flags=re.IGNORECASE,
+            )
+
+            if match:
+
+                name = match.group(1).strip()
+
+                return (
+                    name[:1].upper()
+                    + name[1:]
+                )
+
+        return None
 
     def _add_note(
         self,
