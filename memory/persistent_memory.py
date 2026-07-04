@@ -51,6 +51,7 @@ class PersistentMemory:
             "conversation_count": 0,
             "last_seen": None,
             "created_at": self._now(),
+            "autobiography": {},
         }
 
     def _load(self) -> dict[str, Any]:
