@@ -20,11 +20,27 @@ class DeDeIdentity:
     def build_identity_state(
         self,
         user_memory: dict[str, Any] | None = None,
+        persistent_memory: dict[str, Any] | None = None,
+        retrieved_memory: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         user_memory = user_memory or {}
+        persistent_memory = persistent_memory or {}
+        retrieved_memory = retrieved_memory or {}
 
-        user_name = user_memory.get("preferred_name")
+        retrieved_owner = retrieved_memory.get("owner", {})
+
+        user_name = (
+            user_memory.get("preferred_name")
+            or retrieved_owner.get("preferred_name")
+            or persistent_memory.get("preferred_name")
+        )
+
+        preferred_language = (
+            user_memory.get("preferred_language")
+            or retrieved_owner.get("preferred_language")
+            or persistent_memory.get("preferred_language")
+        )
 
         return {
             "engine": self.name,
@@ -33,6 +49,12 @@ class DeDeIdentity:
             "assistant_role": "cognitive_daimon",
             "user_is_person": True,
             "user_name": user_name,
+            "preferred_language": preferred_language,
+            "memory_source": {
+                "from_user_memory": user_memory.get("preferred_name"),
+                "from_retrieved_memory": retrieved_owner.get("preferred_name"),
+                "from_persistent_memory": persistent_memory.get("preferred_name"),
+            },
             "behavioral_rules": [
                 "Never reduce the user to an input.",
                 "Treat the user as a person speaking through an input channel.",
