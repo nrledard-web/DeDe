@@ -20,15 +20,24 @@ class PersistentMemory:
 
     def __init__(
         self,
-        path: str = "data/user_memory.json",
+        user_id: str = "default_user",
+        base_path: str = "data/users",
     ) -> None:
-
-        self.path = Path(path)
+    
+        safe_user_id = "".join(
+            char for char in user_id
+            if char.isalnum() or char in ["_", "-"]
+        ) or "default_user"
+    
+        self.user_id = safe_user_id
+    
+        self.path = Path(base_path) / safe_user_id / "user_memory.json"
+    
         self.path.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
-
+    
         self.data = self._load()
 
     def _default_memory(self) -> dict[str, Any]:
