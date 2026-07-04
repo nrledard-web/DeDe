@@ -82,6 +82,7 @@ from reasoning.cognitive_feedback import CognitiveFeedback
 
 from dialogue.cognitive_dialogue_manager import CognitiveDialogueManager
 from dialogue.response_builder import ResponseBuilder
+from dialogue.dialogue_governor import DialogueGovernor
 from dialogue.conversation_manager import ConversationManager
 from dialogue.conversation_reasoner import ConversationReasoner
 from dialogue.dialogue_profile import DialogueProfile
@@ -150,6 +151,7 @@ class DoxaEnginePhase2:
         self.dialogue_manager = DialogueManager()
         self.cognitive_dialogue_manager = CognitiveDialogueManager()
         self.response_builder = ResponseBuilder()
+        self.dialogue_governor = DialogueGovernor()
         self.conversation_manager = ConversationManager()
         self.conversation_reasoner = ConversationReasoner()
         self.dialogue_profile = DialogueProfile()
@@ -585,12 +587,27 @@ class DoxaEnginePhase2:
         user_response = self.response_builder.build(
             dialogue_context,
         )
-
+        
+        # ----------------------------------------
+        # Dialogue Governor
+        # ----------------------------------------
+        
+        if "response" in user_response:
+        
+            user_response["response"] = (
+                self.dialogue_governor.apply(
+                    user_response["response"]
+                )
+            )
+        
+        # ----------------------------------------
+        # Daimon Filter
+        # ----------------------------------------
+        
         user_response = self.daimon_filter.filter_response(
             response=user_response,
             dede_state=dede_state,
         )
-    
         workspace.add_interpretation(
             "user_response",
             user_response,
