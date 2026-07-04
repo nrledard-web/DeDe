@@ -1,7 +1,7 @@
 import streamlit as st
 
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
-
+from pathlib import Path
 
 def pct(value):
     if value is None:
@@ -18,6 +18,13 @@ st.set_page_config(
     page_icon="🧠",
     layout="wide",
 )
+
+BANNER_PATH = Path("assets/Banner01.png")
+
+if BANNER_PATH.exists():
+    st.image(str(BANNER_PATH), use_container_width=True)
+else:
+    st.warning("Banner01.png not found in assets/")
 
 st.title("DeDe — Cognitive Daimon")
 
