@@ -13,6 +13,7 @@ It prepares structured context from:
 from typing import Any
 from llm.llm_json_schema import build_json_instruction
 from knowledge.foundational_knowledge import build_foundational_context
+from core.dede_self_model import build_self_model_context
 
 class LLMConnector:
 
@@ -98,6 +99,9 @@ class LLMConnector:
         lines = ["COGNITIVE GRAPH CONTEXT", ""]
 
         lines.append(build_foundational_context())
+        lines.append("")
+
+        lines.append(build_self_model_context())
         lines.append("")
 
         lines.append("Central nodes:")
