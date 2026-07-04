@@ -1,4 +1,5 @@
 import streamlit as st
+import uuid
 
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
 
@@ -33,6 +34,14 @@ st.caption(
 
 if "conversation_history" not in st.session_state:
     st.session_state.conversation_history = []
+
+if "user_id" not in st.session_state:
+    st.session_state.user_id = str(uuid.uuid4())
+
+if "engine" not in st.session_state:
+    st.session_state.engine = DoxaEnginePhase2(
+        user_id=st.session_state.user_id,
+    )
     
 # --------------------------------------------------
 # LLM Toggle
@@ -68,7 +77,7 @@ for turn in st.session_state.conversation_history:
 text = st.chat_input("Message DeDe")
 
 if text:
-    engine = DoxaEnginePhase2()
+    engine = st.session_state.engine
 
     report = engine.analyze(
         text=text,
