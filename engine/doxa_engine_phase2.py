@@ -223,8 +223,6 @@ class DoxaEnginePhase2:
         # --------------------------------------------------
         identity_state = self.dede_identity.build_identity_state(
             user_memory=user_memory,
-            persistent_memory=persistent_memory,
-            retrieved_memory=retrieved_memory,
         )
 
         workspace.add_interpretation(
