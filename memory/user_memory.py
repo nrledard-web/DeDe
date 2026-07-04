@@ -71,7 +71,9 @@ class UserMemory:
             r"\bje m[' ]appelle\s+([A-Za-zÀ-ÿ\-']+)",
             r"\bje m[' ]appel\s+([A-Za-zÀ-ÿ\-']+)",
             r"\bje me nomme\s+([A-Za-zÀ-ÿ\-']+)",
+            r"\bje me pr[ée]nomme\s+([A-Za-zÀ-ÿ\-']+)",
             r"\bmon nom est\s+([A-Za-zÀ-ÿ\-']+)",
+            r"\bmoi c[' ]est\s+([A-Za-zÀ-ÿ\-']+)",
 
             # English
             r"\bi am\s+([A-Za-z\-']+)",
