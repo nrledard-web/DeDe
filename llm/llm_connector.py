@@ -5,15 +5,20 @@ Builds a prompt package for future LLM reasoning.
 
 The connector does not call an LLM yet.
 It prepares structured context from:
+- identity and memory
+- foundational knowledge
+- self model
 - graph queries
 - compiled cognitive state
 - cognitive reasoning
 """
 
 from typing import Any
+
 from llm.llm_json_schema import build_json_instruction
 from knowledge.foundational_knowledge import build_foundational_context
 from core.dede_self_model import build_self_model_context
+
 
 class LLMConnector:
 
@@ -25,10 +30,20 @@ class LLMConnector:
         graph_queries: dict[str, Any],
         cognitive_state: dict[str, Any] | None = None,
         cognitive_reasoning: dict[str, Any] | None = None,
+        user_memory: dict[str, Any] | None = None,
+        persistent_memory: dict[str, Any] | None = None,
+        retrieved_memory: dict[str, Any] | None = None,
+        dede_identity: dict[str, Any] | None = None,
+        dede_state: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         cognitive_state = cognitive_state or {}
         cognitive_reasoning = cognitive_reasoning or {}
+        user_memory = user_memory or {}
+        persistent_memory = persistent_memory or {}
+        retrieved_memory = retrieved_memory or {}
+        dede_identity = dede_identity or {}
+        dede_state = dede_state or {}
 
         system_prompt = self._build_system_prompt()
 
@@ -36,6 +51,11 @@ class LLMConnector:
             graph_queries=graph_queries,
             cognitive_state=cognitive_state,
             cognitive_reasoning=cognitive_reasoning,
+            user_memory=user_memory,
+            persistent_memory=persistent_memory,
+            retrieved_memory=retrieved_memory,
+            dede_identity=dede_identity,
+            dede_state=dede_state,
         )
 
         user_prompt = (
@@ -63,8 +83,9 @@ class LLMConnector:
             "user_prompt": user_prompt,
             "full_prompt": full_prompt,
             "summary": (
-                "LLM prompt package prepared from DeDe's graph, "
-                "compiled cognitive state and cognitive reasoning."
+                "LLM prompt package prepared from DeDe's memory, "
+                "identity, foundational knowledge, graph, compiled "
+                "cognitive state and cognitive reasoning."
             ),
         }
 
@@ -73,7 +94,8 @@ class LLMConnector:
             "You are connected to DeDe, a symbolic cognitive architecture. "
             "DeDe is a Cognitive Daimon, not a chatbot and not a simple analyst. "
             "Your role is to help DeDe prepare a natural user-facing response. "
-            "Use the provided cognitive graph, compiled state and reasoner output "
+            "Use the provided identity, memory, foundational knowledge, "
+            "self model, cognitive graph, compiled state and reasoner output "
             "as internal support only. "
             "Never reduce the speaker to an input. "
             "Treat the speaker as a person. "
@@ -86,7 +108,7 @@ class LLMConnector:
             + "\n\n"
             + build_json_instruction()
         )
-    
+
         return system_prompt
 
     def _build_cognitive_context(
@@ -94,14 +116,92 @@ class LLMConnector:
         graph_queries: dict[str, Any],
         cognitive_state: dict[str, Any],
         cognitive_reasoning: dict[str, Any],
+        user_memory: dict[str, Any],
+        persistent_memory: dict[str, Any],
+        retrieved_memory: dict[str, Any],
+        dede_identity: dict[str, Any],
+        dede_state: dict[str, Any],
     ) -> str:
 
-        lines = ["COGNITIVE GRAPH CONTEXT", ""]
+        lines = ["DEDE IDENTITY AND MEMORY CONTEXT", ""]
 
+        user = dede_state.get("user", {})
+        assistant = dede_state.get("assistant", {})
+        conversation = dede_state.get("conversation", {})
+        owner = retrieved_memory.get("owner", {})
+
+        lines.append("Assistant:")
+        lines.append(f'- name: {assistant.get("name", "DeDe")}')
+        lines.append(f'- role: {assistant.get("role", "cognitive_daimon")}')
+
+        lines.append("")
+        lines.append("Current user:")
+        lines.append(
+            "- preferred name: "
+            f'{user.get("preferred_name") or owner.get("preferred_name") or persistent_memory.get("preferred_name") or "unknown"}'
+        )
+        lines.append(
+            "- language: "
+            f'{user.get("language") or owner.get("preferred_language") or persistent_memory.get("preferred_language") or "unknown"}'
+        )
+
+        lines.append("")
+        lines.append("Persistent memory:")
+        lines.append(
+            f'- preferred name: {persistent_memory.get("preferred_name")}'
+        )
+        lines.append(
+            f'- preferred language: {persistent_memory.get("preferred_language")}'
+        )
+        lines.append(
+            f'- conversation count: {persistent_memory.get("conversation_count")}'
+        )
+        lines.append(
+            f'- last seen: {persistent_memory.get("last_seen")}'
+        )
+
+        lines.append("")
+        lines.append("Retrieved relevant memory:")
+        lines.append(
+            f'- owner preferred name: {owner.get("preferred_name")}'
+        )
+        lines.append(
+            f'- owner preferred language: {owner.get("preferred_language")}'
+        )
+        lines.append(
+            f'- owner conversation count: {owner.get("conversation_count")}'
+        )
+
+        lines.append("- relevant facts:")
+        for item in retrieved_memory.get("relevant_facts", []):
+            lines.append(f"  - {item}")
+
+        lines.append("- relevant notes:")
+        for item in retrieved_memory.get("relevant_notes", []):
+            lines.append(f"  - {item}")
+
+        lines.append("")
+        lines.append("Behavior rules:")
+        for rule in dede_identity.get("behavioral_rules", []):
+            lines.append(f"- {rule}")
+
+        lines.append("")
+        lines.append("Conversation state:")
+        lines.append(
+            f'- stage: {conversation.get("stage", "unknown")}'
+        )
+        lines.append(
+            f'- turn count: {conversation.get("turn_count", 0)}'
+        )
+
+        lines.append("")
         lines.append(build_foundational_context())
         lines.append("")
 
         lines.append(build_self_model_context())
+        lines.append("")
+
+        lines.append("COGNITIVE GRAPH CONTEXT")
         lines.append("")
 
         lines.append("Central nodes:")
@@ -125,12 +225,16 @@ class LLMConnector:
         lines.append("")
         lines.append("Pressure:")
         for item in cognitive_state.get("pressure", []):
-            lines.append(f'- {item.get("name")}: {item.get("description")}')
+            lines.append(
+                f'- {item.get("name")}: {item.get("description")}'
+            )
 
         lines.append("")
         lines.append("Protective mechanisms:")
         for item in cognitive_state.get("protective_mechanisms", []):
-            lines.append(f'- {item.get("name")}: {item.get("description")}')
+            lines.append(
+                f'- {item.get("name")}: {item.get("description")}'
+            )
 
         lines.append("")
         lines.append("Missing dimensions:")
@@ -152,10 +256,12 @@ class LLMConnector:
         lines.append("Detected causal paths:")
         for path_data in llm_context.get("causal_paths", []):
             path = path_data.get("path", [])
+
             readable = " -> ".join(
                 f'{edge.get("source")} /{edge.get("relation")} / {edge.get("target")}'
                 for edge in path
             )
+
             lines.append(f"- {readable}")
 
         lines.append("")
