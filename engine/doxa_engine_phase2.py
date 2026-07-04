@@ -96,7 +96,7 @@ from agents.doxa_agent import DoxaAgent
 from agents.reduction_agent import ReductionAgent
 from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
-
+from memory.memory_retriever import MemoryRetriever
 
 class DoxaEnginePhase2:
     """
@@ -123,6 +123,7 @@ class DoxaEnginePhase2:
         self.persistent_memory = PersistentMemory(
             user_id=user_id,
         )
+        self.memory_retriever = MemoryRetriever()
         self.dede_identity = DeDeIdentity()
         self.dede_state = DeDeState()
         self.daimon_filter = DaimonFilter()
@@ -201,8 +202,14 @@ class DoxaEnginePhase2:
             user_memory,
         )
 
-        user_memory.update(
-            persistent_memory,
+        retrieved_memory = self.memory_retriever.retrieve(
+            text=text,
+            persistent_memory=persistent_memory,
+        )
+
+        workspace.add_interpretation(
+            "retrieved_memory",
+            retrieved_memory,
         )
 
         workspace.add_interpretation(
@@ -216,6 +223,8 @@ class DoxaEnginePhase2:
         # --------------------------------------------------
         identity_state = self.dede_identity.build_identity_state(
             user_memory=user_memory,
+            persistent_memory=persistent_memory,
+            retrieved_memory=retrieved_memory,
         )
 
         workspace.add_interpretation(
@@ -398,6 +407,11 @@ class DoxaEnginePhase2:
             graph_queries=graph_queries,
             cognitive_state=cognitive_state,
             cognitive_reasoning=cognitive_reasoning,
+            user_memory=user_memory,
+            persistent_memory=self.persistent_memory.get_memory(),
+            retrieved_memory=retrieved_memory,
+            dede_identity=identity_state,
+            dede_state=dede_state,
         )
 
         workspace.add_interpretation(
@@ -494,6 +508,10 @@ class DoxaEnginePhase2:
                 "dede_state",
                 {},
             ),
+            retrieved_memory=workspace.interpretations.get(
+                "retrieved_memory",
+                {},
+            ),
             llm_result=workspace.interpretations.get(
                 "llm_bridge_response",
                 {},
@@ -587,6 +605,10 @@ class DoxaEnginePhase2:
             ),
             "knowledge": knowledge_result,
             "persistent_memory": self.persistent_memory.get_memory(),
+            "retrieved_memory": workspace.interpretations.get(
+                "retrieved_memory",
+                {},
+            ),
             "concepts": workspace.interpretations.get("concepts", {}),
             "semantic": workspace.interpretations.get("semantic", {}),
             "semantic_reasoning": workspace.interpretations.get(
