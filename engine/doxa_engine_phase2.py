@@ -106,7 +106,10 @@ class DoxaEnginePhase2:
     inferential and LLM-preparation layers.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        user_id: str = "default_user",
+    ):
         # --------------------------------------------------
         # Knowledge and semantic layers
         # --------------------------------------------------
@@ -117,7 +120,9 @@ class DoxaEnginePhase2:
         self.semantic_graph = SemanticGraph()
         self.onboarding = Onboarding()
         self.user_memory = UserMemory()
-        self.persistent_memory = PersistentMemory()
+        self.persistent_memory = PersistentMemory(
+            user_id=user_id,
+        )
         self.dede_identity = DeDeIdentity()
         self.dede_state = DeDeState()
         self.daimon_filter = DaimonFilter()
