@@ -155,7 +155,16 @@ if text:
         
         st.subheader("Autobiographical Memory")
         st.json(report.get("autobiography", {}))
-        
+
+        # --------------------------------------------------
+        # Autobiographical Memory
+        # --------------------------------------------------
+
+        st.subheader("Autobiographical Memory")
+        st.json(report.get("autobiography", {}))
+
+        st.subheader("Autobiographical Reasoning")
+        st.json(report.get("autobiographical_reasoning", {}))
         
         # --------------------------------------------------
         # Phase 2 Cognitive Variables
