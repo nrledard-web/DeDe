@@ -153,6 +153,10 @@ if text:
 
     with st.expander("DeDe Cognitive Dashboard"):
         
+        st.subheader("Autobiographical Memory")
+        st.json(report.get("autobiography", {}))
+        
+        
         # --------------------------------------------------
         # Phase 2 Cognitive Variables
         # --------------------------------------------------
