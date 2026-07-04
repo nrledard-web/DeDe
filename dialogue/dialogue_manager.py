@@ -19,16 +19,19 @@ class DialogueManager:
         user_text: str,
         identity_state: dict[str, Any],
         dede_state: dict[str, Any] | None = None,
+        retrieved_memory: dict[str, Any] | None = None,
         llm_result: dict[str, Any] | None = None,
         cognitive_state: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         dede_state = dede_state or {}
+        retrieved_memory = retrieved_memory or {}
         llm_result = llm_result or {}
         cognitive_state = cognitive_state or {}
 
         user_name = (
             dede_state.get("user", {}).get("preferred_name")
+            or retrieved_memory.get("owner", {}).get("preferred_name")
             or identity_state.get("user_name")
         )
 
