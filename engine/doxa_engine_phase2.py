@@ -65,6 +65,7 @@ from estimators.estimator_engine import EstimatorEngine
 from memory.memory_retriever import MemoryRetriever
 from memory.memory_governor import MemoryGovernor
 from memory.persistent_memory import PersistentMemory
+from memory.autobiographical_memory import AutobiographicalMemory
 
 from core.dede_identity import DeDeIdentity
 from core.dede_state import DeDeState
@@ -126,6 +127,7 @@ class DoxaEnginePhase2:
             user_id=user_id,
         )
         self.memory_retriever = MemoryRetriever()
+        self.autobiographical_memory = AutobiographicalMemory()
         self.dede_identity = DeDeIdentity()
         self.dede_state = DeDeState()
         self.daimon_filter = DaimonFilter()
@@ -208,6 +210,14 @@ class DoxaEnginePhase2:
             )
         else:
             persistent_memory = self.persistent_memory.get_memory()
+
+        if memory_governance.get("allow_persistent_storage", True):
+            persistent_memory = self.autobiographical_memory.update(
+                text=text,
+                persistent_memory=persistent_memory,
+            )
+            self.persistent_memory.data = persistent_memory
+            self.persistent_memory.save()
 
         retrieved_memory = self.memory_retriever.retrieve(
             text=text,
@@ -601,6 +611,10 @@ class DoxaEnginePhase2:
             ),
             "user_memory": workspace.interpretations.get(
                 "user_memory",
+                {},
+            ),
+            "autobiography": self.persistent_memory.get_memory().get(
+                "autobiography",
                 {},
             ),
             "dede_identity": workspace.interpretations.get(
