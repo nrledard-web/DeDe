@@ -66,6 +66,7 @@ from memory.memory_retriever import MemoryRetriever
 from memory.memory_governor import MemoryGovernor
 from memory.persistent_memory import PersistentMemory
 from memory.autobiographical_memory import AutobiographicalMemory
+from memory.autobiographical_reasoner import AutobiographicalReasoner
 
 from core.dede_identity import DeDeIdentity
 from core.dede_state import DeDeState
@@ -128,6 +129,7 @@ class DoxaEnginePhase2:
         )
         self.memory_retriever = MemoryRetriever()
         self.autobiographical_memory = AutobiographicalMemory()
+        self.autobiographical_reasoner = AutobiographicalReasoner()
         self.dede_identity = DeDeIdentity()
         self.dede_state = DeDeState()
         self.daimon_filter = DaimonFilter()
@@ -222,6 +224,15 @@ class DoxaEnginePhase2:
         retrieved_memory = self.memory_retriever.retrieve(
             text=text,
             persistent_memory=persistent_memory,
+        )
+        
+        autobiographical_reasoning = self.autobiographical_reasoner.reason(
+            persistent_memory=persistent_memory,
+        )
+        
+        workspace.add_interpretation(
+            "autobiographical_reasoning",
+            autobiographical_reasoning,
         )
 
         workspace.add_interpretation(
@@ -615,6 +626,10 @@ class DoxaEnginePhase2:
             ),
             "autobiography": self.persistent_memory.get_memory().get(
                 "autobiography",
+                {},
+            ),
+            "autobiographical_reasoning": workspace.interpretations.get(
+                "autobiographical_reasoning",
                 {},
             ),
             "dede_identity": workspace.interpretations.get(
