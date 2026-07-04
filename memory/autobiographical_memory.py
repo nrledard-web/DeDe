@@ -20,8 +20,12 @@ class AutobiographicalMemory:
 
         autobiography = persistent_memory.get(
             "autobiography",
-            self._default_autobiography(),
+            {},
         )
+
+        default = self._default_autobiography()
+        default.update(autobiography)
+        autobiography = default
 
         lowered = text.lower()
 
