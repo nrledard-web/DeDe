@@ -62,6 +62,8 @@ from semantic.graph_query_engine import GraphQueryEngine
 
 from estimators.estimator_engine import EstimatorEngine
 
+from memory.memory_retriever import MemoryRetriever
+from memory.memory_governor import MemoryGovernor
 from memory.persistent_memory import PersistentMemory
 
 from core.dede_identity import DeDeIdentity
@@ -96,7 +98,6 @@ from agents.doxa_agent import DoxaAgent
 from agents.reduction_agent import ReductionAgent
 from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
-from memory.memory_retriever import MemoryRetriever
 
 class DoxaEnginePhase2:
     """
@@ -120,6 +121,7 @@ class DoxaEnginePhase2:
         self.semantic_graph = SemanticGraph()
         self.onboarding = Onboarding()
         self.user_memory = UserMemory()
+        self.memory_governor = MemoryGovernor()
         self.persistent_memory = PersistentMemory(
             user_id=user_id,
         )
@@ -198,9 +200,14 @@ class DoxaEnginePhase2:
         # --------------------------------------------------
         user_memory = self.user_memory.update_from_text(text)
 
-        persistent_memory = self.persistent_memory.merge_user_memory(
-            user_memory,
-        )
+        memory_governance = self.memory_governor.evaluate(text)
+        
+        if memory_governance.get("allow_persistent_storage", True):
+            persistent_memory = self.persistent_memory.merge_user_memory(
+                user_memory,
+            )
+        else:
+            persistent_memory = self.persistent_memory.get_memory()
 
         retrieved_memory = self.memory_retriever.retrieve(
             text=text,
@@ -254,6 +261,7 @@ class DoxaEnginePhase2:
             dede_identity=identity_state,
             dialogue_profile=dialogue_profile,
             conversation_context=conversation_context,
+            retrieved_memory=retrieved_memory,
         )
 
         workspace.add_interpretation(
@@ -609,6 +617,8 @@ class DoxaEnginePhase2:
                 "retrieved_memory",
                 {},
             ),
+            "memory_governance": memory_governance,
+            
             "concepts": workspace.interpretations.get("concepts", {}),
             "semantic": workspace.interpretations.get("semantic", {}),
             "semantic_reasoning": workspace.interpretations.get(
