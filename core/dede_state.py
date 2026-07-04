@@ -25,15 +25,30 @@ class DeDeState:
         dede_identity: dict[str, Any] | None = None,
         dialogue_profile: dict[str, Any] | None = None,
         conversation_context: dict[str, Any] | None = None,
+        retrieved_memory: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         user_memory = user_memory or {}
         dede_identity = dede_identity or {}
         dialogue_profile = dialogue_profile or {}
         conversation_context = conversation_context or {}
+        retrieved_memory = retrieved_memory or {}
 
-        user_name = user_memory.get("preferred_name")
-        language = dialogue_profile.get("language", "unknown")
+        owner = retrieved_memory.get("owner", {})
+
+        user_name = (
+            user_memory.get("preferred_name")
+            or owner.get("preferred_name")
+            or dede_identity.get("user_name")
+        )
+
+        language = (
+            dialogue_profile.get("language")
+            or owner.get("preferred_language")
+            or dede_identity.get("preferred_language")
+            or "unknown"
+        )
+
         turn_count = conversation_context.get("turn_count", 0)
 
         conversation_stage = self._conversation_stage(turn_count)
