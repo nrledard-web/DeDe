@@ -1,5 +1,4 @@
 import streamlit as st
-import uuid
 
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
 
@@ -21,13 +20,46 @@ st.set_page_config(
 )
 
 st.title("DeDe — Cognitive Daimon")
-st.caption("Phase 2 — Cognitive Mechanics")
 
-st.success("DeDe Phase 2 prototype is running.")
+st.caption("Phase 3 — Cognitive Mechanics")
+st.success("DeDe Phase 3 prototype is running.")
+
 st.caption(
     "Current status: CognitiveWorkspace, estimator layer, "
     "agent interpretation and shared cognitive mechanics."
 )
+
+# --------------------------------------------------
+# Owner Identity
+# --------------------------------------------------
+
+owner_id = st.text_input(
+    "Owner ID",
+    value=st.session_state.get("owner_id", ""),
+    placeholder="Ex: nicolas, delia, test_user",
+)
+
+if owner_id:
+    safe_owner_id = "".join(
+        char for char in owner_id.lower().strip()
+        if char.isalnum() or char in ["_", "-"]
+    )
+
+    if st.session_state.get("owner_id") != safe_owner_id:
+        st.session_state.owner_id = safe_owner_id
+        st.session_state.conversation_history = []
+        st.session_state.engine = DoxaEnginePhase2(
+            user_id=safe_owner_id,
+        )
+        st.success(
+            f"Memory owner set to: {safe_owner_id}"
+        )
+else:
+    st.warning(
+        "Enter an Owner ID to use an isolated persistent memory."
+    )
+    st.stop()
+    
 # --------------------------------------------------
 # Conversation Session
 # --------------------------------------------------
@@ -35,12 +67,9 @@ st.caption(
 if "conversation_history" not in st.session_state:
     st.session_state.conversation_history = []
 
-if "user_id" not in st.session_state:
-    st.session_state.user_id = str(uuid.uuid4())
-
-if "engine" not in st.session_state:
+if "engine" not in st.session_state and st.session_state.get("owner_id"):
     st.session_state.engine = DoxaEnginePhase2(
-        user_id=st.session_state.user_id,
+        user_id=st.session_state.owner_id,
     )
     
 # --------------------------------------------------
