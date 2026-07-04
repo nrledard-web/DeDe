@@ -33,6 +33,7 @@ class LLMConnector:
         user_memory: dict[str, Any] | None = None,
         persistent_memory: dict[str, Any] | None = None,
         retrieved_memory: dict[str, Any] | None = None,
+        autobiographical_reasoning: dict[str, Any] | None = None,
         dede_identity: dict[str, Any] | None = None,
         dede_state: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
@@ -42,6 +43,7 @@ class LLMConnector:
         user_memory = user_memory or {}
         persistent_memory = persistent_memory or {}
         retrieved_memory = retrieved_memory or {}
+        autobiographical_reasoning = autobiographical_reasoning or {}
         dede_identity = dede_identity or {}
         dede_state = dede_state or {}
 
@@ -54,10 +56,11 @@ class LLMConnector:
             user_memory=user_memory,
             persistent_memory=persistent_memory,
             retrieved_memory=retrieved_memory,
+            autobiographical_reasoning=autobiographical_reasoning,
             dede_identity=dede_identity,
             dede_state=dede_state,
         )
-
+       
         user_prompt = (
             "Prepare DeDe's user-facing response to the following message. "
             "Use the cognitive context only as internal support. "
@@ -119,6 +122,7 @@ class LLMConnector:
         user_memory: dict[str, Any],
         persistent_memory: dict[str, Any],
         retrieved_memory: dict[str, Any],
+        autobiographical_reasoning: dict[str, Any],
         dede_identity: dict[str, Any],
         dede_state: dict[str, Any],
     ) -> str:
@@ -130,122 +134,278 @@ class LLMConnector:
         conversation = dede_state.get("conversation", {})
         owner = retrieved_memory.get("owner", {})
 
+        # --------------------------------------------------
+        # Assistant
+        # --------------------------------------------------
+
         lines.append("Assistant:")
         lines.append(f'- name: {assistant.get("name", "DeDe")}')
         lines.append(f'- role: {assistant.get("role", "cognitive_daimon")}')
 
+        # --------------------------------------------------
+        # Current user
+        # --------------------------------------------------
+
         lines.append("")
         lines.append("Current user:")
+
         lines.append(
             "- preferred name: "
             f'{user.get("preferred_name") or owner.get("preferred_name") or persistent_memory.get("preferred_name") or "unknown"}'
         )
+
         lines.append(
             "- language: "
             f'{user.get("language") or owner.get("preferred_language") or persistent_memory.get("preferred_language") or "unknown"}'
         )
 
+        # --------------------------------------------------
+        # Persistent memory
+        # --------------------------------------------------
+
         lines.append("")
         lines.append("Persistent memory:")
+
         lines.append(
             f'- preferred name: {persistent_memory.get("preferred_name")}'
         )
+
         lines.append(
             f'- preferred language: {persistent_memory.get("preferred_language")}'
         )
+
         lines.append(
             f'- conversation count: {persistent_memory.get("conversation_count")}'
         )
+
         lines.append(
             f'- last seen: {persistent_memory.get("last_seen")}'
         )
 
+        # --------------------------------------------------
+        # Retrieved memory
+        # --------------------------------------------------
+
         lines.append("")
         lines.append("Retrieved relevant memory:")
+
         lines.append(
             f'- owner preferred name: {owner.get("preferred_name")}'
         )
+
         lines.append(
             f'- owner preferred language: {owner.get("preferred_language")}'
         )
+
         lines.append(
             f'- owner conversation count: {owner.get("conversation_count")}'
         )
 
         lines.append("- relevant facts:")
-        for item in retrieved_memory.get("relevant_facts", []):
+
+        for item in retrieved_memory.get(
+            "relevant_facts",
+            [],
+        ):
             lines.append(f"  - {item}")
 
         lines.append("- relevant notes:")
-        for item in retrieved_memory.get("relevant_notes", []):
+    
+        for item in retrieved_memory.get(
+            "relevant_notes",
+            [],
+        ):
             lines.append(f"  - {item}")
+    
+        # --------------------------------------------------
+        # Behaviour
+        # --------------------------------------------------
 
         lines.append("")
         lines.append("Behavior rules:")
-        for rule in dede_identity.get("behavioral_rules", []):
+
+        for rule in dede_identity.get(
+            "behavioral_rules",
+            [],
+        ):
+            
             lines.append(f"- {rule}")
+
+        # --------------------------------------------------
+        # Conversation
+        # --------------------------------------------------
 
         lines.append("")
         lines.append("Conversation state:")
+
         lines.append(
             f'- stage: {conversation.get("stage", "unknown")}'
         )
+
         lines.append(
             f'- turn count: {conversation.get("turn_count", 0)}'
         )
 
+        # --------------------------------------------------
+        # Autobiographical continuity
+        # --------------------------------------------------
+
+        lines.append("")
+        lines.append("Autobiographical continuity:")
+
+        lines.append(
+            autobiographical_reasoning.get(
+                "continuity_summary",
+                "",
+            )
+        )
+
+        # --------------------------------------------------
+        # Projects
+        # --------------------------------------------------
+
+        lines.append("")
+        lines.append("Dominant projects:")
+
+        for item in autobiographical_reasoning.get(
+            "dominant_projects",
+            [],
+        ):
+            lines.append(
+                f'- {item["name"]} ({item["count"]})'
+            )
+
+        # --------------------------------------------------
+        # Interests
+        # --------------------------------------------------
+
+        lines.append("")
+        lines.append("Dominant interests:")
+
+        for item in autobiographical_reasoning.get(
+            "dominant_interests",
+            [],
+        ):
+            lines.append(
+                f'- {item["name"]} ({item["count"]})'
+            )
+
+        # --------------------------------------------------
+        # Cognitive profile
+        # --------------------------------------------------
+
+        lines.append("")
+        lines.append("Dominant cognitive traits:")
+
+        for item in autobiographical_reasoning.get(
+            "dominant_cognitive_traits",
+            [],
+        ):
+            lines.append(
+                f'- {item["name"]} ({item["count"]})'
+            )
+
+        # --------------------------------------------------
+        # Dialogue style
+        # --------------------------------------------------
+
+        lines.append("")
+        lines.append("Dialogue preferences:")
+
+        for item in autobiographical_reasoning.get(
+            "dialogue_preferences",
+            [],
+        ):
+            lines.append(
+                f'- {item["name"]} ({item["count"]})'
+            )
+
+        # --------------------------------------------------
+        # Foundational context
+        # --------------------------------------------------
+
         lines.append("")
         lines.append(build_foundational_context())
-        lines.append("")
 
+        lines.append("")
         lines.append(build_self_model_context())
-        lines.append("")
 
+        lines.append("")
         lines.append("COGNITIVE GRAPH CONTEXT")
-        lines.append("")
 
+        lines.append("")
         lines.append("Central nodes:")
-        for item in graph_queries.get("central_nodes", []):
+
+        for item in graph_queries.get(
+            "central_nodes",
+            [],
+        ):
             lines.append(
                 f'- {item.get("node")} (degree: {item.get("degree")})'
             )
 
         lines.append("")
         lines.append("Compiled cognitive state:")
+
         lines.append(
             f'- orientation: {cognitive_state.get("orientation", "N/A")}'
         )
+
         lines.append(
             f'- confidence: {cognitive_state.get("confidence", "N/A")}'
         )
+
         lines.append(
             f'- summary: {cognitive_state.get("summary", "")}'
         )
 
         lines.append("")
         lines.append("Pressure:")
-        for item in cognitive_state.get("pressure", []):
+
+        for item in cognitive_state.get(
+            "pressure",
+            [],
+        ):
             lines.append(
                 f'- {item.get("name")}: {item.get("description")}'
             )
 
         lines.append("")
         lines.append("Protective mechanisms:")
-        for item in cognitive_state.get("protective_mechanisms", []):
+
+        for item in cognitive_state.get(
+            "protective_mechanisms",
+            [],
+        ):
             lines.append(
                 f'- {item.get("name")}: {item.get("description")}'
             )
 
         lines.append("")
         lines.append("Missing dimensions:")
-        for item in cognitive_state.get("missing_dimensions", []):
+
+        for item in cognitive_state.get(
+            "missing_dimensions",
+            [],
+        ):
             lines.append(f"- {item}")
 
-        llm_context = graph_queries.get("llm_context", {})
+        # --------------------------------------------------
+        # Semantic graph context
+        # --------------------------------------------------
+
+        llm_context = graph_queries.get(
+            "llm_context",
+            {},
+        )
 
         lines.append("")
         lines.append("Important relations:")
-        for relation in llm_context.get("relations", []):
+
+        for relation in llm_context.get(
+            "relations",
+            [],
+        ):
             lines.append(
                 f'- {relation.get("source")} '
                 f'--{relation.get("relation")}--> '
@@ -254,21 +414,36 @@ class LLMConnector:
 
         lines.append("")
         lines.append("Detected causal paths:")
-        for path_data in llm_context.get("causal_paths", []):
-            path = path_data.get("path", [])
+
+        for path_data in llm_context.get(
+            "causal_paths",
+            [],
+        ):
+            path = path_data.get(
+                "path",
+                [],
+            )
 
             readable = " -> ".join(
-                f'{edge.get("source")} /{edge.get("relation")} / {edge.get("target")}'
+                f'{edge.get("source")} '
+                f'/{edge.get("relation")}/ '
+                f'{edge.get("target")}'
                 for edge in path
             )
 
             lines.append(f"- {readable}")
 
+        # --------------------------------------------------
+        # Cognitive reasoner
+        # --------------------------------------------------
+
         lines.append("")
         lines.append("Cognitive Reasoner output:")
+
         lines.append(
             f'- orientation: {cognitive_reasoning.get("compiled_orientation", "N/A")}'
         )
+
         lines.append(
             f'- confidence: {cognitive_reasoning.get("compiled_confidence", "N/A")}'
         )
