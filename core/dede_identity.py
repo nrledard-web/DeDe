@@ -66,6 +66,7 @@ class DeDeIdentity:
                 persistent_owner.get("preferred_name")
                 or persistent_memory.get("preferred_name")
             ),  
+        ), 
             "behavioral_rules": [
                 "Never reduce the user to an input.",
                 "Treat the user as a person speaking through an input channel.",
