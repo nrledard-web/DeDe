@@ -19,6 +19,103 @@ st.set_page_config(
     layout="wide",
 )
 
+# --------------------------------------------------
+# Force light theme / mobile readability
+# --------------------------------------------------
+
+st.markdown(
+    """
+    <style>
+    :root {
+        color-scheme: light !important;
+    }
+
+    html, body, .stApp {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    [data-testid="stAppViewContainer"] {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    [data-testid="stHeader"] {
+        background-color: #ffffff !important;
+    }
+
+    [data-testid="stToolbar"] {
+        color: #111827 !important;
+    }
+
+    [data-testid="stSidebar"] {
+        background-color: #f9fafb !important;
+        color: #111827 !important;
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    p, span, div, label,
+    .stMarkdown, .stText {
+        color: #111827 !important;
+    }
+
+    input, textarea {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+        border: 1px solid #d1d5db !important;
+    }
+
+    button {
+        background-color: #f3f4f6 !important;
+        color: #111827 !important;
+        border: 1px solid #d1d5db !important;
+    }
+
+    [data-testid="stChatMessage"] {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 12px !important;
+        padding: 0.75rem !important;
+    }
+
+    [data-testid="stChatInput"] {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    @media (max-width: 768px) {
+        .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            padding-top: 1rem !important;
+        }
+
+        h1 {
+            font-size: 1.6rem !important;
+        }
+
+        h2 {
+            font-size: 1.3rem !important;
+        }
+
+        h3 {
+            font-size: 1.1rem !important;
+        }
+
+        p, div, span, label {
+            font-size: 0.95rem !important;
+        }
+
+        [data-testid="stChatMessage"] {
+            padding: 0.65rem !important;
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 BANNER_PATH = Path("assets/Banner01.png")
 
 if BANNER_PATH.exists():
