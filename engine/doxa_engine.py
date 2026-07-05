@@ -184,11 +184,7 @@ class DoxaEngine:
             detector_results
         )
     
-        questions = self.question_generator.generate(
-            {
-                "detectors": detector_results,
-            }
-        )
+        questions = []
     
         knowledge = state.metadata.get("knowledge", {})
         knowledge_answer = knowledge.get("answer", "")
