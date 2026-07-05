@@ -150,6 +150,21 @@ class LLMConnector:
         )
         lines.append("")
 
+        lines.append("Search results:")
+
+        for item in search_result.get("results", []):
+            lines.append(
+                f'- title: {item.get("title", "")}'
+            )
+            lines.append(
+                f'  url: {item.get("url", "")}'
+            )
+            lines.append(
+                f'  snippet: {item.get("snippet", "")}'
+            )
+        
+        lines.append("")
+
         user = dede_state.get("user", {})
         assistant = dede_state.get("assistant", {})
         conversation = dede_state.get("conversation", {})
