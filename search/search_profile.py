@@ -8,56 +8,92 @@ Maps user-facing knowledge profiles to technical providers.
 class SearchProfile:
 
     profiles = {
+
         "general": {
-            "active": ["duckduckgo"],
-            "planned": ["brave", "serpapi"],
+            "active": [
+                "duckduckgo",
+            ],
+            "planned": [
+                "brave",
+                "serpapi",
+            ],
             "description": (
                 "General web search for everyday questions, products, "
                 "services and broad information."
             ),
         },
+
         "scientific": {
-            "active": ["duckduckgo", "arxiv", "crossref"],
-            "planned": ["pubmed", "semantic_scholar"],
+            "active": [
+                "duckduckgo",
+                "arxiv",
+                "crossref",
+            ],
+            "planned": [
+                "pubmed",
+                "semantic_scholar",
+            ],
             "description": (
                 "Scientific and academic search using papers, DOIs, "
                 "preprints and research-oriented sources."
             ),
         },
+
         "shopping": {
-            "active": ["duckduckgo"],
-            "planned": ["brave", "google_shopping", "amazon"],
+            "active": [
+                "duckduckgo",
+            ],
+            "planned": [
+                "brave",
+                "serpapi",
+            ],
             "description": (
-                "Product-oriented search for prices, availability, "
-                "shops and buying options."
+                "Product-oriented search for products, prices "
+                "and buying options."
             ),
         },
+
         "news": {
-            "active": ["duckduckgo"],
-            "planned": ["newsapi", "gdelt", "brave"],
+            "active": [
+                "duckduckgo",
+            ],
+            "planned": [
+                "newsapi",
+            ],
             "description": (
                 "Current events and recent information sources."
             ),
         },
+
         "programming": {
-            "active": ["duckduckgo"],
-            "planned": ["github", "stackoverflow"],
+            "active": [
+                "duckduckgo",
+            ],
+            "planned": [
+                "github",
+            ],
             "description": (
-                "Programming-oriented search for code, documentation, "
-                "repositories and developer discussions."
+                "Programming-oriented search for documentation, "
+                "repositories and source code."
             ),
         },
+
         "legal": {
-            "active": ["duckduckgo"],
-            "planned": ["official_legal_sources", "eur_lex"],
+            "active": [
+                "duckduckgo",
+            ],
+            "planned": [
+                "eur_lex",
+            ],
             "description": (
-                "Legal-oriented search. Planned providers should favor "
-                "official legal sources."
+                "Legal-oriented search using official legal sources."
             ),
         },
+
     }
 
     def resolve(self, profile: str) -> dict:
+
         profile = profile or "general"
 
         if profile not in self.profiles:
