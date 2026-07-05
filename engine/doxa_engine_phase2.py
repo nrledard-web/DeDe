@@ -245,6 +245,13 @@ class DoxaEnginePhase2:
         # --------------------------------------------------
         user_memory = self.user_memory.update_from_text(text)
 
+        persistent_memory = self.persistent_memory.get_memory()
+        owner_profile = persistent_memory.get("owner", {})
+        
+        user_memory.setdefault("owner", {})
+        user_memory["owner"]["id"] = owner_profile.get("id")
+        user_memory["owner"]["preferred_name"] = owner_profile.get("preferred_name")
+
         memory_governance = self.memory_governor.evaluate(text)
         
         if memory_governance.get("allow_persistent_storage", True):
