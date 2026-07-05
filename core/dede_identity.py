@@ -29,16 +29,22 @@ class DeDeIdentity:
         retrieved_memory = retrieved_memory or {}
 
         retrieved_owner = retrieved_memory.get("owner", {})
-
+        persistent_owner = persistent_memory.get("owner", {})
+        user_owner = user_memory.get("owner", {})
+        
         user_name = (
             user_memory.get("preferred_name")
+            or user_owner.get("preferred_name")
             or retrieved_owner.get("preferred_name")
+            or persistent_owner.get("preferred_name")
             or persistent_memory.get("preferred_name")
         )
-
+        
         preferred_language = (
             user_memory.get("preferred_language")
+            or user_owner.get("preferred_language")
             or retrieved_owner.get("preferred_language")
+            or persistent_owner.get("preferred_language")
             or persistent_memory.get("preferred_language")
         )
 
@@ -51,10 +57,15 @@ class DeDeIdentity:
             "user_name": user_name,
             "preferred_language": preferred_language,
             "memory_source": {
-                "from_user_memory": user_memory.get("preferred_name"),
-                "from_retrieved_memory": retrieved_owner.get("preferred_name"),
-                "from_persistent_memory": persistent_memory.get("preferred_name"),
-            },
+            "from_user_memory": (
+                user_memory.get("preferred_name")
+                or user_owner.get("preferred_name")
+            ),
+            "from_retrieved_memory": retrieved_owner.get("preferred_name"),
+            "from_persistent_memory": (
+                persistent_owner.get("preferred_name")
+                or persistent_memory.get("preferred_name")
+            ),  
             "behavioral_rules": [
                 "Never reduce the user to an input.",
                 "Treat the user as a person speaking through an input channel.",
