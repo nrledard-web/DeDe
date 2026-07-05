@@ -205,6 +205,21 @@ if st.button("Reset conversation"):
     st.success("Conversation reset.")
 
 # --------------------------------------------------
+# Search Engine Selector
+# --------------------------------------------------
+
+search_provider = st.selectbox(
+    "Search engine",
+    [
+        "none",
+        "duckduckgo",
+        "brave",
+        "serpapi",
+    ],
+    index=0,
+)
+
+# --------------------------------------------------
 # Chat Display
 # --------------------------------------------------
 
@@ -282,6 +297,7 @@ if text:
     report = engine.analyze(
         text=text,
         enable_llm=enable_llm,
+        search_provider=search_provider,
         conversation_history=st.session_state.conversation_history,
     )
 
@@ -326,9 +342,47 @@ if text:
     # --------------------------------------------------
 
     with st.expander("DeDe Cognitive Dashboard"):
+
+        # --------------------------------------------------
+        # Search Engine
+        # --------------------------------------------------
         
-        st.subheader("Autobiographical Memory")
-        st.json(report.get("autobiography", {}))
+        search_result = report.get(
+            "search_result",
+            {},
+        )
+        
+        st.subheader("Search Engine")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.metric(
+                "Provider",
+                search_result.get(
+                    "provider",
+                    "none",
+                ),
+            )
+        
+        with col2:
+            st.metric(
+                "Status",
+                search_result.get(
+                    "status",
+                    "disabled",
+                ),
+            )
+        
+        st.caption(
+            search_result.get(
+                "summary",
+                "",
+            )
+        )
+        
+        with st.expander("Search Details"):
+            st.json(search_result)
 
         # --------------------------------------------------
         # Autobiographical Memory
