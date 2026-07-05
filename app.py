@@ -13,7 +13,20 @@ def pct(value):
 
 def show_metric(label, value):
     st.metric(label, pct(value))
+    
+def generate_speech(text: str) -> bytes | None:
+    if not text:
+        return None
 
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+    speech = client.audio.speech.create(
+        model="gpt-4o-mini-tts",
+        voice="alloy",
+        input=text,
+    )
+
+    return speech.content
 
 st.set_page_config(
     page_title="DeDe",
