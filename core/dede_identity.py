@@ -1,20 +1,11 @@
 """
 DeDe - Identity Core
-
-Defines DeDe's behavioral identity.
-
-This is not a greeting.
-This is a persistent behavioral layer used at every exchange.
 """
 
 from typing import Any
 
 
 class DeDeIdentity:
-    """
-    Persistent identity and behavioral rules for DeDe.
-    """
-
     name = "dede_identity"
 
     def build_identity_state(
@@ -28,10 +19,10 @@ class DeDeIdentity:
         persistent_memory = persistent_memory or {}
         retrieved_memory = retrieved_memory or {}
 
+        user_owner = user_memory.get("owner", {})
         retrieved_owner = retrieved_memory.get("owner", {})
         persistent_owner = persistent_memory.get("owner", {})
-        user_owner = user_memory.get("owner", {})
-        
+
         user_name = (
             user_memory.get("preferred_name")
             or user_owner.get("preferred_name")
@@ -39,7 +30,7 @@ class DeDeIdentity:
             or persistent_owner.get("preferred_name")
             or persistent_memory.get("preferred_name")
         )
-        
+
         preferred_language = (
             user_memory.get("preferred_language")
             or user_owner.get("preferred_language")
@@ -57,16 +48,18 @@ class DeDeIdentity:
             "user_name": user_name,
             "preferred_language": preferred_language,
             "memory_source": {
-            "from_user_memory": (
-                user_memory.get("preferred_name")
-                or user_owner.get("preferred_name")
-            ),
-            "from_retrieved_memory": retrieved_owner.get("preferred_name"),
-            "from_persistent_memory": (
-                persistent_owner.get("preferred_name")
-                or persistent_memory.get("preferred_name")
-            ),  
-        ), 
+                "from_user_memory": (
+                    user_memory.get("preferred_name")
+                    or user_owner.get("preferred_name")
+                ),
+                "from_retrieved_memory": (
+                    retrieved_owner.get("preferred_name")
+                ),
+                "from_persistent_memory": (
+                    persistent_owner.get("preferred_name")
+                    or persistent_memory.get("preferred_name")
+                ),
+            },
             "behavioral_rules": [
                 "Never reduce the user to an input.",
                 "Treat the user as a person speaking through an input channel.",
