@@ -205,21 +205,45 @@ if st.button("Reset conversation"):
     st.success("Conversation reset.")
 
 # --------------------------------------------------
-# Search Engine Selector
+# Knowledge Search Profile
 # --------------------------------------------------
 
-search_provider = st.multiselect(
-    "Search engines",
+search_profile = st.selectbox(
+    "Knowledge Profile",
     [
-        "duckduckgo",
-        "arxiv",
-        "crossref",
-        "brave",
-        "serpapi",
+        "general",
+        "scientific",
+        "shopping",
+        "news",
+        "programming",
+        "legal",
+        "custom",
     ],
-    default=["duckduckgo"],
+    index=0,
 )
 
+search_provider = []
+
+if search_profile == "custom":
+
+    search_provider = st.multiselect(
+        "Custom Search Providers",
+        [
+            "duckduckgo",
+            "arxiv",
+            "crossref",
+            "pubmed",
+            "github",
+            "newsapi",
+            "brave",
+            "serpapi",
+            "semantic_scholar",
+            "eur_lex",
+        ],
+        default=[
+            "duckduckgo",
+        ],
+    )
 # --------------------------------------------------
 # Chat Display
 # --------------------------------------------------
@@ -299,6 +323,10 @@ if text:
         text=text,
         enable_llm=enable_llm,
         search_provider=search_provider,
+        search_profile=(
+            None if search_profile == "custom"
+            else search_profile
+        ),
         conversation_history=st.session_state.conversation_history,
     )
 
