@@ -1,4 +1,6 @@
 import streamlit as st
+from openai import OpenAI
+import tempfile
 
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
 from pathlib import Path
@@ -221,10 +223,55 @@ if audio_value:
         "Voice recording captured. "
         "Speech-to-text transcription will be connected in the next step."
     )
+
+# --------------------------------------------------
+# Voice Input / Speech to Text
+# --------------------------------------------------
+
+st.subheader("Voice input")
+
+audio_value = st.audio_input(
+    "Record a voice message",
+    sample_rate=16000,
+)
+
+voice_text = ""
+
+if audio_value:
+    st.audio(audio_value)
+
+    if st.button("Transcribe voice"):
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".wav",
+        ) as tmp:
+            tmp.write(audio_value.getvalue())
+            tmp_path = tmp.name
+
+        with open(tmp_path, "rb") as audio_file:
+            transcript = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                response_format="text",
+            )
+
+        voice_text = transcript.strip()
+
+        st.session_state["voice_text"] = voice_text
+        st.success("Voice transcribed.")
+        st.write(voice_text)
+
 # --------------------------------------------------
 # Chat Input
 # --------------------------------------------------    
-text = st.chat_input("Message DeDe")
+typed_text = st.chat_input("Message DeDe")
+
+text = typed_text or st.session_state.get("voice_text", "")
+
+if text:
+    st.session_state["voice_text"] = ""
 
 if text:
     engine = st.session_state.engine
