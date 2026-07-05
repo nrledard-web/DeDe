@@ -206,25 +206,6 @@ for turn in st.session_state.conversation_history:
             st.info(turn["follow_up_question"])
 
 # --------------------------------------------------
-# Voice Input
-# --------------------------------------------------
-
-st.subheader("Voice input")
-
-audio_value = st.audio_input(
-    "Record a voice message",
-    sample_rate=16000,
-)
-
-if audio_value:
-    st.audio(audio_value)
-
-    st.info(
-        "Voice recording captured. "
-        "Speech-to-text transcription will be connected in the next step."
-    )
-
-# --------------------------------------------------
 # Voice Input / Speech to Text
 # --------------------------------------------------
 
@@ -233,6 +214,7 @@ st.subheader("Voice input")
 audio_value = st.audio_input(
     "Record a voice message",
     sample_rate=16000,
+    key="voice_audio_input",
 )
 
 voice_text = ""
@@ -240,7 +222,7 @@ voice_text = ""
 if audio_value:
     st.audio(audio_value)
 
-    if st.button("Transcribe voice"):
+    if st.button("Transcribe voice", key="transcribe_voice_button"):
         client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
         with tempfile.NamedTemporaryFile(
