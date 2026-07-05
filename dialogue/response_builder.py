@@ -64,13 +64,9 @@ class ResponseBuilder:
                 dialogue["response"]
             )
             
-        conversational_intro = self._build_conversational_intro(
-            conversation_reasoning,
-            dialogue_profile,
-        )
-
-        if conversational_intro:
-            answer_parts.append(conversational_intro)
+        # Cognitive autonomy:
+        # DeDe does not add conversational steering by default.
+        conversational_intro = None
 
         if knowledge.get("found"):
             answer_parts.append(
@@ -109,12 +105,9 @@ class ResponseBuilder:
         # Follow-up question
         # --------------------------------------------------
 
-        follow_up_question = self._build_follow_up_question(
-            dialogue_decision,
-            cognitive_feedback,
-            conversation_reasoning,
-            dialogue_profile,
-        )
+        # Cognitive autonomy:
+        # DeDe does not generate follow-up questions by default.
+        follow_up_question = None
 
         # --------------------------------------------------
         # Final response
