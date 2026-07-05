@@ -1,129 +1,106 @@
 """
 DeDe - Search Engine
 
-Modular search engine selector.
+Search orchestrator.
+Supports single-provider and multi-provider search.
 """
 
 from typing import Any
 
-from duckduckgo_search import DDGS
+from search.providers.duckduckgo_provider import DuckDuckGoProvider
+from search.providers.brave_provider import BraveProvider
 
 
 class SearchEngine:
     name = "search_engine"
 
     def __init__(self) -> None:
-        self.available_providers = [
-            "none",
-            "duckduckgo",
-            "brave",
-            "serpapi",
-        ]
+        self.providers = {
+            "duckduckgo": DuckDuckGoProvider(),
+            "brave": BraveProvider(),
+        }
 
     def search(
         self,
         query: str,
-        provider: str = "none",
+        provider: str | list[str] = "none",
         max_results: int = 5,
     ) -> dict[str, Any]:
 
-        provider = provider or "none"
+        if isinstance(provider, str):
+            providers = [provider]
+        else:
+            providers = provider
 
-        if provider not in self.available_providers:
-            provider = "none"
+        providers = [
+            item for item in providers
+            if item and item != "none"
+        ]
 
-        if provider == "none":
-            return self._empty_result(
-                query=query,
-                provider=provider,
-                reason="Search disabled.",
-            )
-
-        if provider == "duckduckgo":
-            return self._duckduckgo_search(
-                query=query,
-                max_results=max_results,
-            )
-
-        return self._placeholder_result(
-            query=query,
-            provider=provider,
-        )
-
-    def _duckduckgo_search(
-        self,
-        query: str,
-        max_results: int = 5,
-    ) -> dict[str, Any]:
-
-        try:
-            results = []
-
-            with DDGS() as ddgs:
-                for item in ddgs.text(
-                    query,
-                    max_results=max_results,
-                ):
-                    results.append(
-                        {
-                            "title": item.get("title", ""),
-                            "url": item.get("href", ""),
-                            "snippet": item.get("body", ""),
-                        }
-                    )
-
+        if not providers:
             return {
                 "engine": self.name,
-                "status": "success",
-                "provider": "duckduckgo",
-                "query": query,
-                "results": results,
-                "summary": (
-                    f"DuckDuckGo returned {len(results)} result(s)."
-                ),
-            }
-
-        except Exception as error:
-            return {
-                "engine": self.name,
-                "status": "error",
-                "provider": "duckduckgo",
+                "status": "disabled",
+                "provider": "none",
+                "providers": [],
                 "query": query,
                 "results": [],
-                "summary": "DuckDuckGo search failed.",
-                "error": str(error),
+                "provider_results": [],
+                "summary": "Search disabled.",
             }
 
-    def _empty_result(
-        self,
-        query: str,
-        provider: str,
-        reason: str,
-    ) -> dict[str, Any]:
+        provider_results = []
+        all_results = []
+
+        for provider_name in providers:
+            selected = self.providers.get(provider_name)
+
+            if not selected:
+                provider_results.append(
+                    {
+                        "provider": provider_name,
+                        "status": "placeholder",
+                        "query": query,
+                        "results": [],
+                        "summary": (
+                            f"Search provider '{provider_name}' is selected "
+                            "but not connected yet."
+                        ),
+                    }
+                )
+                continue
+
+            try:
+                result = selected.search(
+                    query=query,
+                    max_results=max_results,
+                )
+            except Exception as error:
+                result = {
+                    "provider": provider_name,
+                    "status": "error",
+                    "query": query,
+                    "results": [],
+                    "summary": f"{provider_name} search failed.",
+                    "error": str(error),
+                }
+
+            provider_results.append(result)
+
+            for item in result.get("results", []):
+                item["provider"] = provider_name
+                all_results.append(item)
 
         return {
             "engine": self.name,
-            "status": "disabled",
-            "provider": provider,
+            "status": "success" if all_results else "empty",
+            "provider": "+".join(providers),
+            "providers": providers,
             "query": query,
-            "results": [],
-            "summary": reason,
-        }
-
-    def _placeholder_result(
-        self,
-        query: str,
-        provider: str,
-    ) -> dict[str, Any]:
-
-        return {
-            "engine": self.name,
-            "status": "placeholder",
-            "provider": provider,
-            "query": query,
-            "results": [],
+            "results": all_results,
+            "provider_results": provider_results,
             "summary": (
-                f"Search provider '{provider}' is selected but not "
-                "connected yet."
+                f"Search completed with {len(providers)} provider(s), "
+                f"{len(all_results)} total result(s)."
             ),
         }
