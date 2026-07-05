@@ -36,6 +36,7 @@ class LLMConnector:
         autobiographical_reasoning: dict[str, Any] | None = None,
         dede_identity: dict[str, Any] | None = None,
         dede_state: dict[str, Any] | None = None,
+        search_result: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         cognitive_state = cognitive_state or {}
@@ -46,6 +47,7 @@ class LLMConnector:
         autobiographical_reasoning = autobiographical_reasoning or {}
         dede_identity = dede_identity or {}
         dede_state = dede_state or {}
+        search_result = search_result or {}
 
         system_prompt = self._build_system_prompt()
 
@@ -59,6 +61,7 @@ class LLMConnector:
             autobiographical_reasoning=autobiographical_reasoning,
             dede_identity=dede_identity,
             dede_state=dede_state,
+            search_result=search_result,
         )
        
         user_prompt = (
@@ -85,6 +88,7 @@ class LLMConnector:
             "cognitive_context": cognitive_context,
             "user_prompt": user_prompt,
             "full_prompt": full_prompt,
+            "search_result": search_result,
             "summary": (
                 "LLM prompt package prepared from DeDe's memory, "
                 "identity, foundational knowledge, graph, compiled "
@@ -125,9 +129,26 @@ class LLMConnector:
         autobiographical_reasoning: dict[str, Any],
         dede_identity: dict[str, Any],
         dede_state: dict[str, Any],
+        search_result: dict[str, Any],
     ) -> str:
 
         lines = ["DEDE IDENTITY AND MEMORY CONTEXT", ""]
+
+        # --------------------------------------------------
+        # Search Provider
+        # --------------------------------------------------
+        
+        lines.append("Search provider:")
+        lines.append(
+            f'- provider: {search_result.get("provider", "none")}'
+        )
+        lines.append(
+            f'- status: {search_result.get("status", "disabled")}'
+        )
+        lines.append(
+            f'- summary: {search_result.get("summary", "")}'
+        )
+        lines.append("")
 
         user = dede_state.get("user", {})
         assistant = dede_state.get("assistant", {})
