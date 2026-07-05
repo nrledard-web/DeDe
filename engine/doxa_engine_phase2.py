@@ -50,6 +50,8 @@ Report
 
 from typing import Any
 
+from search.search_engine import SearchEngine
+
 from core.cognitive_workspace import CognitiveWorkspace
 
 from knowledge.knowledge_agent import KnowledgeAgent
@@ -156,6 +158,7 @@ class DoxaEnginePhase2:
         self.conversation_manager = ConversationManager()
         self.conversation_reasoner = ConversationReasoner()
         self.dialogue_profile = DialogueProfile()
+        self.search_engine = SearchEngine()
 
         # --------------------------------------------------
         # LLM preparation layers
@@ -223,6 +226,7 @@ class DoxaEnginePhase2:
         self,
         text: str,
         enable_llm: bool = False,
+        search_provider: str = "none",
         conversation_history: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """
@@ -319,6 +323,20 @@ class DoxaEnginePhase2:
         workspace.add_interpretation(
             "dialogue_profile",
             dialogue_profile,
+        )
+        # --------------------------------------------------
+        # Phase 5.4b
+        # Search Provider
+        # --------------------------------------------------
+        
+        search_result = self.search_engine.search(
+            query=text,
+            provider=search_provider,
+        )
+        
+        workspace.add_interpretation(
+            "search_result",
+            search_result,
         )
         # --------------------------------------------------
         # Phase 5.5
@@ -489,6 +507,7 @@ class DoxaEnginePhase2:
             retrieved_memory=retrieved_memory,
             dede_identity=identity_state,
             dede_state=dede_state,
+            search_result=search_result,
         )
 
         workspace.add_interpretation(
@@ -623,6 +642,7 @@ class DoxaEnginePhase2:
             "dialogue": dialogue,
             "user_memory": user_memory,
             "dede_identity": identity_state,
+            "search_result": search_result,
             "summary": self._build_summary(
                 workspace,
                 committee_result,
@@ -715,7 +735,6 @@ class DoxaEnginePhase2:
                 {},
             ),
             "memory_governance": memory_governance,
-            
             "concepts": workspace.interpretations.get("concepts", {}),
             "semantic": workspace.interpretations.get("semantic", {}),
             "semantic_reasoning": workspace.interpretations.get(
@@ -790,6 +809,10 @@ class DoxaEnginePhase2:
             user_response=user_response,
             report=report,
         )
+        "search_result": workspace.interpretations.get(
+            "search_result",
+            {},
+        ),
         
         report["conversation_history"] = updated_conversation_history
     
