@@ -204,9 +204,26 @@ for turn in st.session_state.conversation_history:
             st.info(turn["follow_up_question"])
 
 # --------------------------------------------------
-# Chat Input
+# Voice Input
 # --------------------------------------------------
 
+st.subheader("Voice input")
+
+audio_value = st.audio_input(
+    "Record a voice message",
+    sample_rate=16000,
+)
+
+if audio_value:
+    st.audio(audio_value)
+
+    st.info(
+        "Voice recording captured. "
+        "Speech-to-text transcription will be connected in the next step."
+    )
+# --------------------------------------------------
+# Chat Input
+# --------------------------------------------------    
 text = st.chat_input("Message DeDe")
 
 if text:
