@@ -3,3 +3,6 @@ typing_extensions>=4.10.0
 openai
 langdetect
 duckduckgo-search
+wikipedia-api
+arxiv
+requests
