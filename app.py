@@ -213,10 +213,18 @@ for turn in st.session_state.conversation_history:
         st.write(turn.get("user_input", ""))
 
     with st.chat_message("assistant"):
-        st.write(turn.get("answer", ""))
-
-        if turn.get("follow_up_question"):
-            st.info(turn["follow_up_question"])
+    
+        answer = turn.get("answer", "")
+    
+        st.write(answer)
+    
+        if answer:
+            if st.button(
+                "🔊 Listen",
+                key=f"tts_history_{hash(answer)}",
+            ):
+                audio = generate_speech(answer)
+                st.audio(audio, format="audio/mp3")
 
 # --------------------------------------------------
 # Voice Input / Speech to Text
@@ -288,17 +296,20 @@ if text:
         st.write(text)
 
     with st.chat_message("assistant"):
-        st.write(
-            user_response.get(
-                "final_answer",
-                "No answer generated.",
-            )
+    
+        final_answer = user_response.get(
+            "final_answer",
+            "No answer generated.",
         )
-
-        follow_up = user_response.get("follow_up_question")
-
-        if follow_up:
-            st.info(follow_up)
+    
+        st.write(final_answer)
+    
+        if st.button(
+            "🔊 Listen",
+            key=f"tts_current_{len(st.session_state.conversation_history)}",
+        ):
+            audio = generate_speech(final_answer)
+            st.audio(audio, format="audio/mp3")
 
     workspace = report["workspace"]
     variables = workspace["variables"]
