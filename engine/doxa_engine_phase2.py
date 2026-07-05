@@ -797,6 +797,10 @@ class DoxaEnginePhase2:
             "agent_results": agent_results,
             "committee": committee_result,
             "formulas": formulas,
+            "search_result": workspace.interpretations.get(
+                "search_result",
+                {},
+            ),
             "summary": self._build_summary(
                 workspace,
                 committee_result,
@@ -809,10 +813,6 @@ class DoxaEnginePhase2:
             user_response=user_response,
             report=report,
         )
-        "search_result": workspace.interpretations.get(
-            "search_result",
-            {},
-        ),
         
         report["conversation_history"] = updated_conversation_history
     
