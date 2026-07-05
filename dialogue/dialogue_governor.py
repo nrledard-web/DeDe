@@ -1,74 +1,61 @@
 """
 DeDe - Dialogue Governor
 
-Controls the conversational policy.
-
-Default philosophy:
-
-- clarify
-- never steer
-- preserve user initiative
+Protects cognitive autonomy.
+DeDe answers, then stops.
 """
 
 import re
 
 
 class DialogueGovernor:
-
     name = "dialogue_governor"
 
-    def __init__(self):
-
-        self.forbidden = [
-
-            r"^souhaites-tu.*",
-
-            r"^veux-tu.*",
-
-            r"^aimerais-tu.*",
-
-            r"^si tu veux.*",
-
-            r"^je peux aussi.*",
-
-            r"^la prochaine étape.*",
-
-            r"^en continuité avec.*",
-
-            r"^do you want.*",
-
-            r"^would you like.*",
-
-        ]
-
     def apply(self, text: str) -> str:
-
         if not text:
             return text
 
-        paragraphs = []
+        lines = text.split("\n")
+        cleaned = []
 
-        for line in text.split("\n"):
+        forbidden_patterns = [
+            r"^\s*souhaites-tu\b.*\?\s*$",
+            r"^\s*veux-tu\b.*\?\s*$",
+            r"^\s*aimerais-tu\b.*\?\s*$",
+            r"^\s*te souviens-tu\b.*\?\s*$",
+            r"^\s*que veux-tu\b.*\?\s*$",
+            r"^\s*quel comportement\b.*\?\s*$",
+            r"^\s*de quoi\b.*\?\s*$",
 
-            stripped = line.strip()
+            r"^\s*quieres\b.*\?\s*$",
+            r"^\s*quieres que\b.*\?\s*$",
+            r"^\s*te gustaria\b.*\?\s*$",
+            r"^\s*deseas\b.*\?\s*$",
 
-            if not stripped:
-                paragraphs.append("")
+            r"^\s*do you want\b.*\?\s*$",
+            r"^\s*would you like\b.*\?\s*$",
+            r"^\s*shall we\b.*\?\s*$",
+
+            r"^\s*si tu veux\b.*$",
+            r"^\s*si vous voulez\b.*$",
+            r"^\s*la prochaine étape\b.*$",
+            r"^\s*en continuité avec\b.*$",
+        ]
+
+        for line in lines:
+            lowered = line.lower().strip()
+
+            if any(re.match(pattern, lowered) for pattern in forbidden_patterns):
                 continue
 
-            lowered = stripped.lower()
+            cleaned.append(line)
 
-            remove = False
+        result = "\n".join(cleaned).strip()
 
-            for pattern in self.forbidden:
+        # sécurité finale : si le dernier paragraphe est une question, on le retire
+        paragraphs = [p.strip() for p in result.split("\n\n") if p.strip()]
 
-                if re.match(pattern, lowered):
+        if paragraphs and paragraphs[-1].endswith("?"):
+            paragraphs = paragraphs[:-1]
 
-                    remove = True
-                    break
-
-            if not remove:
-
-                paragraphs.append(line)
-
-        return "\n".join(paragraphs).strip()
+        return "\n\n".join(paragraphs).strip()
