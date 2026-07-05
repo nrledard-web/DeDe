@@ -587,7 +587,12 @@ class DoxaEnginePhase2:
         user_response = self.response_builder.build(
             dialogue_context,
         )
-        
+        if isinstance(user_response, dict):
+            for key in ["response", "message", "text", "content"]:
+                if key in user_response and isinstance(user_response[key], str):
+                    user_response[key] = self.dialogue_governor.apply(
+                        user_response[key]
+                    )
         # ----------------------------------------
         # Dialogue Governor
         # ----------------------------------------
