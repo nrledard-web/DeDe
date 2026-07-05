@@ -128,6 +128,7 @@ class DoxaEnginePhase2:
         self.persistent_memory = PersistentMemory(
             user_id=user_id,
         )
+        self._initialize_owner_profile(user_id)
         self.memory_retriever = MemoryRetriever()
         self.autobiographical_memory = AutobiographicalMemory()
         self.autobiographical_reasoner = AutobiographicalReasoner()
@@ -179,7 +180,45 @@ class DoxaEnginePhase2:
             NOUSCOPEAgent(),
             CognitiveTherapyAgent(),
         ]
+        
+    def _initialize_owner_profile(
+        self,
+        user_id: str,
+    ) -> None:
+        """
+        Initialize a human owner profile from the technical Owner ID.
+    
+        Owner ID is technical.
+        preferred_name is human-facing.
+        """
+    
+        memory = self.persistent_memory.get_memory()
+    
+        owner = memory.setdefault("owner", {})
+    
+        owner.setdefault("id", user_id)
+    
+        if not owner.get("preferred_name"):
+            owner["preferred_name"] = self._owner_id_to_name(user_id)
+    
+        self.persistent_memory.data = memory
+        self.persistent_memory.save()
 
+    def _owner_id_to_name(
+        self,
+        user_id: str,
+    ) -> str:
+        """
+        Convert a technical owner id into a readable default name.
+        """
+    
+        cleaned = user_id.replace("_", " ").replace("-", " ").strip()
+    
+        if not cleaned:
+            return "Owner"
+    
+        return cleaned.title()
+    
     def analyze(
         self,
         text: str,
