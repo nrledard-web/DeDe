@@ -37,7 +37,8 @@ class DialogueManager:
 
         language = (
             dede_state.get("user", {}).get("language")
-            or "unknown"
+            or identity_state.get("language")
+            or "fr"
         )
 
         conversation_stage = (
@@ -85,59 +86,115 @@ class DialogueManager:
             or llm_result.get("llm_response", {})
             or llm_result
         )
-        
+
         llm_response = llm_json.get("user_facing_response")
-
-        # --------------------------------------------------
-        # Identity / name recognition
-        # --------------------------------------------------
-
-        if self._looks_like_identity_statement(lowered):
-            if language == "en":
-                return (
-                    f"Hello {display_name}. I recognize you as the person "
-                    "speaking to DeDe, not as a simple input."
-                )
-
-            return (
-                f"Bonjour {display_name}. Je te reconnais comme la personne "
-                "qui parle à DeDe, pas comme un simple input."
-            )
-
-        # --------------------------------------------------
-        # Rejection of input reduction
-        # --------------------------------------------------
-
-        if "input" in lowered:
-            if language == "en":
-                return (
-                    f"You are right, {display_name}. Technically, the system "
-                    "receives a message, but you are not an input. You are the "
-                    "person speaking to DeDe."
-                )
-
-            return (
-                f"Tu as raison {display_name}. Techniquement, le système reçoit "
-                "un message, mais toi, tu n'es pas un input. Tu es la personne "
-                "qui parle à DeDe."
-            )
-
-        # --------------------------------------------------
-        # Prefer LLM user-facing response if available
-        # --------------------------------------------------
 
         if llm_response:
             return llm_response
 
-        # --------------------------------------------------
-        # Minimal fallback
-        # --------------------------------------------------
+        if self._looks_like_identity_statement(lowered):
+            return self._identity_response(
+                display_name=display_name,
+                language=language,
+            )
+
+        if "input" in lowered:
+            return self._input_reduction_response(
+                display_name=display_name,
+                language=language,
+            )
+
+        return self._fallback_response(
+            display_name=display_name,
+            language=language,
+        )
+
+    def _identity_response(
+        self,
+        display_name: str,
+        language: str,
+    ) -> str:
+
+        if language == "en":
+            return (
+                f"Hello {display_name}. I recognize you as the person "
+                "speaking to DeDe, not as a simple input."
+            )
+
+        if language == "es":
+            return (
+                f"Hola {display_name}. Te reconozco como la persona "
+                "que habla con DeDe, no como una simple entrada."
+            )
+
+        if language == "fil":
+            return (
+                f"Kumusta {display_name}. Kinikilala kita bilang taong "
+                "nakikipag-usap kay DeDe, hindi bilang simpleng input."
+            )
+
+        return (
+            f"Bonjour {display_name}. Je te reconnais comme la personne "
+            "qui parle à DeDe, pas comme un simple input."
+        )
+
+    def _input_reduction_response(
+        self,
+        display_name: str,
+        language: str,
+    ) -> str:
+
+        if language == "en":
+            return (
+                f"You are right, {display_name}. Technically, the system "
+                "receives a message, but you are not an input. You are the "
+                "person speaking to DeDe."
+            )
+
+        if language == "es":
+            return (
+                f"Tienes razón, {display_name}. Técnicamente, el sistema "
+                "recibe un mensaje, pero tú no eres una entrada. Eres la "
+                "persona que habla con DeDe."
+            )
+
+        if language == "fil":
+            return (
+                f"Tama ka, {display_name}. Sa teknikal na antas, tumatanggap "
+                "ang sistema ng mensahe, pero hindi ka isang input. Ikaw ang "
+                "taong nakikipag-usap kay DeDe."
+            )
+
+        return (
+            f"Tu as raison {display_name}. Techniquement, le système reçoit "
+            "un message, mais toi, tu n'es pas un input. Tu es la personne "
+            "qui parle à DeDe."
+        )
+
+    def _fallback_response(
+        self,
+        display_name: str,
+        language: str,
+    ) -> str:
 
         if language == "en":
             return (
                 f"{display_name}, I am listening. I will use my cognitive "
-                "analysis to help clarify the question without reducing you "
-                "to the message itself."
+                "analysis to clarify the question without reducing you to "
+                "the message itself."
+            )
+
+        if language == "es":
+            return (
+                f"{display_name}, te escucho. Usaré mi análisis cognitivo "
+                "para aclarar la cuestión sin reducirte al mensaje mismo."
+            )
+
+        if language == "fil":
+            return (
+                f"{display_name}, nakikinig ako. Gagamitin ko ang aking "
+                "cognitive analysis para linawin ang tanong nang hindi ka "
+                "binabawasan sa mensahe lamang."
             )
 
         return (
@@ -161,6 +218,7 @@ class DialogueManager:
             "my name is ",
             "me llamo ",
             "mi nombre es ",
+            "soy ",
             "ako si ",
             "pangalan ko ay ",
         ]
