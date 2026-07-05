@@ -208,15 +208,14 @@ if st.button("Reset conversation"):
 # Search Engine Selector
 # --------------------------------------------------
 
-search_provider = st.selectbox(
-    "Search engine",
+search_provider = st.multiselect(
+    "Search engines",
     [
-        "none",
         "duckduckgo",
         "brave",
         "serpapi",
     ],
-    index=0,
+    default=["duckduckgo"],
 )
 
 # --------------------------------------------------
