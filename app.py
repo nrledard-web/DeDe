@@ -212,6 +212,9 @@ search_provider = st.multiselect(
     "Search engines",
     [
         "duckduckgo",
+        "wikipedia",
+        "arxiv",
+        "crossref",
         "brave",
         "serpapi",
     ],
