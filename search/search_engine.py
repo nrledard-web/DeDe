@@ -2,14 +2,11 @@
 DeDe - Search Engine
 
 Modular search engine selector.
-
-Current role:
-- prepare multiple search providers
-- allow user choice
-- keep search optional
 """
 
 from typing import Any
+
+from duckduckgo_search import DDGS
 
 
 class SearchEngine:
@@ -43,28 +40,59 @@ class SearchEngine:
             )
 
         if provider == "duckduckgo":
-            return self._placeholder_result(
+            return self._duckduckgo_search(
                 query=query,
-                provider=provider,
+                max_results=max_results,
             )
 
-        if provider == "brave":
-            return self._placeholder_result(
-                query=query,
-                provider=provider,
-            )
-
-        if provider == "serpapi":
-            return self._placeholder_result(
-                query=query,
-                provider=provider,
-            )
-
-        return self._empty_result(
+        return self._placeholder_result(
             query=query,
-            provider="none",
-            reason="No valid provider selected.",
+            provider=provider,
         )
+
+    def _duckduckgo_search(
+        self,
+        query: str,
+        max_results: int = 5,
+    ) -> dict[str, Any]:
+
+        try:
+            results = []
+
+            with DDGS() as ddgs:
+                for item in ddgs.text(
+                    query,
+                    max_results=max_results,
+                ):
+                    results.append(
+                        {
+                            "title": item.get("title", ""),
+                            "url": item.get("href", ""),
+                            "snippet": item.get("body", ""),
+                        }
+                    )
+
+            return {
+                "engine": self.name,
+                "status": "success",
+                "provider": "duckduckgo",
+                "query": query,
+                "results": results,
+                "summary": (
+                    f"DuckDuckGo returned {len(results)} result(s)."
+                ),
+            }
+
+        except Exception as error:
+            return {
+                "engine": self.name,
+                "status": "error",
+                "provider": "duckduckgo",
+                "query": query,
+                "results": [],
+                "summary": "DuckDuckGo search failed.",
+                "error": str(error),
+            }
 
     def _empty_result(
         self,
