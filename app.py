@@ -209,46 +209,82 @@ enable_llm = st.toggle(
 )
 
 st.caption(
-    "Choose which AI reasoning models DeDe may use. "
+    "Alpha mode: choose which reasoning models DeDe may use. "
     "Active models work now; planned models show the modular architecture."
 )
 
-llm_providers = st.multiselect(
+llm_model_options = {
+    "OpenAI": "openai",
+    "Gemini": "gemini",
+    "Mistral — planned": "mistral",
+    "DeepSeek — planned": "deepseek",
+    "Qwen — planned": "qwen",
+    "GLM — planned": "glm",
+    "Claude — planned": "claude",
+    "Nemotron — planned": "nemotron",
+}
+
+selected_llm_labels = st.multiselect(
     "Reasoning Models",
-    [
-        "openai",
-        "gemini",
-        "mistral",
-        "deepseek",
-        "qwen",
-        "glm",
-        "claude",
-        "nemotron",
-    ],
+    list(llm_model_options.keys()),
     default=[
-        "openai",
+        "OpenAI",
     ],
 )
+
+llm_providers = [
+    llm_model_options[label]
+    for label in selected_llm_labels
+]
 
 llm_profile = "custom"
 
+active_llms = [
+    provider
+    for provider in llm_providers
+    if provider in ["openai", "gemini"]
+]
+
+planned_llms = [
+    provider
+    for provider in llm_providers
+    if provider not in ["openai", "gemini"]
+]
+
+st.caption(
+    "Active: "
+    + (", ".join(active_llms) if active_llms else "none")
+    + " | Planned: "
+    + (", ".join(planned_llms) if planned_llms else "none")
+)
+
 # --------------------------------------------------
-# Knowledge Search Profile
+# Knowledge Sources
 # --------------------------------------------------
 
-search_profile = st.selectbox(
+st.subheader("Knowledge Sources")
+
+st.caption(
+    "Alpha mode: choose the knowledge profile. General uses DuckDuckGo by default."
+)
+
+search_profile_labels = {
+    "General — DuckDuckGo": "general",
+    "Scientific — DuckDuckGo + ArXiv + CrossRef": "scientific",
+    "Shopping — DuckDuckGo": "shopping",
+    "News — DuckDuckGo": "news",
+    "Programming — DuckDuckGo": "programming",
+    "Legal — DuckDuckGo": "legal",
+    "Custom": "custom",
+}
+
+selected_search_label = st.selectbox(
     "Knowledge Profile",
-    [
-        "general",
-        "scientific",
-        "shopping",
-        "news",
-        "programming",
-        "legal",
-        "custom",
-    ],
+    list(search_profile_labels.keys()),
     index=0,
 )
+
+search_profile = search_profile_labels[selected_search_label]
 
 search_provider = []
 
@@ -260,18 +296,23 @@ if search_profile == "custom":
             "duckduckgo",
             "arxiv",
             "crossref",
-            "pubmed",
-            "github",
-            "newsapi",
-            "brave",
-            "serpapi",
-            "semantic_scholar",
-            "eur_lex",
+            "brave — planned",
+            "serpapi — planned",
+            "pubmed — planned",
+            "github — planned",
+            "newsapi — planned",
+            "semantic_scholar — planned",
+            "eur_lex — planned",
         ],
         default=[
             "duckduckgo",
         ],
     )
+
+    search_provider = [
+        item.replace(" — planned", "")
+        for item in search_provider
+    ]
 # --------------------------------------------------
 # Chat Display
 # --------------------------------------------------
