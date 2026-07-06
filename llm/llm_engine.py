@@ -8,7 +8,7 @@ from typing import Any
 
 from llm.llm_profile import LLMProfile
 from llm.providers.openai_provider import OpenAIProvider
-
+from llm.providers.gemini_provider import GeminiProvider
 
 class LLMEngine:
     name = "llm_engine"
@@ -18,6 +18,7 @@ class LLMEngine:
 
         self.providers = {
             "openai": OpenAIProvider(),
+            "gemini": GeminiProvider(),
         }
 
     def ask(
