@@ -4,6 +4,7 @@ DeDe - Response Builder
 Builds a clear user-facing answer from DeDe's cognitive report.
 """
 
+import json
 from typing import Any
 
 from dialogue.language_pack import LanguagePack
@@ -59,6 +60,19 @@ class ResponseBuilder:
                 .get("response", "")
             )
         )
+        
+        if llm_direct_response:
+            try:
+                parsed = json.loads(llm_direct_response)
+        
+                if isinstance(parsed, dict):
+                    llm_direct_response = (
+                        parsed.get("user_facing_response")
+                        or parsed.get("response")
+                        or llm_direct_response
+                    )
+            except Exception:
+                pass
         
         answer_parts = []
         
