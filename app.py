@@ -357,6 +357,14 @@ if text:
             None if search_profile == "custom"
             else search_profile
         ),
+        llm_profile=(
+            "fast" if llm_profile == "custom"
+            else llm_profile
+        ),
+        llm_providers=(
+            llm_providers if llm_profile == "custom"
+            else None
+        ),
         conversation_history=st.session_state.conversation_history,
     )
 
@@ -854,6 +862,34 @@ if text:
     
         with st.expander("Full LLM Bridge Response"):
             st.json(llm_bridge_response)
+
+        # --------------------------------------------------
+        # LLM Engine
+        # --------------------------------------------------
+        
+        llm_engine_response = report.get(
+            "llm_engine_response",
+            {},
+        )
+        
+        st.subheader("Reasoning Models")
+        
+        st.caption(
+            "Reasoning models are interchangeable LLM components used by DeDe "
+            "after memory, search, semantic and cognitive preparation."
+        )
+        
+        st.metric(
+            "Engine Status",
+            llm_engine_response.get("status", "N/A"),
+        )
+        
+        st.write(
+            llm_engine_response.get("summary", "")
+        )
+        
+        with st.expander("Reasoning Model Details"):
+            st.json(llm_engine_response)
     
         # --------------------------------------------------
         # Cognitive Feedback
