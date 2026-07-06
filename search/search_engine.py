@@ -9,7 +9,6 @@ from typing import Any
 
 from search.providers.duckduckgo_provider import DuckDuckGoProvider
 from search.providers.brave_provider import BraveProvider
-from search.providers.wikipedia_provider import WikipediaProvider
 from search.providers.arxiv_provider import ArxivProvider
 from search.providers.crossref_provider import CrossRefProvider
 
