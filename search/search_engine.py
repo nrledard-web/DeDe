@@ -36,6 +36,25 @@ class SearchEngine:
         else:
             providers = provider
 
+        profile_map = {
+            "general": ["duckduckgo"],
+            "shopping": ["duckduckgo"],
+            "news": ["duckduckgo"],
+            "programming": ["duckduckgo"],
+            "legal": ["duckduckgo"],
+            "scientific": ["duckduckgo", "arxiv", "crossref"],
+        }
+        
+        expanded_providers = []
+        
+        for item in providers:
+            if item in profile_map:
+                expanded_providers.extend(profile_map[item])
+            else:
+                expanded_providers.append(item)
+        
+        providers = expanded_providers
+
         providers = [
             item for item in providers
             if item and item != "none"
