@@ -52,6 +52,14 @@ class ResponseBuilder:
         # Build answer
         # --------------------------------------------------
 
+        llm_direct_response = (
+            llm_bridge_response.get("response")
+            or (
+                llm_bridge_response.get("llm_engine", {})
+                .get("response", "")
+            )
+        )
+        
         answer_parts = []
         
         if onboarding.get("message"):
@@ -59,7 +67,11 @@ class ResponseBuilder:
                 onboarding["message"]
             )
         
-        if dialogue.get("response"):
+        if llm_direct_response:
+            answer_parts.append(
+                llm_direct_response
+            )
+        elif dialogue.get("response"):
             answer_parts.append(
                 dialogue["response"]
             )
