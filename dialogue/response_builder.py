@@ -179,19 +179,19 @@ class ResponseBuilder:
             ),
         }
 
-        def _build_search_response(
+    def _build_search_response(
         self,
         search_result: dict[str, Any],
         language: str,
     ) -> str | None:
-    
+
         results = search_result.get("results", [])
-    
+
         if not results:
             return None
-    
+
         lines = []
-    
+
         if language == "en":
             lines.append("Here are some web results I found:")
         elif language == "es":
@@ -200,21 +200,21 @@ class ResponseBuilder:
             lines.append("Narito ang ilang resulta na nahanap sa web:")
         else:
             lines.append("Voici quelques résultats trouvés sur le web :")
-    
+
         lines.append("")
-    
+
         for index, item in enumerate(results[:5], start=1):
             title = item.get("title", "")
             url = item.get("url", "")
             snippet = item.get("snippet", "")
-    
+
             lines.append(f"{index}. {title}")
             if snippet:
                 lines.append(snippet)
             if url:
                 lines.append(url)
             lines.append("")
-    
+
         return "\n".join(lines)
 
     def _committee_texts(
