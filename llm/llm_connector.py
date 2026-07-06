@@ -177,7 +177,12 @@ class LLMConnector:
         
         lines.append("DEDE IDENTITY AND MEMORY CONTEXT")
         lines.append("")
-
+        
+        user = dede_state.get("user", {})
+        assistant = dede_state.get("assistant", {})
+        conversation = dede_state.get("conversation", {})
+        owner = retrieved_memory.get("owner", {})
+        
         # --------------------------------------------------
         # Assistant
         # --------------------------------------------------
