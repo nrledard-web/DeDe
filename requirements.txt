@@ -6,3 +6,4 @@ duckduckgo-search
 wikipedia-api
 arxiv
 requests
+google-genai
