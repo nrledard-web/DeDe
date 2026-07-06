@@ -200,39 +200,33 @@ if "engine" not in st.session_state and st.session_state.get("owner_id"):
 # --------------------------------------------------
 
 enable_llm = st.toggle(
-    "Enable Reasoning Model",
+    "AI Reasoning",
     value=False,
 )
 
-llm_profile = st.selectbox(
-    "Reasoning Profile",
-    [
-        "fast",
-        "balanced",
-        "deep",
-        "asian",
-        "custom",
-    ],
-    index=0,
+st.caption(
+    "Choose which AI reasoning models DeDe may use. "
+    "Active models work now; planned models show the modular architecture."
 )
 
-llm_providers = []
+llm_providers = st.multiselect(
+    "Reasoning Models",
+    [
+        "openai",
+        "gemini",
+        "mistral",
+        "deepseek",
+        "qwen",
+        "glm",
+        "claude",
+        "nemotron",
+    ],
+    default=[
+        "openai",
+    ],
+)
 
-if llm_profile == "custom":
-    llm_providers = st.multiselect(
-        "Custom Reasoning Models",
-        [
-            "openai",
-            "gemini",
-            "mistral",
-            "deepseek",
-            "qwen",
-            "glm",
-            "claude",
-            "nemotron",
-        ],
-        default=["openai"],
-    )
+llm_profile = "custom"
 
 # --------------------------------------------------
 # Knowledge Search Profile
@@ -357,14 +351,8 @@ if text:
             None if search_profile == "custom"
             else search_profile
         ),
-        llm_profile=(
-            "fast" if llm_profile == "custom"
-            else llm_profile
-        ),
-        llm_providers=(
-            llm_providers if llm_profile == "custom"
-            else None
-        ),
+        llm_profile="custom",
+        llm_providers=llm_providers,
         conversation_history=st.session_state.conversation_history,
     )
 
