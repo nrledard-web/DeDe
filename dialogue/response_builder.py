@@ -45,6 +45,7 @@ class ResponseBuilder:
         llm_bridge_response = report.get("llm_bridge_response", {})
         committee_reasoning = report.get("committee_reasoning", {})
         summary = report.get("summary", {})
+        search_result = report.get("search_result", {})
 
         dialogue = report.get("dialogue", {})
         user_memory = report.get("user_memory", {})
@@ -55,6 +56,14 @@ class ResponseBuilder:
         # --------------------------------------------------
 
         answer_parts = []
+
+        search_direct_response = self._build_search_response(
+            search_result=search_result,
+            language=dialogue_profile.get("language", "fr"),
+        )
+        
+        if search_direct_response:
+            answer_parts.append(search_direct_response)
 
         if onboarding.get("message"):
             answer_parts.append(
@@ -169,6 +178,44 @@ class ResponseBuilder:
                 "DeDe report."
             ),
         }
+
+    def _build_search_response(
+    self,
+    search_result: dict[str, Any],
+    language: str,
+) -> str | None:
+
+    results = search_result.get("results", [])
+
+    if not results:
+        return None
+
+    lines = []
+
+    if language == "en":
+        lines.append("Here are some web results I found:")
+    elif language == "es":
+        lines.append("Aquí tienes algunos resultados encontrados en la web:")
+    elif language == "fil":
+        lines.append("Narito ang ilang resulta na nahanap sa web:")
+    else:
+        lines.append("Voici quelques résultats trouvés sur le web :")
+
+    lines.append("")
+
+    for index, item in enumerate(results[:5], start=1):
+        title = item.get("title", "")
+        url = item.get("url", "")
+        snippet = item.get("snippet", "")
+
+        lines.append(f"{index}. {title}")
+        if snippet:
+            lines.append(snippet)
+        if url:
+            lines.append(url)
+        lines.append("")
+
+    return "\n".join(lines)
 
     def _committee_texts(
         self,
