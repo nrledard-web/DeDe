@@ -216,6 +216,7 @@ class ResponseBuilder:
                 "confidence": (
                     f"Tinatayang antas ng kumpiyansa: {percent}."
                 ),
+            }
 
         return {
             "title": "Synthèse DeDe :",
