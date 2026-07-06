@@ -66,17 +66,30 @@ class ResponseBuilder:
         if committee_reasoning.get("status") == "ready":
             consensus = committee_reasoning.get("consensus", [])
             confidence = committee_reasoning.get("confidence", 0.0)
+            language = dialogue_profile.get("language", "fr")
 
             if consensus:
-                llm_direct_response = (
-                    "Synthèse DeDe :\n\n"
-                    + "\n\n".join(consensus[1:2] or consensus)
-                    + "\n\nAnalyse cognitive : plusieurs modèles ont été consultés. "
-                    "DeDe a utilisé leurs réponses comme matière de raisonnement, "
-                    "sans déléguer directement sa voix à un seul modèle."
-                    + f"\n\nConfiance comparative estimée : "
-                    f"{round(confidence * 100)}%."
-                )
+                if language == "en":
+                    llm_direct_response = (
+                        "DeDe synthesis:\n\n"
+                        + "\n\n".join(consensus[1:2] or consensus)
+                        + "\n\nCognitive analysis: several models were consulted. "
+                        "DeDe used their answers as reasoning material, without directly "
+                        "delegating its voice to a single model."
+                        + f"\n\nEstimated comparative confidence: "
+                        f"{round(confidence * 100)}%."
+                    )
+                else:
+                    llm_direct_response = (
+                        "Synthèse DeDe :\n\n"
+                        + "\n\n".join(consensus[1:2] or consensus)
+                        + "\n\nAnalyse cognitive : plusieurs modèles ont été consultés. "
+                        "DeDe a utilisé leurs réponses comme matière de raisonnement, "
+                        "sans déléguer directement sa voix à un seul modèle."
+                        + f"\n\nConfiance comparative estimée : "
+                        f"{round(confidence * 100)}%."
+                    )
+
         else:
             llm_direct_response = (
                 llm_bridge_response.get("response")
