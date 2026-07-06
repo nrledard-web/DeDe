@@ -7,7 +7,11 @@ Mistral AI LLM provider for DeDe.
 import os
 from typing import Any
 
-from mistralai import Mistral
+
+try:
+    from mistralai import Mistral
+except ImportError:
+    from mistralai.client import Mistral
 
 
 class MistralProvider:
@@ -35,26 +39,35 @@ class MistralProvider:
 
         selected_model = model or self.default_model
 
-        client = Mistral(
-            api_key=self.api_key,
-        )
+        try:
+            client = Mistral(api_key=self.api_key)
 
-        response = client.chat.complete(
-            model=selected_model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-        )
+            response = client.chat.complete(
+                model=selected_model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    }
+                ],
+            )
 
-        content = response.choices[0].message.content
+            content = response.choices[0].message.content
 
-        return {
-            "provider": self.name,
-            "status": "success",
-            "model": selected_model,
-            "response": content,
-            "summary": f"Mistral response generated with {selected_model}.",
-        }
+            return {
+                "provider": self.name,
+                "status": "success",
+                "model": selected_model,
+                "response": content,
+                "summary": f"Mistral response generated with {selected_model}.",
+            }
+
+        except Exception as error:
+            return {
+                "provider": self.name,
+                "status": "error",
+                "model": selected_model,
+                "response": "",
+                "summary": "Mistral request failed.",
+                "error": str(error),
+            }
