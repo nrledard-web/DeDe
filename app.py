@@ -216,7 +216,7 @@ st.caption(
 llm_model_options = {
     "OpenAI": "openai",
     "Gemini": "gemini",
-    "Mistral — planned": "mistral",
+    "Mistral": "mistral",
     "DeepSeek — planned": "deepseek",
     "Qwen — planned": "qwen",
     "GLM — planned": "glm",
@@ -242,13 +242,13 @@ llm_profile = "custom"
 active_llms = [
     provider
     for provider in llm_providers
-    if provider in ["openai", "gemini"]
+    if provider in ["openai", "gemini", "mistral"]
 ]
 
 planned_llms = [
     provider
     for provider in llm_providers
-    if provider not in ["openai", "gemini"]
+    if provider not in ["openai", "gemini", "mistral"]
 ]
 
 st.caption(
