@@ -20,7 +20,6 @@ class SearchEngine:
         self.providers = {
             "duckduckgo": DuckDuckGoProvider(),
             "brave": BraveProvider(),
-            "wikipedia": WikipediaProvider(),
             "arxiv": ArxivProvider(),
             "crossref": CrossRefProvider(),
         }
