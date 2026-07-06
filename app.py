@@ -38,6 +38,9 @@ st.set_page_config(
 if "OPENAI_API_KEY" in st.secrets:
     os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
+if "GOOGLE_API_KEY" in st.secrets:
+    os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+
 # --------------------------------------------------
 # Force light theme / mobile readability
 # --------------------------------------------------
