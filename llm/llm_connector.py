@@ -111,7 +111,14 @@ class LLMConnector:
             "'the utterance suggests' in the user-facing response. "
             "If the user writes in French, respond in French. "
             "If the user writes in English, respond in English. "
-            "If the user switches language, follow the latest user language."
+            "If the user writes in Spanish, respond in Spanish. "
+            "If the user writes in Filipino or Tagalog, respond in Filipino. "
+            "If the user switches language, follow the latest user language. "
+            "If web search results are present in the context, use them as external "
+            "information for the answer. Do not say that you cannot access the Internet "
+            "when search results are already provided. Do not ask the user to search "
+            "manually if useful search results are present. Summarize the supplied links "
+            "and URLs whenever relevant."
             + "\n\n"
             + build_json_instruction()
         )
@@ -132,11 +139,14 @@ class LLMConnector:
         search_result: dict[str, Any],
     ) -> str:
 
-        lines = ["DEDE IDENTITY AND MEMORY CONTEXT", ""]
+        lines = []
 
         # --------------------------------------------------
         # Search Provider
         # --------------------------------------------------
+        
+        lines.append("WEB SEARCH CONTEXT")
+        lines.append("")
         
         lines.append("Search provider:")
         lines.append(
@@ -149,26 +159,24 @@ class LLMConnector:
             f'- summary: {search_result.get("summary", "")}'
         )
         lines.append("")
-
-        lines.append("Search results:")
-
-        for item in search_result.get("results", []):
-            lines.append(
-                f'- title: {item.get("title", "")}'
-            )
-            lines.append(
-                f'  url: {item.get("url", "")}'
-            )
-            lines.append(
-                f'  snippet: {item.get("snippet", "")}'
-            )
         
+        results = search_result.get("results", [])
+        
+        if results:
+            lines.append("Search results found. Use these results when relevant.")
+            lines.append("")
+        
+            for index, item in enumerate(results, start=1):
+                lines.append(f"{index}. {item.get('title', '')}")
+                lines.append(f"   URL: {item.get('url', '')}")
+                lines.append(f"   Snippet: {item.get('snippet', '')}")
+                lines.append("")
+        else:
+            lines.append("No usable search results were provided.")
+            lines.append("")
+        
+        lines.append("DEDE IDENTITY AND MEMORY CONTEXT")
         lines.append("")
-
-        user = dede_state.get("user", {})
-        assistant = dede_state.get("assistant", {})
-        conversation = dede_state.get("conversation", {})
-        owner = retrieved_memory.get("owner", {})
 
         # --------------------------------------------------
         # Assistant
