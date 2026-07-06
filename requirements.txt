@@ -7,4 +7,4 @@ wikipedia-api
 arxiv
 requests
 google-genai
-mistralai
+mistralai>=1.0.0
