@@ -81,6 +81,7 @@ from reasoning.inference_engine import InferenceEngine
 from reasoning.cognitive_compiler import CognitiveCompiler
 from reasoning.cognitive_reasoner import CognitiveReasoner
 from reasoning.cognitive_feedback import CognitiveFeedback
+from reasoning.committee_reasoner import CommitteeReasoner
 
 from dialogue.cognitive_dialogue_manager import CognitiveDialogueManager
 from dialogue.response_builder import ResponseBuilder
@@ -150,6 +151,7 @@ class DoxaEnginePhase2:
         self.inference_engine = InferenceEngine()
         self.cognitive_compiler = CognitiveCompiler()
         self.cognitive_reasoner = CognitiveReasoner()
+        self.committee_reasoner = CommitteeReasoner()
         self.cognitive_feedback = CognitiveFeedback()
         self.dialogue_manager = DialogueManager()
         self.cognitive_dialogue_manager = CognitiveDialogueManager()
@@ -544,6 +546,20 @@ class DoxaEnginePhase2:
             "llm_bridge_response",
             llm_bridge_response,
         )
+        committee_reasoning = self.committee_reasoner.analyze(
+            llm_bridge_response.get(
+                "llm_engine",
+                {},
+            ).get(
+                "committee",
+                {},
+            )
+        )
+        
+        workspace.add_interpretation(
+            "committee_reasoning",
+            committee_reasoning,
+        )
 
         # --------------------------------------------------
         # Phase 4.13
@@ -659,6 +675,7 @@ class DoxaEnginePhase2:
             "user_memory": user_memory,
             "dede_identity": identity_state,
             "search_result": search_result,
+            "committee_reasoning": committee_reasoning,
             "summary": self._build_summary(
                 workspace,
                 committee_result,
@@ -818,8 +835,13 @@ class DoxaEnginePhase2:
             "agent_results": agent_results,
             "committee": committee_result,
             "formulas": formulas,
+            
             "search_result": workspace.interpretations.get(
                 "search_result",
+                {},
+            ),
+            "committee_reasoning": workspace.interpretations.get(
+                "committee_reasoning",
                 {},
             ),
             "summary": self._build_summary(
@@ -827,7 +849,8 @@ class DoxaEnginePhase2:
                 committee_result,
                 formulas,
             ),
-        }
+            }
+        
         updated_conversation_history = self.conversation_manager.add_turn(
             history=conversation_history,
             user_input=text,
