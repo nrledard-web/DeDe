@@ -11,6 +11,7 @@ from llm.providers.openai_provider import OpenAIProvider
 from llm.providers.gemini_provider import GeminiProvider
 from llm.llm_committee import LLMCommittee
 
+
 class LLMEngine:
     name = "llm_engine"
 
@@ -21,6 +22,7 @@ class LLMEngine:
             "openai": OpenAIProvider(),
             "gemini": GeminiProvider(),
         }
+
         self.committee = LLMCommittee()
 
     def ask(
@@ -39,6 +41,7 @@ class LLMEngine:
                 "profile": profile,
                 "providers": [],
                 "provider_results": [],
+                "committee": {},
                 "response": "",
                 "summary": "LLM reasoning disabled.",
             }
@@ -89,7 +92,7 @@ class LLMEngine:
         committee_result = self.committee.synthesize(
             provider_results
         )
-        
+
         return {
             "engine": self.name,
             "status": committee_result.get("status", "empty"),
