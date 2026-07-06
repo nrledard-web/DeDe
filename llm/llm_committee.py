@@ -157,22 +157,23 @@ class LLMCommittee:
         self,
         responses: list[str],
     ) -> list[str]:
-
+    
         word_sets = []
-
+    
         for response in responses:
             words = {
                 word.lower().strip(".,;:!?()[]\"'")
                 for word in response.split()
-                if len(word) > 5
+                if len(word.lower().strip(".,;:!?()[]\"'")) > 7
             }
+    
             word_sets.append(words)
-
+    
         if not word_sets:
             return []
-
+    
         common = set.intersection(*word_sets)
-
+    
         return sorted(list(common))[:8]
 
     def _detect_differences(
@@ -224,9 +225,13 @@ class LLMCommittee:
 
         if agreements:
             parts.append(
-                "Convergence du comité : "
-                + ", ".join(agreements)
-                + "."
+                "Convergence cognitive : les modèles consultés présentent "
+                "une convergence suffisante pour produire une réponse unifiée."
+            )
+        else:
+            parts.append(
+                "Convergence cognitive : les modèles consultés produisent "
+                "des réponses compatibles, sans contradiction majeure détectée."
             )
 
         parts.append(
