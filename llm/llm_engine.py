@@ -10,7 +10,7 @@ from llm.llm_profile import LLMProfile
 from llm.providers.openai_provider import OpenAIProvider
 from llm.providers.gemini_provider import GeminiProvider
 from llm.llm_committee import LLMCommittee
-
+from llm.providers.mistral_provider import MistralProvider
 
 class LLMEngine:
     name = "llm_engine"
@@ -21,6 +21,7 @@ class LLMEngine:
         self.providers = {
             "openai": OpenAIProvider(),
             "gemini": GeminiProvider(),
+            "mistral": MistralProvider(),
         }
 
         self.committee = LLMCommittee()
