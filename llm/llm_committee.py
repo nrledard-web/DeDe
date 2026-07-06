@@ -29,6 +29,7 @@ class LLMCommittee:
                 "status": "empty",
                 "response": "",
                 "provider_count": 0,
+                "provider_responses": [],
                 "summary": "No successful LLM response to synthesize.",
             }
 
@@ -59,7 +60,7 @@ class LLMCommittee:
                 ),
             }
 
-        synthesis = self._build_simple_synthesis(extracted)
+        synthesis = self._build_dede_synthesis(extracted)
 
         return {
             "engine": self.name,
@@ -92,29 +93,85 @@ class LLMCommittee:
 
         return raw_response
 
-    def _build_simple_synthesis(
+    def _build_dede_synthesis(
         self,
         extracted: list[dict[str, Any]],
     ) -> str:
 
-        parts = []
+        responses = [
+            item.get("response", "").strip()
+            for item in extracted
+            if item.get("response", "").strip()
+        ]
 
-        parts.append(
-            "Synthèse du comité de raisonnement :"
+        providers = [
+            item.get("provider", "unknown")
+            for item in extracted
+        ]
+
+        if not responses:
+            return ""
+
+        combined_text = "\n\n".join(responses)
+
+        synthesis = []
+
+        synthesis.append(
+            "Synthèse DeDe :"
         )
 
-        for item in extracted:
-            provider = item.get("provider", "unknown")
-            response = item.get("response", "")
-
-            parts.append(
-                f"\n[{provider}]\n{response}"
-            )
-
-        parts.append(
-            "\nLecture DeDe : plusieurs modèles ont été consultés. "
-            "La réponse ci-dessus conserve leurs apports séparés afin de "
-            "préserver la comparaison avant une synthèse plus avancée."
+        synthesis.append(
+            self._build_main_synthesis(combined_text)
         )
 
-        return "\n".join(parts)
+        synthesis.append(
+            self._build_model_note(providers)
+        )
+
+        return "\n\n".join(
+            part for part in synthesis if part
+        )
+
+    def _build_main_synthesis(
+        self,
+        combined_text: str,
+    ) -> str:
+
+        # First simple version:
+        # keep the strongest shared answer while removing the visible
+        # separation between models.
+
+        paragraphs = [
+            paragraph.strip()
+            for paragraph in combined_text.split("\n")
+            if paragraph.strip()
+        ]
+
+        if not paragraphs:
+            return combined_text.strip()
+
+        # Prefer the most complete paragraph as the base synthesis.
+        base = max(
+            paragraphs,
+            key=len,
+        )
+
+        return base
+
+    def _build_model_note(
+        self,
+        providers: list[str],
+    ) -> str:
+
+        clean_providers = ", ".join(
+            provider for provider in providers
+            if provider
+        )
+
+        return (
+            f"Note de raisonnement : cette réponse a été construite "
+            f"à partir de plusieurs modèles consultés "
+            f"({clean_providers}). DeDe conserve cette comparaison "
+            f"comme matière de raisonnement, sans déléguer son rôle "
+            f"de synthèse à un seul modèle."
+        )
