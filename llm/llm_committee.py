@@ -1,7 +1,7 @@
 """
 DeDe - LLM Committee
 
-Synthesizes outputs from multiple reasoning models.
+Analyzes and synthesizes outputs from multiple reasoning models.
 """
 
 from typing import Any
@@ -30,6 +30,7 @@ class LLMCommittee:
                 "response": "",
                 "provider_count": 0,
                 "provider_responses": [],
+                "analysis": {},
                 "summary": "No successful LLM response to synthesize.",
             }
 
@@ -54,13 +55,24 @@ class LLMCommittee:
                 "response": extracted[0]["response"],
                 "provider_count": 1,
                 "provider_responses": extracted,
+                "analysis": {
+                    "agreements": [],
+                    "differences": [],
+                    "unique_contributions": [],
+                    "contradictions": [],
+                    "confidence": 0.75,
+                },
                 "summary": (
                     f"Single reasoning model used: "
                     f"{extracted[0]['provider']}."
                 ),
             }
 
-        synthesis = self._build_dede_synthesis(extracted)
+        analysis = self._analyze_responses(extracted)
+        synthesis = self._build_final_response(
+            extracted=extracted,
+            analysis=analysis,
+        )
 
         return {
             "engine": self.name,
@@ -68,8 +80,9 @@ class LLMCommittee:
             "response": synthesis,
             "provider_count": len(extracted),
             "provider_responses": extracted,
+            "analysis": analysis,
             "summary": (
-                f"Reasoning committee synthesized "
+                f"Reasoning committee analyzed and synthesized "
                 f"{len(extracted)} model responses."
             ),
         }
@@ -93,9 +106,96 @@ class LLMCommittee:
 
         return raw_response
 
-    def _build_dede_synthesis(
+    def _analyze_responses(
         self,
         extracted: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+
+        responses = [
+            item.get("response", "").strip()
+            for item in extracted
+            if item.get("response", "").strip()
+        ]
+
+        if not responses:
+            return {
+                "agreements": [],
+                "differences": [],
+                "unique_contributions": [],
+                "contradictions": [],
+                "confidence": 0.0,
+            }
+
+        common_terms = self._common_terms(responses)
+
+        unique_contributions = []
+
+        for item in extracted:
+            provider = item.get("provider", "unknown")
+            response = item.get("response", "")
+            unique_contributions.append(
+                {
+                    "provider": provider,
+                    "main_contribution": self._shorten(response),
+                }
+            )
+
+        confidence = min(
+            0.95,
+            0.60 + 0.10 * len(common_terms),
+        )
+
+        return {
+            "agreements": common_terms,
+            "differences": self._detect_differences(extracted),
+            "unique_contributions": unique_contributions,
+            "contradictions": [],
+            "confidence": confidence,
+        }
+
+    def _common_terms(
+        self,
+        responses: list[str],
+    ) -> list[str]:
+
+        word_sets = []
+
+        for response in responses:
+            words = {
+                word.lower().strip(".,;:!?()[]\"'")
+                for word in response.split()
+                if len(word) > 5
+            }
+            word_sets.append(words)
+
+        if not word_sets:
+            return []
+
+        common = set.intersection(*word_sets)
+
+        return sorted(list(common))[:8]
+
+    def _detect_differences(
+        self,
+        extracted: list[dict[str, Any]],
+    ) -> list[str]:
+
+        differences = []
+
+        for item in extracted:
+            provider = item.get("provider", "unknown")
+            response = item.get("response", "")
+
+            differences.append(
+                f"{provider} emphasizes: {self._shorten(response)}"
+            )
+
+        return differences
+
+    def _build_final_response(
+        self,
+        extracted: list[dict[str, Any]],
+        analysis: dict[str, Any],
     ) -> str:
 
         responses = [
@@ -109,69 +209,47 @@ class LLMCommittee:
             for item in extracted
         ]
 
-        if not responses:
-            return ""
-
-        combined_text = "\n\n".join(responses)
-
-        synthesis = []
-
-        synthesis.append(
-            "Synthèse DeDe :"
-        )
-
-        synthesis.append(
-            self._build_main_synthesis(combined_text)
-        )
-
-        synthesis.append(
-            self._build_model_note(providers)
-        )
-
-        return "\n\n".join(
-            part for part in synthesis if part
-        )
-
-    def _build_main_synthesis(
-        self,
-        combined_text: str,
-    ) -> str:
-
-        # First simple version:
-        # keep the strongest shared answer while removing the visible
-        # separation between models.
-
-        paragraphs = [
-            paragraph.strip()
-            for paragraph in combined_text.split("\n")
-            if paragraph.strip()
-        ]
-
-        if not paragraphs:
-            return combined_text.strip()
-
-        # Prefer the most complete paragraph as the base synthesis.
-        base = max(
-            paragraphs,
+        base_response = max(
+            responses,
             key=len,
         )
 
-        return base
+        agreements = analysis.get("agreements", [])
+        confidence = analysis.get("confidence", 0.0)
 
-    def _build_model_note(
+        parts = []
+
+        parts.append("Synthèse DeDe :")
+        parts.append(base_response)
+
+        if agreements:
+            parts.append(
+                "Convergence du comité : "
+                + ", ".join(agreements)
+                + "."
+            )
+
+        parts.append(
+            "Note de raisonnement : plusieurs modèles ont été consultés "
+            f"({', '.join(providers)}). DeDe a comparé leurs réponses "
+            "avant de produire cette synthèse."
+        )
+
+        parts.append(
+            f"Confiance comparative estimée : {round(confidence * 100)}%."
+        )
+
+        return "\n\n".join(parts)
+
+    def _shorten(
         self,
-        providers: list[str],
+        text: str,
+        limit: int = 220,
     ) -> str:
 
-        clean_providers = ", ".join(
-            provider for provider in providers
-            if provider
-        )
+        cleaned = " ".join(text.split())
 
-        return (
-            f"Note de raisonnement : cette réponse a été construite "
-            f"à partir de plusieurs modèles consultés "
-            f"({clean_providers}). DeDe conserve cette comparaison "
-            f"comme matière de raisonnement, sans déléguer son rôle "
-            f"de synthèse à un seul modèle."
-        )
+        if len(cleaned) <= limit:
+            return cleaned
+
+        return cleaned[:limit].rstrip() + "..."
