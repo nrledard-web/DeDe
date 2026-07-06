@@ -343,6 +343,11 @@ class DoxaEnginePhase2:
             provider=search_provider,
         )
         
+        print("=" * 80)
+        print("SEARCH PROVIDER :", search_provider)
+        print("SEARCH RESULT :", search_result)
+        print("=" * 80)
+        
         workspace.add_interpretation(
             "search_result",
             search_result,
