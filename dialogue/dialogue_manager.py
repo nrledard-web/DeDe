@@ -87,8 +87,11 @@ class DialogueManager:
             or llm_result
         )
 
-        llm_response = llm_json.get("user_facing_response")
-
+        llm_response = (
+            llm_json.get("user_facing_response")
+            or llm_json.get("response")
+        )
+        
         if llm_response:
             return llm_response
 
