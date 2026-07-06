@@ -276,7 +276,7 @@ if search_profile == "custom":
 # Chat Display
 # --------------------------------------------------
 
-for turn in st.session_state.conversation_history:
+for index, turn in enumerate(st.session_state.conversation_history):
     with st.chat_message("user"):
         st.write(turn.get("user_input", ""))
 
@@ -289,7 +289,7 @@ for turn in st.session_state.conversation_history:
         if answer:
             if st.button(
                 "🔊 Listen",
-                key=f"tts_history_{hash(answer)}",
+                key=f"tts_history_{index}",
             ):
                 audio = generate_speech(answer)
                 st.audio(audio, format="audio/mp3")
