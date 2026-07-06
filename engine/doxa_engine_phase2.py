@@ -335,6 +335,9 @@ class DoxaEnginePhase2:
         # Search Provider
         # --------------------------------------------------
         
+        if not search_provider and search_profile:
+            search_provider = search_profile
+        
         search_result = self.search_engine.search(
             query=text,
             provider=search_provider,
