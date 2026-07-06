@@ -146,6 +146,7 @@ else:
     st.warning("Banner01.png not found in assets/")
 
 st.title("DeDe — Cognitive Daimon")
+st.caption("An AI Reasoning Controller")
 
 st.caption("Phase 3 — Cognitive Mechanics")
 st.success("DeDe Phase 3 prototype is running.")
