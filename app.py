@@ -870,23 +870,24 @@ if text:
             "Reasoning models are interchangeable LLM components used by DeDe "
             "after memory, search, semantic and cognitive preparation."
         )
-        committee = llm_engine_response.get(
+        
+        llm_committee = llm_engine_response.get(
             "committee",
             {},
         )
         
-        if committee:
+        if llm_committee:
         
             st.metric(
                 "Committee Providers",
-                committee.get(
+                llm_committee.get(
                     "provider_count",
                     0,
                 ),
             )
         
             st.caption(
-                committee.get(
+                llm_committee.get(
                     "summary",
                     "",
                 )
