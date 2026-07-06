@@ -43,6 +43,7 @@ class ResponseBuilder:
         )
         cognitive_feedback = report.get("cognitive_feedback", {})
         llm_bridge_response = report.get("llm_bridge_response", {})
+        committee_reasoning = report.get("committee_reasoning", {})
         summary = report.get("summary", {})
 
         dialogue = report.get("dialogue", {})
@@ -53,61 +54,62 @@ class ResponseBuilder:
         # Build answer
         # --------------------------------------------------
 
-        llm_direct_response = (
-            llm_bridge_response.get("response")
-            or (
-                llm_bridge_response.get("llm_engine", {})
-                .get("response", "")
-            )
-        )
-        
-        if llm_direct_response:
-            try:
-                parsed = json.loads(llm_direct_response)
-        
-                if isinstance(parsed, dict):
-                    llm_direct_response = (
-                        parsed.get("user_facing_response")
-                        or parsed.get("response")
-                        or llm_direct_response
-                    )
-            except Exception:
-                pass
-        
         answer_parts = []
-        
+
         if onboarding.get("message"):
             answer_parts.append(
                 onboarding["message"]
             )
-        
-        if llm_direct_response:
-            answer_parts.append(
-                llm_direct_response
+
+        llm_direct_response = ""
+
+        if committee_reasoning.get("status") == "ready":
+            consensus = committee_reasoning.get("consensus", [])
+            confidence = committee_reasoning.get("confidence", 0.0)
+
+            if consensus:
+                llm_direct_response = (
+                    "Synthèse DeDe :\n\n"
+                    + "\n\n".join(consensus[1:2] or consensus)
+                    + "\n\nAnalyse cognitive : plusieurs modèles ont été consultés. "
+                    "DeDe a utilisé leurs réponses comme matière de raisonnement, "
+                    "sans déléguer directement sa voix à un seul modèle."
+                    + f"\n\nConfiance comparative estimée : "
+                    f"{round(confidence * 100)}%."
+                )
+        else:
+            llm_direct_response = (
+                llm_bridge_response.get("response")
+                or (
+                    llm_bridge_response.get("llm_engine", {})
+                    .get("response", "")
+                )
             )
+
+            if llm_direct_response:
+                try:
+                    parsed = json.loads(llm_direct_response)
+
+                    if isinstance(parsed, dict):
+                        llm_direct_response = (
+                            parsed.get("user_facing_response")
+                            or parsed.get("response")
+                            or llm_direct_response
+                        )
+                except Exception:
+                    pass
+
+        if llm_direct_response:
+            answer_parts.append(llm_direct_response)
+
         elif dialogue.get("response"):
             answer_parts.append(
                 dialogue["response"]
             )
-            
-        # Cognitive autonomy:
-        # DeDe does not add conversational steering by default.
-        conversational_intro = None
 
         if knowledge.get("found"):
             answer_parts.append(
                 knowledge.get("answer", "")
-            )
-
-        llm_json = llm_bridge_response.get("parsed_json")
-
-        if (
-            llm_json
-            and llm_json.get("user_facing_response")
-            and not dialogue.get("response")
-        ):
-            answer_parts.append(
-                llm_json["user_facing_response"]
             )
 
         if not answer_parts:
@@ -126,7 +128,6 @@ class ResponseBuilder:
                 "DeDe has analyzed the input, but no clear "
                 "user-facing answer could be generated yet."
             )
-
         # --------------------------------------------------
         # Follow-up question
         # --------------------------------------------------
