@@ -208,15 +208,14 @@ class ResponseBuilder:
             return {
                 "title": "Sintesis ni DeDe:",
                 "analysis": (
-                    "Cognitive analysis: maraming modelo ang kinonsulta. "
-                    "Ginamit ni DeDe ang kanilang mga sagot bilang materyal "
-                    "sa pangangatwiran, nang hindi direktang ipinapasa ang "
-                    "kanyang boses sa iisang modelo."
+                    "Pagsusuring pangkognitibo: maraming modelo ang kinonsulta. "
+                    "Ginamit ni DeDe ang kanilang mga sagot bilang batayan ng "
+                    "pangangatwiran, nang hindi ipinauubaya ang kanyang boses "
+                    "sa iisang modelo lamang."
                 ),
                 "confidence": (
-                    f"Tinatayang comparative confidence: {percent}."
+                    f"Tinatayang antas ng kumpiyansa: {percent}."
                 ),
-            }
 
         return {
             "title": "Synthèse DeDe :",
