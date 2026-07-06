@@ -51,7 +51,7 @@ Report
 from typing import Any
 
 from search.search_engine import SearchEngine
-
+from llm.llm_engine import LLMEngine
 from core.cognitive_workspace import CognitiveWorkspace
 
 from knowledge.knowledge_agent import KnowledgeAgent
@@ -166,6 +166,7 @@ class DoxaEnginePhase2:
         self.llm_connector = LLMConnector()
         self.llm_bridge = LLMBridge()
         self.llm_response_interpreter = LLMResponseInterpreter()
+        self.llm_engine = LLMEngine()
 
         # --------------------------------------------------
         # Committee and formula layers
@@ -226,7 +227,10 @@ class DoxaEnginePhase2:
         self,
         text: str,
         enable_llm: bool = False,
-        search_provider: str = "none",
+        search_provider: str | list[str] = "none",
+        search_profile: str | None = None,
+        llm_profile: str = "fast",
+        llm_providers: list[str] | None = None,
         conversation_history: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """
@@ -519,10 +523,22 @@ class DoxaEnginePhase2:
         # Phase 4.12
         # LLM Bridge
         # --------------------------------------------------
-        llm_bridge_response = self.llm_bridge.ask(
-            llm_package=llm_package,
+        llm_engine_response = self.llm_engine.ask(
+            prompt=llm_package.get("full_prompt", ""),
+            profile=llm_profile,
+            providers=llm_providers,
             enabled=enable_llm,
         )
+        
+        llm_bridge_response = {
+            "status": llm_engine_response.get("status"),
+            "provider": "+".join(llm_engine_response.get("providers", [])),
+            "response": llm_engine_response.get("response", ""),
+            "parsed_json": None,
+            "json_valid": False,
+            "llm_engine": llm_engine_response,
+            "summary": llm_engine_response.get("summary", ""),
+        }
 
         workspace.add_interpretation(
             "llm_bridge_response",
@@ -781,6 +797,11 @@ class DoxaEnginePhase2:
                 "llm_interpretation",
                 {},
             ),
+            "llm_engine_response": workspace.interpretations.get(
+                "llm_bridge_response",
+                {},
+            ).get("llm_engine", {}),
+            
             "cognitive_feedback": workspace.interpretations.get(
                 "cognitive_feedback",
                 {},
