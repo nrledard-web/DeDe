@@ -1,6 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 import tempfile
+import os
 
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
 from pathlib import Path
@@ -33,6 +34,9 @@ st.set_page_config(
     page_icon="🧠",
     layout="wide",
 )
+
+if "OPENAI_API_KEY" in st.secrets:
+    os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
 # --------------------------------------------------
 # Force light theme / mobile readability
@@ -192,17 +196,43 @@ if "engine" not in st.session_state and st.session_state.get("owner_id"):
     )
     
 # --------------------------------------------------
-# LLM Toggle
+# Reasoning Models
 # --------------------------------------------------
 
 enable_llm = st.toggle(
-    "Enable external LLM call",
+    "Enable Reasoning Model",
     value=False,
 )
 
-if st.button("Reset conversation"):
-    st.session_state.conversation_history = []
-    st.success("Conversation reset.")
+llm_profile = st.selectbox(
+    "Reasoning Profile",
+    [
+        "fast",
+        "balanced",
+        "deep",
+        "asian",
+        "custom",
+    ],
+    index=0,
+)
+
+llm_providers = []
+
+if llm_profile == "custom":
+    llm_providers = st.multiselect(
+        "Custom Reasoning Models",
+        [
+            "openai",
+            "gemini",
+            "mistral",
+            "deepseek",
+            "qwen",
+            "glm",
+            "claude",
+            "nemotron",
+        ],
+        default=["openai"],
+    )
 
 # --------------------------------------------------
 # Knowledge Search Profile
