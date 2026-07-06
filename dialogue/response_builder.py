@@ -69,26 +69,20 @@ class ResponseBuilder:
             language = dialogue_profile.get("language", "fr")
 
             if consensus:
-                if language == "en":
-                    llm_direct_response = (
-                        "DeDe synthesis:\n\n"
-                        + "\n\n".join(consensus[1:2] or consensus)
-                        + "\n\nCognitive analysis: several models were consulted. "
-                        "DeDe used their answers as reasoning material, without directly "
-                        "delegating its voice to a single model."
-                        + f"\n\nEstimated comparative confidence: "
-                        f"{round(confidence * 100)}%."
-                    )
-                else:
-                    llm_direct_response = (
-                        "Synthèse DeDe :\n\n"
-                        + "\n\n".join(consensus[1:2] or consensus)
-                        + "\n\nAnalyse cognitive : plusieurs modèles ont été consultés. "
-                        "DeDe a utilisé leurs réponses comme matière de raisonnement, "
-                        "sans déléguer directement sa voix à un seul modèle."
-                        + f"\n\nConfiance comparative estimée : "
-                        f"{round(confidence * 100)}%."
-                    )
+                texts = self._committee_texts(
+                    language=language,
+                    confidence=confidence,
+                )
+
+                llm_direct_response = (
+                    texts["title"]
+                    + "\n\n"
+                    + "\n\n".join(consensus[1:2] or consensus)
+                    + "\n\n"
+                    + texts["analysis"]
+                    + "\n\n"
+                    + texts["confidence"]
+                )
 
         else:
             llm_direct_response = (
@@ -176,6 +170,66 @@ class ResponseBuilder:
             ),
         }
 
+    def _committee_texts(
+        self,
+        language: str,
+        confidence: float,
+    ) -> dict[str, str]:
+
+        percent = f"{round(confidence * 100)}%"
+    
+        if language == "en":
+            return {
+                "title": "DeDe synthesis:",
+                "analysis": (
+                    "Cognitive analysis: several models were consulted. "
+                    "DeDe used their answers as reasoning material, without "
+                    "directly delegating its voice to a single model."
+                ),
+                "confidence": (
+                    f"Estimated comparative confidence: {percent}."
+                ),
+            }
+    
+        if language == "es":
+            return {
+                "title": "Síntesis DeDe:",
+                "analysis": (
+                    "Análisis cognitivo: se consultaron varios modelos. "
+                    "DeDe utilizó sus respuestas como material de razonamiento, "
+                    "sin delegar directamente su voz a un solo modelo."
+                ),
+                "confidence": (
+                    f"Confianza comparativa estimada: {percent}."
+                ),
+            }
+    
+        if language == "fil":
+            return {
+                "title": "Sintesis ni DeDe:",
+                "analysis": (
+                    "Cognitive analysis: maraming modelo ang kinonsulta. "
+                    "Ginamit ni DeDe ang kanilang mga sagot bilang materyal "
+                    "sa pangangatwiran, nang hindi direktang ipinapasa ang "
+                    "kanyang boses sa iisang modelo."
+                ),
+                "confidence": (
+                    f"Tinatayang comparative confidence: {percent}."
+                ),
+            }
+
+        return {
+            "title": "Synthèse DeDe :",
+            "analysis": (
+                "Analyse cognitive : plusieurs modèles ont été consultés. "
+                "DeDe a utilisé leurs réponses comme matière de raisonnement, "
+                "sans déléguer directement sa voix à un seul modèle."
+            ),
+            "confidence": (
+                f"Confiance comparative estimée : {percent}."
+            ),
+        }
+    
     # --------------------------------------------------
     # Conversational Intro Builder
     # --------------------------------------------------
