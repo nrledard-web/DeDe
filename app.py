@@ -233,6 +233,34 @@ llm_providers = st.multiselect(
 llm_profile = "custom"
 
 # --------------------------------------------------
+# Committee Reasoner
+# --------------------------------------------------
+
+committee_reasoning = report.get(
+    "committee_reasoning",
+    {},
+)
+
+st.subheader("Committee Reasoner")
+
+st.caption(
+    "Transforms multiple LLM outputs into structured reasoning material "
+    "before DeDe builds its final answer."
+)
+
+st.metric(
+    "Reasoner Status",
+    committee_reasoning.get("status", "N/A"),
+)
+
+st.write(
+    committee_reasoning.get("summary", "")
+)
+
+with st.expander("Committee Reasoning Details"):
+    st.json(committee_reasoning)
+
+# --------------------------------------------------
 # Knowledge Search Profile
 # --------------------------------------------------
 
