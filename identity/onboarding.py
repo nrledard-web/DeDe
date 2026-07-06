@@ -22,7 +22,10 @@ class Onboarding:
     ) -> dict[str, Any]:
 
         dialogue_profile = dialogue_profile or {}
-        language = dialogue_profile.get("language", "en")
+
+        language = self._normalize_language(
+            dialogue_profile.get("language", "en")
+        )
 
         profile = self.identity_profile.get_profile()
 
@@ -31,11 +34,41 @@ class Onboarding:
             "status": "ready",
             "is_first_contact": True,
             "identity": profile,
+            "language": language,
             "message": self._build_message(
                 language,
                 profile,
             ),
         }
+
+    def _normalize_language(
+        self,
+        language: str,
+    ) -> str:
+
+        language = (language or "en").lower().strip()
+
+        aliases = {
+            "fr-fr": "fr",
+            "french": "fr",
+            "fra": "fr",
+            "fre": "fr",
+            "en-us": "en",
+            "en-gb": "en",
+            "english": "en",
+            "eng": "en",
+            "es-es": "es",
+            "es-mx": "es",
+            "spanish": "es",
+            "spa": "es",
+            "tl": "fil",
+            "tgl": "fil",
+            "tagalog": "fil",
+            "filipino": "fil",
+            "phi": "fil",
+        }
+
+        return aliases.get(language, language)
 
     def _build_message(
         self,
@@ -66,8 +99,9 @@ class Onboarding:
                 "Mi función no es decirte qué creer, sino ayudarte a entender "
                 "cómo se forman tus creencias, cómo se estabilizan y cómo "
                 "pueden seguir siendo revisables.\n\n"
-                "Me apoyo en la Mecánica Cognitiva y en la fórmula "
-                "M = (G + N) - D.\n\n"
+                "Me apoyo en la Mecánica Cognitiva, especialmente en la fórmula "
+                "M = (G + N) - D: conocimiento articulado, comprensión integrada "
+                "y certeza estabilizada.\n\n"
                 "Con el tiempo, también te ayudaré a enriquecer tu vocabulario, "
                 "porque nombrar mejor una cosa suele permitir pensarla mejor.\n\n"
                 "DeDe es un nombre provisional: cuando te conozca mejor, podré "
@@ -82,8 +116,9 @@ class Onboarding:
                 "paniwalaan. Ang tungkulin ko ay tulungan kang maunawaan kung "
                 "paano nabubuo ang paniniwala, paano ito tumitibay, at paano "
                 "ito mananatiling bukas sa pagbabago.\n\n"
-                "Nakabatay ako sa Cognitive Mechanics at sa pormulang "
-                "M = (G + N) - D.\n\n"
+                "Nakabatay ako sa Cognitive Mechanics, lalo na sa pormulang "
+                "M = (G + N) - D: articulated knowledge, integrated understanding "
+                "at stabilized certainty.\n\n"
                 "Sa bawat pag-uusap, tutulungan din kitang palawakin ang "
                 "bokabularyo mo, dahil ang mas malinaw na pangalan sa isang "
                 "bagay ay madalas tumutulong sa mas malinaw na pag-iisip.\n\n"
