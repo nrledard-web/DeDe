@@ -9,6 +9,7 @@ from typing import Any
 from llm.llm_profile import LLMProfile
 from llm.providers.openai_provider import OpenAIProvider
 from llm.providers.gemini_provider import GeminiProvider
+from llm.llm_committee import LLMCommittee
 
 class LLMEngine:
     name = "llm_engine"
@@ -20,6 +21,7 @@ class LLMEngine:
             "openai": OpenAIProvider(),
             "gemini": GeminiProvider(),
         }
+        self.committee = LLMCommittee()
 
     def ask(
         self,
@@ -84,22 +86,17 @@ class LLMEngine:
 
             provider_results.append(result)
 
-        first_success = next(
-            (
-                item for item in provider_results
-                if item.get("status") == "success"
-            ),
-            None,
+        committee_result = self.committee.synthesize(
+            provider_results
         )
-
+        
         return {
             "engine": self.name,
-            "status": "success" if first_success else "empty",
+            "status": committee_result.get("status", "empty"),
             "profile": profile_data,
             "providers": selected_providers,
             "provider_results": provider_results,
-            "response": first_success.get("response", "") if first_success else "",
-            "summary": (
-                f"LLM engine completed with {len(selected_providers)} provider(s)."
-            ),
+            "committee": committee_result,
+            "response": committee_result.get("response", ""),
+            "summary": committee_result.get("summary", ""),
         }
