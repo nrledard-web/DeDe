@@ -141,7 +141,7 @@ st.markdown(
 BANNER_PATH = Path("assets/Banner01.png")
 
 if BANNER_PATH.exists():
-    st.image(str(BANNER_PATH), use_container_width=True)
+    st.image(str(BANNER_PATH), width="stretch")
 else:
     st.warning("Banner01.png not found in assets/")
 
