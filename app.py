@@ -283,20 +283,28 @@ selected_search_label = st.selectbox(
 
 search_profile = search_profile_labels[selected_search_label]
 
-search_mode = st.selectbox(
-    "Web Search Mode",
+search_strategy = st.selectbox(
+    "Search Strategy",
     [
-        "Auto",
-        "Always",
         "Off",
+        "On Request",
+        "Governor (Beta)",
     ],
-    index=0,
+    index=1,
 )
 
 st.caption(
-    "Alpha mode: choose whether DeDe should use web search. "
-    "Auto will later be handled by the Governor."
+    "Off: no web search. On Request: web search only when you ask. "
+    "Governor: DeDe will decide automatically in Beta."
 )
+
+search_mode_map = {
+    "Off": "off",
+    "On Request": "on_request",
+    "Governor (Beta)": "governor",
+}
+
+search_mode = search_mode_map[search_strategy]
 
 search_provider = []
 
