@@ -79,25 +79,36 @@ class ResponseBuilder:
 
             if consensus:
                 provider_count = committee_reasoning.get("source_count", 1)
-                
+
                 texts = self._committee_texts(
                     language=language,
                     confidence=confidence,
                     provider_count=provider_count,
                 )
 
-                llm_parts = [
-                    texts["title"],
-                    "\n\n".join(consensus[1:2] or consensus),
-                    texts["analysis"],
+                clean_consensus = [
+                    self._clean_llm_text(item)
+                    for item in consensus
+                    if item
                 ]
-                
-                if texts["confidence"]:
-                    llm_parts.append(texts["confidence"])
-                
-                llm_direct_response = "\n\n".join(
-                    part for part in llm_parts if part
+
+                main_response = "\n\n".join(
+                    clean_consensus[1:2] or clean_consensus
                 )
+
+                if main_response:
+                    llm_parts = [
+                        texts["title"],
+                        main_response,
+                        texts["analysis"],
+                    ]
+
+                    if texts["confidence"]:
+                        llm_parts.append(texts["confidence"])
+
+                    llm_direct_response = "\n\n".join(
+                        part for part in llm_parts if part
+                    )
 
         else:
             llm_direct_response = (
@@ -184,6 +195,40 @@ class ResponseBuilder:
                 "DeDe report."
             ),
         }
+
+    # --------------------------------------------------
+    # LLM Cleaning
+    # --------------------------------------------------
+
+    def _clean_llm_text(
+        self,
+        text: str,
+    ) -> str:
+
+        if not text:
+            return ""
+
+        cleaned = text.strip()
+
+        try:
+            parsed = json.loads(cleaned)
+
+            if isinstance(parsed, dict):
+                return (
+                    parsed.get("user_facing_response")
+                    or parsed.get("response")
+                    or parsed.get("answer")
+                    or cleaned
+                )
+
+        except Exception:
+            pass
+
+        return cleaned
+
+    # --------------------------------------------------
+    # Search Builder
+    # --------------------------------------------------
 
     def _build_search_response(
         self,
