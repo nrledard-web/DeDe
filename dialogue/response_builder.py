@@ -78,19 +78,25 @@ class ResponseBuilder:
             language = dialogue_profile.get("language", "fr")
 
             if consensus:
+                provider_count = committee_reasoning.get("source_count", 1)
+                
                 texts = self._committee_texts(
                     language=language,
                     confidence=confidence,
+                    provider_count=provider_count,
                 )
 
-                llm_direct_response = (
-                    texts["title"]
-                    + "\n\n"
-                    + "\n\n".join(consensus[1:2] or consensus)
-                    + "\n\n"
-                    + texts["analysis"]
-                    + "\n\n"
-                    + texts["confidence"]
+                llm_parts = [
+                    texts["title"],
+                    "\n\n".join(consensus[1:2] or consensus),
+                    texts["analysis"],
+                ]
+                
+                if texts["confidence"]:
+                    llm_parts.append(texts["confidence"])
+                
+                llm_direct_response = "\n\n".join(
+                    part for part in llm_parts if part
                 )
 
         else:
