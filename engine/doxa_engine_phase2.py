@@ -379,12 +379,9 @@ class DoxaEnginePhase2:
             should_search = False
 
         elif search_mode == "on_request":
-            # Alpha manual strategy.
-            # Search is allowed, but still requires user intent.
             should_search = True
-        
+
         elif search_mode == "governor":
-            # Governor coming in Beta.
             should_search = False
 
         if should_search:
@@ -392,17 +389,25 @@ class DoxaEnginePhase2:
             if not search_provider and search_profile:
                 search_provider = search_profile
 
+            concept_data = workspace.interpretations.get(
+                "concepts",
+                {},
+            )
+
             search_query = self._build_search_query(
                 text=text,
-                conversation_reasoning=conversation_context,
+                conversation_context=conversation_context,
+                concept_data=concept_data,
             )
-            
+
             search_result = self.search_engine.search(
                 query=search_query,
                 provider=search_provider,
             )
 
         else:
+            search_query = text
+
             search_result = {
                 "engine": "search_engine",
                 "status": "disabled",
@@ -419,7 +424,7 @@ class DoxaEnginePhase2:
         print("=" * 80)
         print("SEARCH MODE :", search_mode)
         print("SEARCH PROVIDER :", search_provider)
-        print("SEARCH QUERY :", search_query if should_search else text)
+        print("SEARCH QUERY :", search_query)
         print("SEARCH RESULT :", search_result)
         print("=" * 80)
 
