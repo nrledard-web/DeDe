@@ -231,6 +231,7 @@ class DoxaEnginePhase2:
         enable_llm: bool = False,
         search_provider: str | list[str] = "none",
         search_profile: str | None = None,
+        search_mode: str = "auto",
         llm_profile: str = "fast",
         llm_providers: list[str] | None = None,
         conversation_history: list[dict[str, Any]] | None = None,
@@ -334,24 +335,56 @@ class DoxaEnginePhase2:
         # Phase 5.4b
         # Search Provider
         # --------------------------------------------------
-        
-        if not search_provider and search_profile:
-            search_provider = search_profile
-        
-        search_result = self.search_engine.search(
-            query=text,
-            provider=search_provider,
-        )
-        
+
+        search_mode = (search_mode or "auto").lower().strip()
+
+        should_search = False
+
+        if search_mode == "always":
+            should_search = True
+
+        elif search_mode == "off":
+            should_search = False
+
+        elif search_mode == "auto":
+            # Governor coming in Beta.
+            should_search = False
+
+        if should_search:
+
+            if not search_provider and search_profile:
+                search_provider = search_profile
+
+            search_result = self.search_engine.search(
+                query=text,
+                provider=search_provider,
+            )
+
+        else:
+            search_result = {
+                "engine": "search_engine",
+                "status": "disabled",
+                "provider": "none",
+                "providers": [],
+                "query": text,
+                "results": [],
+                "provider_results": [],
+                "summary": (
+                    f"Search skipped (mode={search_mode})."
+                ),
+            }
+
         print("=" * 80)
+        print("SEARCH MODE :", search_mode)
         print("SEARCH PROVIDER :", search_provider)
         print("SEARCH RESULT :", search_result)
         print("=" * 80)
-        
+
         workspace.add_interpretation(
             "search_result",
             search_result,
         )
+
         # --------------------------------------------------
         # Phase 5.5
         # DeDe Internal State
