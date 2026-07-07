@@ -363,6 +363,57 @@ class DoxaEnginePhase2:
             "dialogue_profile",
             dialogue_profile,
         )
+
+        # --------------------------------------------------
+        # Phase 5.5
+        # DeDe Internal State
+        # --------------------------------------------------
+        dede_state = self.dede_state.build(
+            text=text,
+            user_memory=user_memory,
+            dede_identity=identity_state,
+            dialogue_profile=dialogue_profile,
+            conversation_context=conversation_context,
+            retrieved_memory=retrieved_memory,
+        )
+
+        workspace.add_interpretation(
+            "dede_state",
+            dede_state,
+        )
+
+        # --------------------------------------------------
+        # Phase 5.6
+        # Onboarding
+        # --------------------------------------------------
+        is_first_contact = conversation_context.get("turn_count", 0) == 0
+
+        onboarding = {}
+
+        if is_first_contact:
+            onboarding = self.onboarding.build(
+                dialogue_profile=dialogue_profile,
+            )
+
+        workspace.add_interpretation(
+            "onboarding",
+            onboarding,
+        )
+
+        # --------------------------------------------------
+        # Phase 4.0
+        # Knowledge
+        # --------------------------------------------------
+        knowledge_result = self.knowledge.analyze(workspace)
+
+        # --------------------------------------------------
+        # Phase 4.1
+        # Concept Extraction + Semantic Engine + Semantic Reasoner
+        # --------------------------------------------------
+        workspace = self.concept_extractor.run(workspace)
+        workspace = self.semantic_engine.run(workspace)
+        workspace = self.semantic_reasoner.run(workspace)
+
         # --------------------------------------------------
         # Phase 5.4b
         # Search Provider
@@ -432,56 +483,6 @@ class DoxaEnginePhase2:
             "search_result",
             search_result,
         )
-
-        # --------------------------------------------------
-        # Phase 5.5
-        # DeDe Internal State
-        # --------------------------------------------------
-        dede_state = self.dede_state.build(
-            text=text,
-            user_memory=user_memory,
-            dede_identity=identity_state,
-            dialogue_profile=dialogue_profile,
-            conversation_context=conversation_context,
-            retrieved_memory=retrieved_memory,
-        )
-
-        workspace.add_interpretation(
-            "dede_state",
-            dede_state,
-        )
-
-        # --------------------------------------------------
-        # Phase 5.6
-        # Onboarding
-        # --------------------------------------------------
-        is_first_contact = conversation_context.get("turn_count", 0) == 0
-
-        onboarding = {}
-
-        if is_first_contact:
-            onboarding = self.onboarding.build(
-                dialogue_profile=dialogue_profile,
-            )
-
-        workspace.add_interpretation(
-            "onboarding",
-            onboarding,
-        )
-
-        # --------------------------------------------------
-        # Phase 4.0
-        # Knowledge
-        # --------------------------------------------------
-        knowledge_result = self.knowledge.analyze(workspace)
-
-        # --------------------------------------------------
-        # Phase 4.1
-        # Concept Extraction + Semantic Engine + Semantic Reasoner
-        # --------------------------------------------------
-        workspace = self.concept_extractor.run(workspace)
-        workspace = self.semantic_engine.run(workspace)
-        workspace = self.semantic_reasoner.run(workspace)
 
         # --------------------------------------------------
         # Phase 4.2
