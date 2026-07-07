@@ -386,8 +386,13 @@ class DoxaEnginePhase2:
             if not search_provider and search_profile:
                 search_provider = search_profile
 
+            search_query = self._build_search_query(
+                text=text,
+                conversation_reasoning=conversation_reasoning,
+            )
+            
             search_result = self.search_engine.search(
-                query=text,
+                query=search_query,
                 provider=search_provider,
             )
 
@@ -408,6 +413,7 @@ class DoxaEnginePhase2:
         print("=" * 80)
         print("SEARCH MODE :", search_mode)
         print("SEARCH PROVIDER :", search_provider)
+        print("SEARCH QUERY :", search_query if should_search else text)
         print("SEARCH RESULT :", search_result)
         print("=" * 80)
 
