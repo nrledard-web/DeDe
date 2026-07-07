@@ -203,10 +203,7 @@ if "engine" not in st.session_state and st.session_state.get("owner_id"):
 # Reasoning Models
 # --------------------------------------------------
 
-enable_llm = st.toggle(
-    "AI Reasoning",
-    value=False,
-)
+enable_llm = True
 
 st.caption(
     "Alpha mode: choose which reasoning models DeDe may use. "
