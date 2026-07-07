@@ -64,13 +64,27 @@ class LLMConnector:
             search_result=search_result,
         )
        
-        user_prompt = (
-            "Prepare DeDe's user-facing response to the following message. "
-            "Use the cognitive context only as internal support. "
-            "Do not call the user an input. "
-            "Do not expose internal analysis unless it is useful.\n\n"
-            f"User message:\n{text}"
+        search_has_results = bool(
+            search_result.get("results", [])
         )
+
+        if search_has_results:
+            user_prompt = (
+                "Prepare DeDe's user-facing response to the following message. "
+                "IMPORTANT: DeDe has already performed a web search. "
+                "Use the WEB SEARCH CONTEXT above as the primary source. "
+                "Do not say that you cannot access the Internet. "
+                "If useful, include the supplied URLs.\n\n"
+                f"User message:\n{text}"
+            )
+        else:
+            user_prompt = (
+                "Prepare DeDe's user-facing response to the following message. "
+                "Use the cognitive context only as internal support. "
+                "Do not call the user an input. "
+                "Do not expose internal analysis unless it is useful.\n\n"
+                f"User message:\n{text}"
+            )
 
         full_prompt = (
             "SYSTEM:\n\n"
@@ -114,6 +128,11 @@ class LLMConnector:
             "If the user writes in Spanish, respond in Spanish. "
             "If the user writes in Filipino or Tagalog, respond in Filipino. "
             "If the user switches language, follow the latest user language. "
+            "When WEB SEARCH CONTEXT contains search results, treat those results "
+            "as information already retrieved by DeDe. Use them as the primary source "
+            "when answering search-related questions. Never say that you cannot access "
+            "the Internet if search results are present. Instead, summarize the supplied "
+            "results and include useful URLs. "
             "If web search results are present in the context, use them as external "
             "information for the answer. Do not say that you cannot access the Internet "
             "when search results are already provided. Do not ask the user to search "
