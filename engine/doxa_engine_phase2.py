@@ -224,6 +224,32 @@ class DoxaEnginePhase2:
             return "Owner"
     
         return cleaned.title()
+
+    def _build_search_query(
+        self,
+        text: str,
+        conversation_reasoning: dict[str, Any] | None = None,
+    ) -> str:
+    
+        conversation_reasoning = conversation_reasoning or {}
+    
+        reference_topic = conversation_reasoning.get("reference_topic")
+        current_topic = conversation_reasoning.get("current_topic")
+    
+        topic = current_topic or reference_topic
+    
+        if topic:
+            lowered = text.lower()
+    
+            if "wikipedia" in lowered or "wikipédia" in lowered:
+                return f"{topic} wikipedia"
+    
+            if "lien" in lowered or "liens" in lowered or "link" in lowered:
+                return f"{topic} links"
+    
+            return f"{topic} {text}"
+    
+        return text
     
     def analyze(
         self,
