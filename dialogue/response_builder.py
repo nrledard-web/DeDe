@@ -221,59 +221,73 @@ class ResponseBuilder:
         self,
         language: str,
         confidence: float,
+        provider_count: int = 1,
     ) -> dict[str, str]:
 
-        percent = f"{round(confidence * 100)}%"
-    
         if language == "en":
             return {
                 "title": "DeDe synthesis:",
                 "analysis": (
-                    "Cognitive analysis: several models were consulted. "
-                    "DeDe used their answers as reasoning material, without "
-                    "directly delegating its voice to a single model."
+                    "Cognitive analysis: DeDe used the selected model "
+                    "as reasoning material."
+                    if provider_count <= 1
+                    else "Cognitive analysis: several models were consulted. "
+                    "DeDe compared their answers before producing a final response."
                 ),
                 "confidence": (
-                    f"Estimated comparative confidence: {percent}."
+                    ""
+                    if provider_count <= 1
+                    else f"Comparative confidence: {round(confidence * 100)}%."
                 ),
             }
-    
+
         if language == "es":
             return {
                 "title": "Síntesis DeDe:",
                 "analysis": (
-                    "Análisis cognitivo: se consultaron varios modelos. "
-                    "DeDe utilizó sus respuestas como material de razonamiento, "
-                    "sin delegar directamente su voz a un solo modelo."
+                    "Análisis cognitivo: DeDe utilizó el modelo seleccionado "
+                    "como material de razonamiento."
+                    if provider_count <= 1
+                    else "Análisis cognitivo: se consultaron varios modelos. "
+                    "DeDe comparó sus respuestas antes de producir una respuesta final."
                 ),
                 "confidence": (
-                    f"Confianza comparativa estimada: {percent}."
+                    ""
+                    if provider_count <= 1
+                    else f"Confianza comparativa: {round(confidence * 100)}%."
                 ),
             }
-    
+
         if language == "fil":
             return {
                 "title": "Sintesis ni DeDe:",
                 "analysis": (
-                    "Pagsusuring pangkognitibo: maraming modelo ang kinonsulta. "
-                    "Ginamit ni DeDe ang kanilang mga sagot bilang batayan ng "
-                    "pangangatwiran, nang hindi ipinauubaya ang kanyang boses "
-                    "sa iisang modelo lamang."
+                    "Pagsusuring pangkognitibo: ginamit ni DeDe ang napiling modelo "
+                    "bilang batayan ng pangangatwiran."
+                    if provider_count <= 1
+                    else "Pagsusuring pangkognitibo: maraming modelo ang kinonsulta. "
+                    "Inihambing ni DeDe ang kanilang mga sagot bago bumuo ng huling tugon."
                 ),
                 "confidence": (
-                    f"Tinatayang antas ng kumpiyansa: {percent}."
+                    ""
+                    if provider_count <= 1
+                    else f"Tinatayang antas ng paghahambing: {round(confidence * 100)}%."
                 ),
             }
 
         return {
             "title": "Synthèse DeDe :",
             "analysis": (
-                "Analyse cognitive : plusieurs modèles ont été consultés. "
-                "DeDe a utilisé leurs réponses comme matière de raisonnement, "
-                "sans déléguer directement sa voix à un seul modèle."
+                "Analyse cognitive : DeDe a utilisé le modèle sélectionné "
+                "comme matière de raisonnement."
+                if provider_count <= 1
+                else "Analyse cognitive : plusieurs modèles ont été consultés. "
+                "DeDe a comparé leurs réponses avant de produire une réponse finale."
             ),
             "confidence": (
-                f"Confiance comparative estimée : {percent}."
+                ""
+                if provider_count <= 1
+                else f"Confiance comparative : {round(confidence * 100)}%."
             ),
         }
     
