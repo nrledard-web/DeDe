@@ -228,27 +228,33 @@ class DoxaEnginePhase2:
     def _build_search_query(
         self,
         text: str,
-        conversation_reasoning: dict[str, Any] | None = None,
+        conversation_context: dict[str, Any] | None = None,
+        concept_data: dict[str, Any] | None = None,
     ) -> str:
-    
-        conversation_reasoning = conversation_reasoning or {}
-    
-        reference_topic = conversation_reasoning.get("reference_topic")
-        current_topic = conversation_reasoning.get("current_topic")
-    
-        topic = current_topic or reference_topic
-    
-        if topic:
-            lowered = text.lower()
-    
-            if "wikipedia" in lowered or "wikipédia" in lowered:
-                return f"{topic} wikipedia"
-    
-            if "lien" in lowered or "liens" in lowered or "link" in lowered:
-                return f"{topic} links"
-    
-            return f"{topic} {text}"
-    
+
+        conversation_context = conversation_context or {}
+        concept_data = concept_data or {}
+
+        concepts = concept_data.get("main_concepts", [])
+
+        weak_concepts = {
+            "dis", "moi", "plus", "sur", "donne", "lien", "liens", "stp",
+            "tell", "me", "more", "about", "give", "link", "links",
+        }
+
+        strong_concepts = [
+            item for item in concepts
+            if item and item.lower() not in weak_concepts
+        ]
+
+        if strong_concepts:
+            return " ".join(strong_concepts[:3])
+
+        recent_topics = conversation_context.get("recent_topics", [])
+
+        if recent_topics:
+            return str(recent_topics[-1])
+
         return text
     
     def analyze(
