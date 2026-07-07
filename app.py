@@ -411,6 +411,7 @@ if text:
             None if search_profile == "custom"
             else search_profile
         ),
+        search_mode=search_mode.lower(),
         llm_profile="custom",
         llm_providers=llm_providers,
         conversation_history=st.session_state.conversation_history,
