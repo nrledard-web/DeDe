@@ -52,6 +52,8 @@ from typing import Any
 
 from search.search_engine import SearchEngine
 from search.search_validator import SearchValidator
+from search.search_query_builder import SearchQueryBuilder
+
 from llm.llm_engine import LLMEngine
 from core.cognitive_workspace import CognitiveWorkspace
 
@@ -163,6 +165,7 @@ class DoxaEnginePhase2:
         self.dialogue_profile = DialogueProfile()
         self.search_engine = SearchEngine()
         self.search_validator = SearchValidator()
+        self.search_query_builder = SearchQueryBuilder()
 
         # --------------------------------------------------
         # LLM preparation layers
@@ -443,10 +446,15 @@ class DoxaEnginePhase2:
                 {},
             )
 
-            search_query = self._build_search_query(
+            search_query_data = self.search_query_builder.build(
                 text=text,
                 conversation_context=conversation_context,
                 concept_data=concept_data,
+            )
+            
+            search_query = search_query_data.get(
+                "query",
+                text,
             )
 
             search_result = self.search_engine.search(
@@ -520,6 +528,15 @@ class DoxaEnginePhase2:
         workspace.add_interpretation(
             "search_validation",
             search_validation,
+        )
+        workspace.add_interpretation(
+            "search_query",
+            search_query_data if should_search else {
+                "builder": "search_query_builder",
+                "status": "disabled",
+                "query": text,
+                "summary": "Search query builder skipped.",
+            },
         )
 
         # --------------------------------------------------
