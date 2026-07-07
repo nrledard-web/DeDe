@@ -388,7 +388,7 @@ class DoxaEnginePhase2:
 
             search_query = self._build_search_query(
                 text=text,
-                conversation_reasoning=conversation_reasoning,
+                conversation_reasoning=conversation_context,
             )
             
             search_result = self.search_engine.search(
