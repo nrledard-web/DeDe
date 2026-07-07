@@ -53,6 +53,7 @@ from typing import Any
 from search.search_engine import SearchEngine
 from search.search_validator import SearchValidator
 from search.search_query_builder import SearchQueryBuilder
+from search.search_summarizer import SearchSummarizer
 
 from llm.llm_engine import LLMEngine
 from core.cognitive_workspace import CognitiveWorkspace
@@ -166,6 +167,7 @@ class DoxaEnginePhase2:
         self.search_engine = SearchEngine()
         self.search_validator = SearchValidator()
         self.search_query_builder = SearchQueryBuilder()
+        self.search_summarizer = SearchSummarizer()
 
         # --------------------------------------------------
         # LLM preparation layers
@@ -487,6 +489,10 @@ class DoxaEnginePhase2:
                     search_query = fallback_query
                     search_result = fallback_result
                     search_validation = fallback_validation
+                    search_summary = self.search_summarizer.summarize(
+                        search_result=search_result,
+                        search_validation=search_validation,
+                    )
 
         else:
             search_query = text
@@ -511,6 +517,13 @@ class DoxaEnginePhase2:
                 "relevance": 0.0,
                 "is_relevant": False,
                 "summary": "Search validation skipped.",
+            }
+            search_summary = {
+                "summarizer": "search_summarizer",
+                "status": "disabled",
+                "sources": [],
+                "summary_text": "",
+                "summary": "Search summarizer skipped.",
             }
 
         print("=" * 80)
@@ -537,6 +550,10 @@ class DoxaEnginePhase2:
                 "query": text,
                 "summary": "Search query builder skipped.",
             },
+        )
+        workspace.add_interpretation(
+            "search_summary",
+            search_summary,
         )
 
         # --------------------------------------------------
