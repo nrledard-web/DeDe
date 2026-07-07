@@ -286,6 +286,21 @@ selected_search_label = st.selectbox(
 
 search_profile = search_profile_labels[selected_search_label]
 
+search_mode = st.selectbox(
+    "Web Search Mode",
+    [
+        "Auto",
+        "Always",
+        "Off",
+    ],
+    index=0,
+)
+
+st.caption(
+    "Alpha mode: choose whether DeDe should use web search. "
+    "Auto will later be handled by the Governor."
+)
+
 search_provider = []
 
 if search_profile == "custom":
