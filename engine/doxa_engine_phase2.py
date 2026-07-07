@@ -51,6 +51,7 @@ Report
 from typing import Any
 
 from search.search_engine import SearchEngine
+from search.search_validator import SearchValidator
 from llm.llm_engine import LLMEngine
 from core.cognitive_workspace import CognitiveWorkspace
 
@@ -161,6 +162,7 @@ class DoxaEnginePhase2:
         self.conversation_reasoner = ConversationReasoner()
         self.dialogue_profile = DialogueProfile()
         self.search_engine = SearchEngine()
+        self.search_validator = SearchValidator()
 
         # --------------------------------------------------
         # LLM preparation layers
@@ -455,6 +457,32 @@ class DoxaEnginePhase2:
                 query=search_query,
                 provider=search_provider,
             )
+            
+            search_validation = self.search_validator.validate(
+                query=search_query,
+                search_result=search_result,
+            )
+            
+            if not search_validation.get("is_relevant", False):
+                fallback_query = f"{search_query} wikipedia"
+            
+                fallback_result = self.search_engine.search(
+                    query=fallback_query,
+                    provider=search_provider,
+                )
+            
+                fallback_validation = self.search_validator.validate(
+                    query=fallback_query,
+                    search_result=fallback_result,
+                )
+            
+                if fallback_validation.get("relevance", 0.0) > search_validation.get(
+                    "relevance",
+                    0.0,
+                ):
+                    search_query = fallback_query
+                    search_result = fallback_result
+                    search_validation = fallback_validation
 
         else:
             search_query = text
@@ -472,16 +500,30 @@ class DoxaEnginePhase2:
                 ),
             }
 
+            search_validation = {
+                "validator": "search_validator",
+                "status": "disabled",
+                "query": text,
+                "relevance": 0.0,
+                "is_relevant": False,
+                "summary": "Search validation skipped.",
+            }
+
         print("=" * 80)
         print("SEARCH MODE :", search_mode)
         print("SEARCH PROVIDER :", search_provider)
         print("SEARCH QUERY :", search_query)
         print("SEARCH RESULT :", search_result)
         print("=" * 80)
+        print("SEARCH VALIDATION :", search_validation)
 
         workspace.add_interpretation(
             "search_result",
             search_result,
+        )
+        workspace.add_interpretation(
+            "search_validation",
+            search_validation,
         )
 
         # --------------------------------------------------
