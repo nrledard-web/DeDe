@@ -346,7 +346,12 @@ class DoxaEnginePhase2:
         elif search_mode == "off":
             should_search = False
 
-        elif search_mode == "auto":
+        elif search_mode == "on_request":
+            # Alpha manual strategy.
+            # Search is allowed, but still requires user intent.
+            should_search = True
+        
+        elif search_mode == "governor":
             # Governor coming in Beta.
             should_search = False
 
