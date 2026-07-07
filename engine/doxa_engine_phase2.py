@@ -239,14 +239,10 @@ class DoxaEnginePhase2:
 
         concepts = concept_data.get("main_concepts", [])
 
-        weak_concepts = {
-            "dis", "moi", "plus", "sur", "donne", "lien", "liens", "stp",
-            "tell", "me", "more", "about", "give", "link", "links",
-        }
-
         strong_concepts = [
-            item for item in concepts
-            if item and item.lower() not in weak_concepts
+            item
+            for item in concepts
+            if item
         ]
 
         if strong_concepts:
