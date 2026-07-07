@@ -837,6 +837,7 @@ class DoxaEnginePhase2:
             "user_memory": user_memory,
             "dede_identity": identity_state,
             "search_result": search_result,
+            "search_summary": search_summary,
             "committee_reasoning": committee_reasoning,
             "summary": self._build_summary(
                 workspace,
