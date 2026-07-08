@@ -1,12 +1,11 @@
 """
 DeDe - URL Reader
 
-Reads a supplied URL and extracts basic page text.
-This component does not reason.
-It only retrieves and normalizes external page content.
+Reads supplied URLs and extracts page text.
 """
 
 from typing import Any
+import re
 import requests
 from bs4 import BeautifulSoup
 
@@ -15,21 +14,45 @@ class URLReader:
 
     name = "url_reader"
 
+    def extract_urls(
+        self,
+        text: str,
+    ) -> list[str]:
+
+        urls = re.findall(
+            r"https?://[^\s]+",
+            text,
+        )
+
+        return [
+            url.rstrip(".,);]")
+            for url in urls
+        ]
+
+    def read_first_url(
+        self,
+        text: str,
+    ) -> dict[str, Any]:
+
+        urls = self.extract_urls(text)
+
+        if not urls:
+            return {
+                "reader": self.name,
+                "status": "no_url",
+                "url": "",
+                "title": "",
+                "text": "",
+                "summary": "No URL detected.",
+            }
+
+        return self.read(urls[0])
+
     def read(
         self,
         url: str,
-        timeout: int = 12,
+        timeout: int = 15,
     ) -> dict[str, Any]:
-
-        if not url:
-            return {
-                "reader": self.name,
-                "status": "empty_url",
-                "url": url,
-                "title": "",
-                "text": "",
-                "summary": "No URL supplied.",
-            }
 
         try:
             response = requests.get(
@@ -50,9 +73,7 @@ class URLReader:
                     "title": "",
                     "text": "",
                     "http_status": response.status_code,
-                    "summary": (
-                        f"URL returned HTTP status {response.status_code}."
-                    ),
+                    "summary": f"URL returned HTTP {response.status_code}.",
                 }
 
             soup = BeautifulSoup(
@@ -67,6 +88,7 @@ class URLReader:
                 "footer",
                 "header",
                 "aside",
+                "noscript",
             ]):
                 tag.decompose()
 
@@ -75,28 +97,27 @@ class URLReader:
             if soup.title and soup.title.string:
                 title = soup.title.string.strip()
 
-            paragraphs = [
-                p.get_text(" ", strip=True)
-                for p in soup.find_all(["p", "h1", "h2", "h3", "li"])
-            ]
+            parts = []
 
-            text = "\n".join(
-                item
-                for item in paragraphs
-                if item
-            )
+            for tag in soup.find_all(["h1", "h2", "h3", "p", "li"]):
+                content = tag.get_text(" ", strip=True)
 
-            text = text[:12000]
+                if content:
+                    parts.append(content)
+
+            page_text = "\n".join(parts)
+
+            page_text = page_text[:18000]
 
             return {
                 "reader": self.name,
                 "status": "success",
                 "url": url,
                 "title": title,
-                "text": text,
-                "char_count": len(text),
+                "text": page_text,
+                "char_count": len(page_text),
                 "summary": (
-                    f"URL read successfully. Extracted {len(text)} characters."
+                    f"URL read successfully. Extracted {len(page_text)} characters."
                 ),
             }
 
