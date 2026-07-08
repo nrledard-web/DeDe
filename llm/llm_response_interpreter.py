@@ -152,22 +152,13 @@ class LLMResponseInterpreter:
         text: str,
     ) -> str:
 
-        cleaned = text.strip()
-
-        if cleaned.startswith("```"):
-            cleaned = re.sub(
-                r"^```(?:json)?",
-                "",
-                cleaned,
-                flags=re.IGNORECASE,
-            )
-            cleaned = re.sub(
-                r"```$",
-                "",
-                cleaned,
-            )
-
-        return cleaned.strip()
+        return (
+            text
+            .replace("```json", "")
+            .replace("```JSON", "")
+            .replace("```", "")
+            .strip()
+        )
 
     def _extract_json_object(
         self,
