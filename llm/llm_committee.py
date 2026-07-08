@@ -205,46 +205,13 @@ class LLMCommittee:
             if item.get("response", "").strip()
         ]
 
-        providers = [
-            item.get("provider", "unknown")
-            for item in extracted
-        ]
+        if not responses:
+            return ""
 
-        base_response = max(
+        return max(
             responses,
             key=len,
         )
-
-        agreements = analysis.get("agreements", [])
-        confidence = analysis.get("confidence", 0.0)
-
-        parts = []
-
-        parts.append("Synthèse DeDe :")
-        parts.append(base_response)
-
-        if agreements:
-            parts.append(
-                "Convergence cognitive : les modèles consultés présentent "
-                "une convergence suffisante pour produire une réponse unifiée."
-            )
-        else:
-            parts.append(
-                "Convergence cognitive : les modèles consultés produisent "
-                "des réponses compatibles, sans contradiction majeure détectée."
-            )
-
-        parts.append(
-            "Note de raisonnement : plusieurs modèles ont été consultés "
-            f"({', '.join(providers)}). DeDe a comparé leurs réponses "
-            "avant de produire cette synthèse."
-        )
-
-        parts.append(
-            f"Confiance comparative estimée : {round(confidence * 100)}%."
-        )
-
-        return "\n\n".join(parts)
 
     def _shorten(
         self,
