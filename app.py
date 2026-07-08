@@ -146,7 +146,10 @@ else:
     st.warning("Banner01.png not found in assets/")
 
 st.title("DeDe — Cognitive Daimon")
-st.caption("An AI Reasoning Controller")
+st.markdown(
+    "<p style='text-align:center; color:#6b7280;'><strong>An AI Reasoning Controller</strong></p>",
+    unsafe_allow_html=True,
+)
 
 st.caption("Phase 3 — Cognitive Mechanics")
 st.success("DeDe Phase 3 prototype is running.")
