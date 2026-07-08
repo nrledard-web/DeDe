@@ -694,6 +694,7 @@ class DoxaEnginePhase2:
             dede_state=dede_state,
             search_result=search_result,
             search_summary=search_summary,
+            url_read_result=url_read_result,
         )
 
         workspace.add_interpretation(
@@ -1024,6 +1025,10 @@ class DoxaEnginePhase2:
             ),
             "committee_reasoning": workspace.interpretations.get(
                 "committee_reasoning",
+                {},
+            ),
+            "url_read_result": workspace.interpretations.get(
+                "url_read_result",
                 {},
             ),
             "summary": self._build_summary(
