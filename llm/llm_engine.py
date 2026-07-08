@@ -5,6 +5,7 @@ Reasoning model orchestrator.
 """
 
 import json
+import re
 from typing import Any
 
 from llm.llm_profile import LLMProfile
@@ -52,6 +53,20 @@ class LLMEngine:
                 )
         except Exception:
             pass
+
+        match = re.search(
+            r'"user_facing_response"\s*:\s*"(.*?)"\s*,\s*"summary"',
+            cleaned,
+            flags=re.DOTALL,
+        )
+
+        if match:
+            return (
+                match.group(1)
+                .replace('\\"', '"')
+                .replace("\\n", "\n")
+                .strip()
+            )
 
         return cleaned
 
