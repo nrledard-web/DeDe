@@ -676,6 +676,7 @@ class DoxaEnginePhase2:
             dede_identity=identity_state,
             dede_state=dede_state,
             search_result=search_result,
+            search_summary=search_summary,
         )
 
         workspace.add_interpretation(
