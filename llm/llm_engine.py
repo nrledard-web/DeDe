@@ -4,6 +4,7 @@ DeDe - LLM Engine
 Reasoning model orchestrator.
 """
 
+import json
 from typing import Any
 
 from llm.llm_profile import LLMProfile
@@ -11,6 +12,7 @@ from llm.providers.openai_provider import OpenAIProvider
 from llm.providers.gemini_provider import GeminiProvider
 from llm.llm_committee import LLMCommittee
 from llm.providers.mistral_provider import MistralProvider
+
 
 class LLMEngine:
     name = "llm_engine"
@@ -25,6 +27,33 @@ class LLMEngine:
         }
 
         self.committee = LLMCommittee()
+
+    def _extract_user_facing_response(
+        self,
+        response: str,
+    ) -> str:
+
+        cleaned = (
+            response
+            .replace("```json", "")
+            .replace("```JSON", "")
+            .replace("```", "")
+            .strip()
+        )
+
+        try:
+            parsed = json.loads(cleaned)
+
+            if isinstance(parsed, dict):
+                return (
+                    parsed.get("user_facing_response")
+                    or parsed.get("response")
+                    or cleaned
+                )
+        except Exception:
+            pass
+
+        return cleaned
 
     def ask(
         self,
@@ -43,6 +72,7 @@ class LLMEngine:
                 "providers": [],
                 "provider_results": [],
                 "committee": {},
+                "raw_response": "",
                 "response": "",
                 "summary": "LLM reasoning disabled.",
             }
@@ -94,6 +124,12 @@ class LLMEngine:
             provider_results
         )
 
+        raw_response = committee_result.get("response", "")
+
+        user_facing_response = self._extract_user_facing_response(
+            raw_response,
+        )
+
         return {
             "engine": self.name,
             "status": committee_result.get("status", "empty"),
@@ -101,6 +137,7 @@ class LLMEngine:
             "providers": selected_providers,
             "provider_results": provider_results,
             "committee": committee_result,
-            "response": committee_result.get("response", ""),
+            "raw_response": raw_response,
+            "response": user_facing_response,
             "summary": committee_result.get("summary", ""),
         }
