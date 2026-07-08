@@ -37,6 +37,7 @@ class LLMConnector:
         dede_identity: dict[str, Any] | None = None,
         dede_state: dict[str, Any] | None = None,
         search_result: dict[str, Any] | None = None,
+        search_summary: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         cognitive_state = cognitive_state or {}
@@ -47,7 +48,7 @@ class LLMConnector:
         autobiographical_reasoning = autobiographical_reasoning or {}
         dede_identity = dede_identity or {}
         dede_state = dede_state or {}
-        search_result = search_result or {}
+        search_summary = search_summary or {}
 
         system_prompt = self._build_system_prompt()
 
@@ -62,6 +63,7 @@ class LLMConnector:
             dede_identity=dede_identity,
             dede_state=dede_state,
             search_result=search_result,
+            search_summary=search_summary,
         )
        
         search_has_results = bool(
@@ -156,6 +158,7 @@ class LLMConnector:
         dede_identity: dict[str, Any],
         dede_state: dict[str, Any],
         search_result: dict[str, Any],
+        search_summary: dict[str, Any],
     ) -> str:
 
         lines = []
@@ -163,37 +166,44 @@ class LLMConnector:
         # --------------------------------------------------
         # Search Provider
         # --------------------------------------------------
-        
-        lines.append("WEB SEARCH CONTEXT")
-        lines.append("")
-        
-        lines.append("Search provider:")
-        lines.append(
-            f'- provider: {search_result.get("provider", "none")}'
-        )
-        lines.append(
-            f'- status: {search_result.get("status", "disabled")}'
-        )
-        lines.append(
-            f'- summary: {search_result.get("summary", "")}'
-        )
-        lines.append("")
-        
-        results = search_result.get("results", [])
-        
-        if results:
-            lines.append("Search results found. Use these results when relevant.")
+
+        search_summary = search_summary or {}
+        search_result = search_result or {}
+
+        if search_summary.get("summary_text"):
+            lines.append("WEB SOURCE SUMMARY")
             lines.append("")
-        
-            for index, item in enumerate(results, start=1):
-                lines.append(f"{index}. {item.get('title', '')}")
-                lines.append(f"   URL: {item.get('url', '')}")
-                lines.append(f"   Snippet: {item.get('snippet', '')}")
-                lines.append("")
+            lines.append(search_summary["summary_text"])
+            lines.append("")
+
         else:
-            lines.append("No usable search results were provided.")
-            lines.append("")
-        
+            results = search_result.get("results", [])
+
+            if results:
+                lines.append("WEB SEARCH CONTEXT")
+                lines.append("")
+
+                lines.append("Search provider:")
+                lines.append(
+                    f'- provider: {search_result.get("provider", "none")}'
+                )
+                lines.append(
+                    f'- status: {search_result.get("status", "disabled")}'
+                )
+                lines.append(
+                    f'- summary: {search_result.get("summary", "")}'
+                )
+                lines.append("")
+
+                lines.append("Search results found. Use these results when relevant.")
+                lines.append("")
+
+                for index, item in enumerate(results, start=1):
+                    lines.append(f"{index}. {item.get('title', '')}")
+                    lines.append(f"   URL: {item.get('url', '')}")
+                    lines.append(f"   Snippet: {item.get('snippet', '')}")
+                    lines.append("")
+
         lines.append("DEDE IDENTITY AND MEMORY CONTEXT")
         lines.append("")
         
