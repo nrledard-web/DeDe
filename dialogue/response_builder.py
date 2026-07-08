@@ -26,10 +26,10 @@ class ResponseBuilder:
         report: dict[str, Any],
     ) -> dict[str, Any]:
 
-    llm_interpretation = report.get(
-        "llm_interpretation",
-        {},
-    )
+        llm_interpretation = report.get(
+            "llm_interpretation",
+            {},
+        )
 
         # --------------------------------------------------
         # Context extraction
