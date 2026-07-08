@@ -78,7 +78,7 @@ class ResponseBuilder:
             "llm_interpretation",
             {},
         )
-        llm_direct_response = (
+        llm_direct_response = self._clean_llm_text(
             llm_interpretation.get(
                 "user_facing_response",
                 "",
