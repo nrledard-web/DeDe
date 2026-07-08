@@ -751,8 +751,8 @@ class DoxaEnginePhase2:
         # Cognitive Feedback
         # --------------------------------------------------
         cognitive_feedback = self.cognitive_feedback.analyze(
-            llm_response=llm_bridge_response.get("response"),
-            parsed_json=llm_bridge_response.get("parsed_json"),
+            llm_response=llm_interpretation.get("raw_response"),
+            parsed_json=llm_interpretation.get("parsed_json"),
         )
 
         workspace.add_interpretation(
@@ -840,6 +840,7 @@ class DoxaEnginePhase2:
             "onboarding": onboarding,
             "cognitive_feedback": cognitive_feedback,
             "llm_bridge_response": llm_bridge_response,
+            "llm_interpretation": llm_interpretation,
             "committee": committee_result,
             "formulas": formulas,
             "dialogue": dialogue,
