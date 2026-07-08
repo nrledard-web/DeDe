@@ -6,6 +6,11 @@ and short-term conversation context.
 
 This component does not speak directly to the user.
 It produces conversational intentions for the Response Builder.
+
+Principle:
+- Multilingual continuation detection.
+- No hard-coded subject domains.
+- Uses previous focus_concept when the current message is elliptical.
 """
 
 from typing import Any
@@ -26,19 +31,35 @@ class ConversationReasoner:
 
         turn_count = conversation_context.get("turn_count", 0)
         recent_topics = conversation_context.get("recent_topics", [])
-        last_user_input = conversation_context.get("last_user_input")
+        last_focus_concept = conversation_context.get("last_focus_concept")
+        recent_focus_concepts = conversation_context.get(
+            "recent_focus_concepts",
+            [],
+        )
+
         text_lower = text.lower().strip()
+
+        current_topic = self._detect_current_topic(
+            text_lower=text_lower,
+            cognitive_feedback=cognitive_feedback,
+        )
+
+        reference_topic = self._detect_reference_topic(
+            last_focus_concept=last_focus_concept,
+            recent_focus_concepts=recent_focus_concepts,
+            recent_topics=recent_topics,
+        )
 
         is_follow_up = self._is_follow_up(
             text_lower=text_lower,
             turn_count=turn_count,
-            recent_topics=recent_topics,
+            current_topic=current_topic,
+            reference_topic=reference_topic,
         )
 
-        current_topic = self._detect_current_topic(text_lower)
-        reference_topic = self._detect_reference_topic(
-            recent_topics=recent_topics,
-            last_user_input=last_user_input,
+        resolved_topic = (
+            current_topic
+            or reference_topic
         )
 
         questions = cognitive_feedback.get("new_questions", [])
@@ -97,12 +118,14 @@ class ConversationReasoner:
             "recent_topics": recent_topics,
             "reference_topic": reference_topic,
             "current_topic": current_topic,
+            "resolved_topic": resolved_topic,
             "next_prompt": next_prompt,
             "summary": self._build_summary(
                 move=move,
                 goal=goal,
                 is_follow_up=is_follow_up,
                 turn_count=turn_count,
+                resolved_topic=resolved_topic,
             ),
         }
 
@@ -110,192 +133,153 @@ class ConversationReasoner:
         self,
         text_lower: str,
         turn_count: int,
-        recent_topics: list[str],
+        current_topic: str | None,
+        reference_topic: str | None,
     ) -> bool:
 
         if turn_count <= 0:
             return False
 
-        follow_up_markers = [
-            "and ",
-            "and in",
-            "what about",
-            "continue",
-            "go on",
-            "develop",
-            "explain more",
-            "compare",
-            "same",
-            "this",
-            "that",
-            "it",
-            "in politics",
-            "in religion",
-            "in science",
-            "in ai",
-            "in education",
-        ]
+        word_count = len(text_lower.split())
 
-        if any(marker in text_lower for marker in follow_up_markers):
+        if current_topic and reference_topic:
             return True
 
-        for topic in recent_topics:
-            if topic and topic.lower() in text_lower:
-                return True
+        if word_count <= 6 and reference_topic:
+            return True
 
-        if len(text_lower.split()) <= 5:
+        if self._has_continuation_marker(text_lower) and reference_topic:
             return True
 
         return False
 
+    def _has_continuation_marker(
+        self,
+        text_lower: str,
+    ) -> bool:
+
+        markers = [
+            # French
+            "maintenant",
+            "et sur",
+            "et pour",
+            "et contre",
+            "en faveur",
+            "contre",
+            "synthèse",
+            "synthese",
+            "équilibrée",
+            "equilibree",
+            "pareil",
+            "même chose",
+            "meme chose",
+
+            # English
+            "now",
+            "what about",
+            "and about",
+            "in favor",
+            "against",
+            "balanced",
+            "same thing",
+
+            # Spanish
+            "ahora",
+            "y sobre",
+            "a favor",
+            "en contra",
+            "equilibrada",
+            "lo mismo",
+
+            # Filipino / Tagalog
+            "ngayon",
+            "pabor",
+            "laban",
+            "balanse",
+            "pareho",
+        ]
+
+        return any(
+            marker in text_lower
+            for marker in markers
+        )
+
     def _detect_current_topic(
         self,
         text_lower: str,
+        cognitive_feedback: dict[str, Any],
     ) -> str | None:
 
-        domain_markers = {
-            "politics": ["politic", "politics", "political"],
-            "religion": ["religion", "religious", "faith"],
-            "science": ["science", "scientific"],
-            "ai": ["ai", "artificial intelligence", "llm"],
-            "education": ["education", "school", "learning"],
-            "media": ["media", "press", "journalism"],
-        }
+        concepts = cognitive_feedback.get("new_concepts", [])
 
-        for topic, markers in domain_markers.items():
-            if any(marker in text_lower for marker in markers):
-                return topic
+        for concept in concepts:
+            clean = self._clean_concept(concept)
+
+            if not self._is_internal_or_empty(clean):
+                return clean
 
         return None
 
     def _detect_reference_topic(
         self,
+        last_focus_concept: str | None,
+        recent_focus_concepts: list[str],
         recent_topics: list[str],
-        last_user_input: str | None,
     ) -> str | None:
 
-        if last_user_input:
-            detected = self._detect_current_topic(
-                last_user_input.lower()
-            )
+        if last_focus_concept:
+            return last_focus_concept
 
-            if detected:
-                return detected
+        if recent_focus_concepts:
+            return recent_focus_concepts[-1]
 
-        forbidden_topics = [
-            # Core DeDe concepts
+        if recent_topics:
+            return recent_topics[-1]
+
+        return None
+
+    def _clean_concept(
+        self,
+        value: Any,
+    ) -> str:
+
+        if value is None:
+            return ""
+
+        return (
+            str(value)
+            .lower()
+            .strip()
+            .replace("_", " ")
+        )
+
+    def _is_internal_or_empty(
+        self,
+        concept: str,
+    ) -> bool:
+
+        if not concept:
+            return True
+
+        internal_terms = {
             "mecroyance",
+            "mécroyance",
             "certainty",
             "understanding",
             "revisability",
             "reduction",
             "closure",
-            "cognitive_filter",
             "grounding",
             "integration",
+            "cognitive filter",
+            "cognitive_filter",
+            "nouscope",
+            "doxa",
+            "gnosis",
+            "nous",
+        }
 
-            # English grammar / noise
-            "a",
-            "an",
-            "the",
-            "and",
-            "or",
-            "but",
-            "if",
-            "then",
-            "than",
-            "with",
-            "from",
-            "to",
-            "in",
-            "on",
-            "of",
-            "for",
-            "this",
-            "that",
-            "it",
-            "is",
-            "are",
-            "be",
-            "being",
-            "can",
-            "could",
-            "would",
-            "should",
-
-            # French grammar / noise
-            "le",
-            "la",
-            "les",
-            "un",
-            "une",
-            "des",
-            "et",
-            "ou",
-            "mais",
-            "dans",
-            "avec",
-            "pour",
-            "sur",
-            "ce",
-            "cette",
-            "ça",
-            "est",
-
-            # Spanish grammar / noise
-            "el",
-            "los",
-            "las",
-            "y",
-            "en",
-            "con",
-            "para",
-            "por",
-            "que",
-            "es",
-
-            # Generic extracted words
-            "cognitive",
-            "condition",
-            "belief",
-            "state",
-            "stabilizes",
-            "faster",
-        ]
-
-        for topic in reversed(recent_topics):
-            if not topic:
-                continue
-
-            clean_topic = topic.lower().strip()
-
-            if clean_topic in forbidden_topics:
-                continue
-
-            if clean_topic.startswith("claim:"):
-                continue
-
-            if clean_topic.startswith("metric:"):
-                continue
-
-            if clean_topic.startswith("agent:"):
-                continue
-
-            if clean_topic.startswith("strategy:"):
-                continue
-
-            if clean_topic.startswith("assumption:"):
-                continue
-
-            if clean_topic.startswith("missing_dimension:"):
-                continue
-
-            if clean_topic.startswith("alternative_hypothesis:"):
-                continue
-
-            return topic
-
-        return None
+        return concept in internal_terms
 
     def _build_summary(
         self,
@@ -303,15 +287,24 @@ class ConversationReasoner:
         goal: str,
         is_follow_up: bool,
         turn_count: int,
+        resolved_topic: str | None,
     ) -> str:
+
+        topic_text = (
+            f" Resolved topic: {resolved_topic}."
+            if resolved_topic
+            else ""
+        )
 
         if is_follow_up:
             return (
                 f"Conversation reasoner selected '{move}' "
                 f"with goal '{goal}' after {turn_count} previous turn(s)."
+                f"{topic_text}"
             )
 
         return (
             f"Conversation reasoner selected '{move}' "
             f"with goal '{goal}'."
+            f"{topic_text}"
         )
