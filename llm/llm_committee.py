@@ -92,19 +92,27 @@ class LLMCommittee:
         raw_response: str,
     ) -> str:
 
+        cleaned = (
+            raw_response
+            .replace("```json", "")
+            .replace("```JSON", "")
+            .replace("```", "")
+            .strip()
+        )
+
         try:
-            parsed = json.loads(raw_response)
+            parsed = json.loads(cleaned)
 
             if isinstance(parsed, dict):
                 return (
                     parsed.get("user_facing_response")
                     or parsed.get("response")
-                    or raw_response
+                    or cleaned
                 )
         except Exception:
             pass
 
-        return raw_response
+        return cleaned
 
     def _analyze_responses(
         self,
