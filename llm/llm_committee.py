@@ -6,7 +6,7 @@ Analyzes and synthesizes outputs from multiple reasoning models.
 
 from typing import Any
 import json
-
+import re
 
 class LLMCommittee:
 
@@ -111,7 +111,19 @@ class LLMCommittee:
                 )
         except Exception:
             pass
+        match = re.search(
+            r'"user_facing_response"\s*:\s*"(.*?)"\s*,\s*"summary"',
+            cleaned,
+            flags=re.DOTALL,
+        )
 
+        if match:
+            return (
+                match.group(1)
+                .replace('\\"', '"')
+                .replace("\\n", "\n")
+                .strip()
+            )
         return cleaned
 
     def _analyze_responses(
