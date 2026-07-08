@@ -38,6 +38,7 @@ class LLMConnector:
         dede_state: dict[str, Any] | None = None,
         search_result: dict[str, Any] | None = None,
         search_summary: dict[str, Any] | None = None,
+        url_read_result: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         cognitive_state = cognitive_state or {}
@@ -49,6 +50,7 @@ class LLMConnector:
         dede_identity = dede_identity or {}
         dede_state = dede_state or {}
         search_summary = search_summary or {}
+        url_read_result = url_read_result or {}
 
         system_prompt = self._build_system_prompt()
 
@@ -64,6 +66,7 @@ class LLMConnector:
             dede_state=dede_state,
             search_result=search_result,
             search_summary=search_summary,
+            url_read_result=url_read_result,
         )
        
         search_has_results = bool(
@@ -159,9 +162,33 @@ class LLMConnector:
         dede_state: dict[str, Any],
         search_result: dict[str, Any],
         search_summary: dict[str, Any],
+        url_read_result: dict[str, Any],
     ) -> str:
 
         lines = []
+
+        # --------------------------------------------------
+        # URL Reader
+        # --------------------------------------------------
+    
+        url_read_result = url_read_result or {}
+    
+        if url_read_result.get("status") == "success":
+            lines.append("URL READING CONTEXT")
+            lines.append("")
+            lines.append(f'URL: {url_read_result.get("url", "")}')
+            lines.append(f'Title: {url_read_result.get("title", "")}')
+            lines.append("")
+            lines.append("Extracted page text:")
+            lines.append(url_read_result.get("text", ""))
+            lines.append("")
+            lines.append(
+                "IMPORTANT: When the user asks to read, summarize, analyze, "
+                "or explain the supplied URL, use this extracted page text "
+                "as the primary source. Do not claim that you cannot access "
+                "the link when URL READING CONTEXT is present."
+            )
+            lines.append("")
 
         # --------------------------------------------------
         # Search Provider
