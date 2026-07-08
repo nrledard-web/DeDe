@@ -279,6 +279,13 @@ class DoxaEnginePhase2:
 
         workspace = CognitiveWorkspace(text=text)
 
+        url_read_result = self.url_reader.read_first_url(text)
+
+        workspace.add_interpretation(
+            "url_read_result",
+            url_read_result,
+        )
+
         conversation_context = self.conversation_manager.build_context(
             conversation_history,
         )
