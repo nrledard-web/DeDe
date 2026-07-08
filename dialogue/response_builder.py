@@ -26,6 +26,11 @@ class ResponseBuilder:
         report: dict[str, Any],
     ) -> dict[str, Any]:
 
+    llm_interpretation = report.get(
+        "llm_interpretation",
+        {},
+    )
+
         # --------------------------------------------------
         # Context extraction
         # --------------------------------------------------
@@ -69,71 +74,71 @@ class ResponseBuilder:
             answer_parts.append(
                 onboarding["message"]
             )
-
-        llm_direct_response = ""
-
-        if committee_reasoning.get("status") == "ready":
-            consensus = committee_reasoning.get("consensus", [])
-            confidence = committee_reasoning.get("confidence", 0.0)
-            language = dialogue_profile.get("language", "fr")
-
-            if consensus:
-                provider_count = committee_reasoning.get("source_count", 1)
-
-                texts = self._committee_texts(
-                    language=language,
-                    confidence=confidence,
-                    provider_count=provider_count,
-                )
-
-                clean_consensus = [
-                    self._clean_llm_text(item)
-                    for item in consensus
-                    if item
-                ]
-
-                main_response = "\n\n".join(
-                    clean_consensus[1:2] or clean_consensus
-                )
-
-                if main_response:
-                    llm_parts = [
-                        texts["title"],
-                        main_response,
-                        texts["analysis"],
-                    ]
-
-                    if texts["confidence"]:
-                        llm_parts.append(texts["confidence"])
-
-                    llm_direct_response = "\n\n".join(
-                        part for part in llm_parts if part
-                    )
-
-        else:
+        llm_interpretation = report.get(
+            "llm_interpretation",
+            {},
+        )
+        llm_direct_response = (
+            llm_interpretation.get(
+                "user_facing_response",
+                "",
+            )
+        )
+        
+        if not llm_direct_response:
+        
             llm_direct_response = (
                 llm_bridge_response.get("response")
                 or (
-                    llm_bridge_response.get("llm_engine", {})
-                    .get("response", "")
+                    llm_bridge_response.get(
+                        "llm_engine",
+                        {},
+                    ).get(
+                        "response",
+                        "",
+                    )
                 )
             )
-
-            if llm_direct_response:
-                try:
-                    parsed = json.loads(llm_direct_response)
-
-                    if isinstance(parsed, dict):
-                        llm_direct_response = (
-                            parsed.get("user_facing_response")
-                            or parsed.get("response")
-                            or llm_direct_response
-                        )
-                except Exception:
-                    pass
-
+        
+            llm_direct_response = self._clean_llm_text(
+                llm_direct_response
+            )
+        
         if llm_direct_response:
-            answer_parts.append(llm_direct_response)
+        
+            language = dialogue_profile.get(
+                "language",
+                "fr",
+            )
+        
+            provider_count = committee_reasoning.get(
+                "source_count",
+                1,
+            )
+        
+            confidence = committee_reasoning.get(
+                "confidence",
+                0.0,
+            )
+        
+            texts = self._committee_texts(
+                language=language,
+                confidence=confidence,
+                provider_count=provider_count,
+            )
+        
+            answer_parts.append(
+                "\n\n".join(
+                    part
+                    for part in [
+                        texts["title"],
+                        llm_direct_response,
+                        texts["analysis"],
+                        texts["confidence"],
+                    ]
+                    if part
+                )
+            )
 
         elif dialogue.get("response"):
             answer_parts.append(
