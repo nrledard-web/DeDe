@@ -490,6 +490,13 @@ class DoxaEnginePhase2:
                     search_result = fallback_result
                     search_validation = fallback_validation
 
+            if not search_validation.get("is_relevant", False):
+                search_result["results"] = []
+                search_result["status"] = "irrelevant"
+                search_result["summary"] = (
+                    "Search completed, but results were not relevant enough."
+                )
+
             search_summary = self.search_summarizer.summarize(
                 search_result=search_result,
                 search_validation=search_validation,
