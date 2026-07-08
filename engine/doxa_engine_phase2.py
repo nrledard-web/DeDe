@@ -489,10 +489,11 @@ class DoxaEnginePhase2:
                     search_query = fallback_query
                     search_result = fallback_result
                     search_validation = fallback_validation
-                    search_summary = self.search_summarizer.summarize(
-                        search_result=search_result,
-                        search_validation=search_validation,
-                    )
+
+            search_summary = self.search_summarizer.summarize(
+                search_result=search_result,
+                search_validation=search_validation,
+            )
 
         else:
             search_query = text
