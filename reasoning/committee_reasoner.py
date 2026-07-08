@@ -70,19 +70,27 @@ class CommitteeReasoner:
         text: str,
     ) -> str:
 
+        cleaned = (
+            text
+            .replace("```json", "")
+            .replace("```JSON", "")
+            .replace("```", "")
+            .strip()
+        )
+
         try:
-            parsed = json.loads(text)
+            parsed = json.loads(cleaned)
 
             if isinstance(parsed, dict):
                 return (
                     parsed.get("user_facing_response")
                     or parsed.get("response")
-                    or text
+                    or cleaned
                 )
         except Exception:
             pass
 
-        return text
+        return cleaned
 
     def _build_consensus(
         self,
