@@ -5,6 +5,7 @@ import os
 
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
 from pathlib import Path
+from core.real_world_anchor import RealWorldAnchor
 
 def pct(value):
     if value is None:
