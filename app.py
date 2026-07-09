@@ -425,6 +425,13 @@ if text:
         llm_providers=llm_providers,
         conversation_history=st.session_state.conversation_history,
     )
+    # --------------------------------------------------
+    # Real World Anchor Analysis
+    # --------------------------------------------------
+
+    anchor_engine = RealWorldAnchor()
+
+    anchor_result = anchor_engine.analyze(text)
 
     st.session_state.conversation_history = report.get(
         "conversation_history",
@@ -467,6 +474,38 @@ if text:
     # --------------------------------------------------
 
     with st.expander("DeDe Cognitive Dashboard"):
+
+        # --------------------------------------------------
+        # Real World Anchor
+        # --------------------------------------------------
+
+        st.subheader("Ancrage au réel")
+
+        st.write(anchor_result["label"])
+
+        st.progress(anchor_result["score"])
+
+        st.info(anchor_result["interpretation"])
+
+        st.caption("Confiance épistémique")
+
+        st.progress(
+            anchor_result["epistemic_confidence"]
+        )
+
+        st.caption("Risque d'hallucination / suraffirmation")
+
+        st.progress(
+            anchor_result["hallucination_risk"]
+        )
+
+        st.write(
+            "Action Governor :",
+            anchor_result["governor_action"],
+        )
+
+        with st.expander("Détails de l'ancrage"):
+            st.json(anchor_result["components"])
 
         # --------------------------------------------------
         # Search Engine
