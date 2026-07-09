@@ -153,190 +153,207 @@ st.markdown(
 )
 
 st.caption("Phase 3 — Cognitive Mechanics")
-st.success("DeDe Phase 3 prototype is running.")
 
-st.caption(
-    "Current status: CognitiveWorkspace, estimator layer, "
-    "agent interpretation and shared cognitive mechanics."
-)
+with st.expander("Prototype status"):
+    st.success("DeDe Phase 3 prototype is running.")
 
-# --------------------------------------------------
-# Owner Identity
-# --------------------------------------------------
-
-owner_id = st.text_input(
-    "Owner ID",
-    value=st.session_state.get("owner_id", ""),
-    placeholder="Ex: nicolas, delia, test_user",
-)
-
-if owner_id:
-    safe_owner_id = "".join(
-        char for char in owner_id.lower().strip()
-        if char.isalnum() or char in ["_", "-"]
+    st.caption(
+        "Current status: CognitiveWorkspace, estimator layer, "
+        "agent interpretation and shared cognitive mechanics."
     )
 
-    if st.session_state.get("owner_id") != safe_owner_id:
-        st.session_state.owner_id = safe_owner_id
+# --------------------------------------------------
+# DeDe Sidebar Configuration
+# --------------------------------------------------
+
+with st.sidebar:
+
+    st.markdown("## ⚙️ DeDe Configuration")
+
+    st.caption(
+        "Identity, reasoning models and knowledge sources."
+    )
+
+    # --------------------------------------------------
+    # Owner Identity
+    # --------------------------------------------------
+
+    st.markdown("### Identity")
+
+    owner_id = st.text_input(
+        "Owner ID",
+        value=st.session_state.get("owner_id", ""),
+        placeholder="Ex: nicolas, delia, test_user",
+    )
+
+    if owner_id:
+        safe_owner_id = "".join(
+            char for char in owner_id.lower().strip()
+            if char.isalnum() or char in ["_", "-"]
+        )
+
+        if st.session_state.get("owner_id") != safe_owner_id:
+            st.session_state.owner_id = safe_owner_id
+            st.session_state.conversation_history = []
+            st.session_state.engine = DoxaEnginePhase2(
+                user_id=safe_owner_id,
+            )
+            st.success(
+                f"Memory owner set to: {safe_owner_id}"
+            )
+    else:
+        st.warning(
+            "Enter an Owner ID to use an isolated persistent memory."
+        )
+        st.stop()
+
+    # --------------------------------------------------
+    # Conversation Session
+    # --------------------------------------------------
+
+    if "conversation_history" not in st.session_state:
         st.session_state.conversation_history = []
+
+    if "engine" not in st.session_state and st.session_state.get("owner_id"):
         st.session_state.engine = DoxaEnginePhase2(
-            user_id=safe_owner_id,
+            user_id=st.session_state.owner_id,
         )
-        st.success(
-            f"Memory owner set to: {safe_owner_id}"
-        )
-else:
-    st.warning(
-        "Enter an Owner ID to use an isolated persistent memory."
+
+    # --------------------------------------------------
+    # Reasoning Models
+    # --------------------------------------------------
+
+    st.markdown("### Reasoning Models")
+
+    enable_llm = True
+
+    st.caption(
+        "Choose which reasoning models DeDe may use."
     )
-    st.stop()
-    
-# --------------------------------------------------
-# Conversation Session
-# --------------------------------------------------
 
-if "conversation_history" not in st.session_state:
-    st.session_state.conversation_history = []
+    llm_model_options = {
+        "OpenAI": "openai",
+        "Gemini": "gemini",
+        "Mistral": "mistral",
+        "DeepSeek — planned": "deepseek",
+        "Qwen — planned": "qwen",
+        "GLM — planned": "glm",
+        "Claude — planned": "claude",
+        "Nemotron — planned": "nemotron",
+    }
 
-if "engine" not in st.session_state and st.session_state.get("owner_id"):
-    st.session_state.engine = DoxaEnginePhase2(
-        user_id=st.session_state.owner_id,
-    )
-    
-# --------------------------------------------------
-# Reasoning Models
-# --------------------------------------------------
-
-enable_llm = True
-
-st.caption(
-    "Alpha mode: choose which reasoning models DeDe may use. "
-    "Active models work now; planned models show the modular architecture."
-)
-
-llm_model_options = {
-    "OpenAI": "openai",
-    "Gemini": "gemini",
-    "Mistral": "mistral",
-    "DeepSeek — planned": "deepseek",
-    "Qwen — planned": "qwen",
-    "GLM — planned": "glm",
-    "Claude — planned": "claude",
-    "Nemotron — planned": "nemotron",
-}
-
-selected_llm_labels = st.multiselect(
-    "Reasoning Models",
-    list(llm_model_options.keys()),
-    default=[
-        "OpenAI",
-    ],
-)
-
-llm_providers = [
-    llm_model_options[label]
-    for label in selected_llm_labels
-]
-
-llm_profile = "custom"
-
-active_llms = [
-    provider
-    for provider in llm_providers
-    if provider in ["openai", "gemini", "mistral"]
-]
-
-planned_llms = [
-    provider
-    for provider in llm_providers
-    if provider not in ["openai", "gemini", "mistral"]
-]
-
-st.caption(
-    "Active: "
-    + (", ".join(active_llms) if active_llms else "none")
-    + " | Planned: "
-    + (", ".join(planned_llms) if planned_llms else "none")
-)
-
-# --------------------------------------------------
-# Knowledge Sources
-# --------------------------------------------------
-
-st.subheader("Knowledge Sources")
-
-st.caption(
-    "Alpha mode: choose the knowledge profile. General uses DuckDuckGo by default."
-)
-
-search_profile_labels = {
-    "General — DuckDuckGo": "general",
-    "Scientific — DuckDuckGo + ArXiv + CrossRef": "scientific",
-    "Shopping — DuckDuckGo": "shopping",
-    "News — DuckDuckGo": "news",
-    "Programming — DuckDuckGo": "programming",
-    "Legal — DuckDuckGo": "legal",
-    "Custom": "custom",
-}
-
-selected_search_label = st.selectbox(
-    "Knowledge Profile",
-    list(search_profile_labels.keys()),
-    index=0,
-)
-
-search_profile = search_profile_labels[selected_search_label]
-
-search_strategy = st.selectbox(
-    "Search Strategy",
-    [
-        "Off",
-        "On Request",
-        "Governor (Beta)",
-    ],
-    index=1,
-)
-
-st.caption(
-    "Off: no web search. On Request: web search only when you ask. "
-    "Governor: DeDe will decide automatically in Beta."
-)
-
-search_mode_map = {
-    "Off": "off",
-    "On Request": "on_request",
-    "Governor (Beta)": "governor",
-}
-
-search_mode = search_mode_map[search_strategy]
-
-search_provider = []
-
-if search_profile == "custom":
-
-    search_provider = st.multiselect(
-        "Custom Search Providers",
-        [
-            "duckduckgo",
-            "arxiv",
-            "crossref",
-            "brave — planned",
-            "serpapi — planned",
-            "pubmed — planned",
-            "github — planned",
-            "newsapi — planned",
-            "semantic_scholar — planned",
-            "eur_lex — planned",
-        ],
+    selected_llm_labels = st.multiselect(
+        "Reasoning Models",
+        list(llm_model_options.keys()),
         default=[
-            "duckduckgo",
+            "OpenAI",
         ],
     )
 
-    search_provider = [
-        item.replace(" — planned", "")
-        for item in search_provider
+    llm_providers = [
+        llm_model_options[label]
+        for label in selected_llm_labels
     ]
+
+    llm_profile = "custom"
+
+    active_llms = [
+        provider
+        for provider in llm_providers
+        if provider in ["openai", "gemini", "mistral"]
+    ]
+
+    planned_llms = [
+        provider
+        for provider in llm_providers
+        if provider not in ["openai", "gemini", "mistral"]
+    ]
+
+    st.caption(
+        "Active: "
+        + (", ".join(active_llms) if active_llms else "none")
+        + " | Planned: "
+        + (", ".join(planned_llms) if planned_llms else "none")
+    )
+
+    # --------------------------------------------------
+    # Knowledge Sources
+    # --------------------------------------------------
+
+    st.markdown("### Knowledge Sources")
+
+    st.caption(
+        "Choose the knowledge profile and search strategy."
+    )
+
+    search_profile_labels = {
+        "General — DuckDuckGo": "general",
+        "Scientific — DuckDuckGo + ArXiv + CrossRef": "scientific",
+        "Shopping — DuckDuckGo": "shopping",
+        "News — DuckDuckGo": "news",
+        "Programming — DuckDuckGo": "programming",
+        "Legal — DuckDuckGo": "legal",
+        "Custom": "custom",
+    }
+
+    selected_search_label = st.selectbox(
+        "Knowledge Profile",
+        list(search_profile_labels.keys()),
+        index=0,
+    )
+
+    search_profile = search_profile_labels[selected_search_label]
+
+    search_strategy = st.selectbox(
+        "Search Strategy",
+        [
+            "Off",
+            "On Request",
+            "Governor (Beta)",
+        ],
+        index=1,
+    )
+
+    st.caption(
+        "Off: no web search. On Request: web search only when you ask. "
+        "Governor: DeDe will decide automatically in Beta."
+    )
+
+    search_mode_map = {
+        "Off": "off",
+        "On Request": "on_request",
+        "Governor (Beta)": "governor",
+    }
+
+    search_mode = search_mode_map[search_strategy]
+
+    search_provider = []
+
+    if search_profile == "custom":
+
+        search_provider = st.multiselect(
+            "Custom Search Providers",
+            [
+                "duckduckgo",
+                "arxiv",
+                "crossref",
+                "brave — planned",
+                "serpapi — planned",
+                "pubmed — planned",
+                "github — planned",
+                "newsapi — planned",
+                "semantic_scholar — planned",
+                "eur_lex — planned",
+            ],
+            default=[
+                "duckduckgo",
+            ],
+        )
+
+        search_provider = [
+            item.replace(" — planned", "")
+            for item in search_provider
+        ]
 # --------------------------------------------------
 # Chat Display
 # --------------------------------------------------
