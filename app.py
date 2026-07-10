@@ -315,8 +315,9 @@ with st.sidebar:
     )
 
     st.caption(
-        "Off: no web search. On Request: web search only when you ask. "
-        "Governor: DeDe will decide automatically in Beta."
+        "Off: no external search. "
+        "On Request: search when the message requests external information. "
+        "Governor: search automatically when verification is needed."
     )
 
     search_mode_map = {
@@ -417,22 +418,6 @@ if audio_value:
         st.write(voice_text)
 
 # --------------------------------------------------
-# Explicit Search Request
-# --------------------------------------------------
-
-search_requested = False
-
-if search_mode == "on_request":
-    search_requested = st.toggle(
-        "Search the web for this message",
-        value=False,
-        help=(
-            "Enable this option when you explicitly want DeDe "
-            "to use external search for the next message."
-        ),
-    )
-
-# --------------------------------------------------
 # Chat Input
 # --------------------------------------------------
 
@@ -455,7 +440,6 @@ if text:
             else search_profile
         ),
         search_mode=search_mode.lower(),
-        search_requested=search_requested,
         llm_profile="custom",
         llm_providers=llm_providers,
         conversation_history=st.session_state.conversation_history,
