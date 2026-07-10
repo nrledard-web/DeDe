@@ -498,6 +498,10 @@ class DoxaEnginePhase2:
             # First search
             # --------------------------------------------------
 
+            print("=" * 80)
+            print("SEARCH QUERY BUILT :", repr(search_query))
+            print("=" * 80)
+            
             search_result = self.search_engine.search(
                 query=search_query,
                 provider=search_provider,
