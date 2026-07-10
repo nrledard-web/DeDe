@@ -532,25 +532,96 @@ class DoxaEnginePhase2:
                 search_provider = search_profile
 
             # --------------------------------------------------
-            # Universal Search Query
+            # Semantic Search Query
             # --------------------------------------------------
-            # Preserve the user's natural-language request.
+            # The selected reasoning model converts the natural-language
+            # request into a concise search-engine query.
             #
-            # Search providers already understand natural language.
-            # DeDe must not degrade the request through multilingual
-            # keyword lists, stop-word lists or lexical markers.
+            # No language-specific markers, stop-word lists or personal
+            # identifiers are used.
 
-            search_query = text.strip()
+            original_search_request = text.strip()
+
+            search_query = original_search_request
+
+            query_rewrite_status = "fallback"
+            query_rewrite_response = ""
+
+            if enable_llm and llm_providers:
+
+                query_rewrite_prompt = (
+                    "Convert the following user request into a concise "
+                    "web-search query.\n\n"
+                    "Preserve the central subject and any necessary names, "
+                    "dates, places or technical qualifiers.\n"
+                    "Remove conversational phrasing, politeness and requests "
+                    "to explain, summarize or provide links.\n"
+                    "Do not answer the request.\n"
+                    "Do not add commentary.\n"
+                    "Return only the search query on one line.\n\n"
+                    f"User request:\n{original_search_request}"
+                )
+
+                query_rewrite_result = self.llm_engine.ask(
+                    prompt=query_rewrite_prompt,
+                    profile="fast",
+                    providers=llm_providers,
+                    enabled=True,
+                )
+
+                query_rewrite_response = str(
+                    query_rewrite_result.get(
+                        "response",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                # Preserve only the first non-empty line.
+                rewritten_lines = [
+                    line.strip()
+                    for line in query_rewrite_response.splitlines()
+                    if line.strip()
+                ]
+
+                if rewritten_lines:
+                    candidate_query = rewritten_lines[0]
+
+                    candidate_query = candidate_query.strip(
+                        " `\"'"
+                    )
+
+                    # Safe length control.
+                    candidate_words = candidate_query.split()
+
+                    if len(candidate_words) > 12:
+                        candidate_query = " ".join(
+                            candidate_words[:12]
+                        )
+
+                    if candidate_query:
+                        search_query = candidate_query
+                        query_rewrite_status = "success"
 
             search_query_data = {
-                "builder": "natural_language_query",
-                "status": "ready",
+                "builder": "semantic_search_query",
+                "status": query_rewrite_status,
                 "query": search_query,
-                "original_text": text,
-                "source": "original_user_request",
+                "original_text": original_search_request,
+                "source": (
+                    "reasoning_model"
+                    if query_rewrite_status == "success"
+                    else "original_text_fallback"
+                ),
+                "raw_model_response": query_rewrite_response,
                 "summary": (
-                    "The original user request was preserved as the "
-                    "search query without lexical filtering."
+                    "The user request was semantically converted into "
+                    f"the search query: '{search_query}'."
+                    if query_rewrite_status == "success"
+                    else (
+                        "Semantic query rewriting was unavailable. "
+                        "The original request was preserved."
+                    )
                 ),
             }
 
