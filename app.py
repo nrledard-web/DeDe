@@ -417,8 +417,25 @@ if audio_value:
         st.write(voice_text)
 
 # --------------------------------------------------
+# Explicit Search Request
+# --------------------------------------------------
+
+search_requested = False
+
+if search_mode == "on_request":
+    search_requested = st.toggle(
+        "Search the web for this message",
+        value=False,
+        help=(
+            "Enable this option when you explicitly want DeDe "
+            "to use external search for the next message."
+        ),
+    )
+
+# --------------------------------------------------
 # Chat Input
-# --------------------------------------------------    
+# --------------------------------------------------
+
 typed_text = st.chat_input("Message DeDe")
 
 text = typed_text or st.session_state.get("voice_text", "")
@@ -438,10 +455,12 @@ if text:
             else search_profile
         ),
         search_mode=search_mode.lower(),
+        search_requested=search_requested,
         llm_profile="custom",
         llm_providers=llm_providers,
         conversation_history=st.session_state.conversation_history,
     )
+
     # --------------------------------------------------
     # Real World Anchor Analysis
     # --------------------------------------------------
@@ -461,14 +480,14 @@ if text:
         st.write(text)
 
     with st.chat_message("assistant"):
-    
+
         final_answer = user_response.get(
             "final_answer",
             "No answer generated.",
         )
-    
+
         st.write(final_answer)
-    
+
         if st.button(
             "🔊 Listen",
             key=f"tts_current_{len(st.session_state.conversation_history)}",
