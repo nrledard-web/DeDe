@@ -585,12 +585,25 @@ class DoxaEnginePhase2:
                 ]
 
                 if rewritten_lines:
-                    candidate_query = rewritten_lines[0]
-
-                    candidate_query = candidate_query.strip(
+                    candidate_query = rewritten_lines[0].strip(
                         " `\"'"
                     )
 
+                    # Remove a possible generic label returned by the model.
+                    if ":" in candidate_query:
+                        prefix, remainder = candidate_query.split(
+                            ":",
+                            1,
+                        )
+
+                        if (
+                            len(prefix.split()) <= 3
+                            and remainder.strip()
+                        ):
+                            candidate_query = remainder.strip(
+                                " `\"'"
+                            )
+                            
                     # Safe length control.
                     candidate_words = candidate_query.split()
 
