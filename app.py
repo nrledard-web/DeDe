@@ -569,6 +569,65 @@ if text:
             st.json(search_result)
 
         # --------------------------------------------------
+        # Universal Text Analysis
+        # --------------------------------------------------
+
+        st.subheader("Universal Text Analysis")
+
+        user_text_analysis = report.get(
+            "user_text_analysis",
+            {},
+        )
+
+        web_text_analysis = report.get(
+            "web_text_analysis",
+            {},
+        )
+
+        final_response_analysis = report.get(
+            "final_response_analysis",
+            {},
+        )
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric(
+                "User Analysis",
+                user_text_analysis.get(
+                    "status",
+                    "N/A",
+                ),
+            )
+
+        with col2:
+            st.metric(
+                "Web Items Analyzed",
+                web_text_analysis.get(
+                    "item_count",
+                    0,
+                ),
+            )
+
+        with col3:
+            st.metric(
+                "Final Response Analysis",
+                final_response_analysis.get(
+                    "status",
+                    "N/A",
+                ),
+            )
+
+        with st.expander("User Text Analysis"):
+            st.json(user_text_analysis)
+
+        with st.expander("Web Text Analysis"):
+            st.json(web_text_analysis)
+
+        with st.expander("Final Response Analysis"):
+            st.json(final_response_analysis)
+
+        # --------------------------------------------------
         # Autobiographical Memory
         # --------------------------------------------------
 
