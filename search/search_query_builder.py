@@ -265,6 +265,14 @@ class SearchQueryBuilder:
 
         query = self._clean_query(query)
 
+        print("=" * 80)
+        print("SEARCH QUERY BUILDER")
+        print("TEXT :", text)
+        print("NATURAL :", natural_query)
+        print("CONCEPT :", concept_query)
+        print("FINAL :", query)
+        print("=" * 80)
+
         return {
             "builder": self.name,
             "status": "ready",
