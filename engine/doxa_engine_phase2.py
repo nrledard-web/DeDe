@@ -111,6 +111,8 @@ from agents.reduction_agent import ReductionAgent
 from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
 
+from analysis.text_analysis_engine import TextAnalysisEngine
+
 class DoxaEnginePhase2:
     """
     Main orchestrator for DeDe Phase 2.
@@ -172,6 +174,7 @@ class DoxaEnginePhase2:
         self.search_validator = SearchValidator()
         self.search_query_builder = SearchQueryBuilder()
         self.search_summarizer = SearchSummarizer()
+        self.text_analysis_engine = TextAnalysisEngine()
 
         # --------------------------------------------------
         # LLM preparation layers
@@ -280,6 +283,27 @@ class DoxaEnginePhase2:
         """
 
         workspace = CognitiveWorkspace(text=text)
+
+        # --------------------------------------------------
+        # Universal Text Analysis — User Input
+        # --------------------------------------------------
+
+        user_text_analysis = self.text_analysis_engine.analyze(
+            text=text,
+            source_type="user",
+            provenance={
+                "origin": "conversation",
+                "role": "user",
+            },
+            context={
+                "pipeline": "doxa_engine_phase2",
+            },
+        )
+
+        workspace.add_interpretation(
+            "user_text_analysis",
+            user_text_analysis,
+        )
 
         url_read_result = self.url_reader.read_first_url(text)
 
