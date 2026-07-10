@@ -470,6 +470,15 @@ class DoxaEnginePhase2:
                 "",
             ).strip()
 
+            print("=" * 80)
+            print("SEARCH DIAGNOSTIC")
+            print("ORIGINAL TEXT :", text)
+            print("QUERY DATA :", search_query_data)
+            print("FINAL QUERY :", search_query)
+            print("PROVIDER :", search_provider)
+            print("MODE :", search_mode)
+            print("=" * 80)
+
             # Never send an empty query.
             if not search_query:
                 search_query = text.strip()
@@ -493,6 +502,14 @@ class DoxaEnginePhase2:
                 query=search_query,
                 provider=search_provider,
             )
+
+            print("=" * 80)
+            print("SEARCH ENGINE RESULT")
+            print("QUERY SENT :", search_query)
+            print("STATUS :", search_result.get("status"))
+            print("RESULT COUNT :", len(search_result.get("results", [])))
+            print("FULL RESULT :", search_result)
+            print("=" * 80)
 
             search_validation = self.search_validator.validate(
                 query=search_query,
