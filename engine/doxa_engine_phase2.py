@@ -434,12 +434,81 @@ class DoxaEnginePhase2:
         # Search Provider
         # --------------------------------------------------
 
-        search_mode = (search_mode or "off").lower().strip()
+        search_mode = (
+            search_mode
+            or "off"
+        ).lower().strip()
+
+        semantic_search_classification = {
+            "status": "not_required",
+            "decision": None,
+            "reason": (
+                "Semantic classification was not required "
+                "for the selected search mode."
+            ),
+            "raw_response": "",
+        }
+
+        # --------------------------------------------------
+        # Governor Semantic Classification
+        # --------------------------------------------------
+
+        if search_mode == "governor":
+
+            if enable_llm and llm_providers:
+                classification_prompt = (
+                    self.cognitive_governor
+                    .build_search_classification_prompt(
+                        text=text,
+                        conversation_context=conversation_context,
+                    )
+                )
+
+                classification_response = self.llm_engine.ask(
+                    prompt=classification_prompt,
+                    profile="fast",
+                    providers=llm_providers,
+                    enabled=True,
+                )
+
+                semantic_search_classification = (
+                    self.cognitive_governor
+                    .parse_search_classification(
+                        classification_response.get(
+                            "response",
+                            "",
+                        )
+                    )
+                )
+
+            else:
+                semantic_search_classification = {
+                    "status": "unavailable",
+                    "decision": "SKIP",
+                    "reason": (
+                        "Governor mode requires an active reasoning model. "
+                        "Search was skipped safely."
+                    ),
+                    "raw_response": "",
+                }
+
+        # --------------------------------------------------
+        # Final Search Decision
+        # --------------------------------------------------
 
         search_decision = self.cognitive_governor.decide_search(
-            text=text,
             search_mode=search_mode,
-            conversation_context=conversation_context,
+            explicit_request=search_requested,
+            semantic_decision=(
+                semantic_search_classification.get(
+                    "decision"
+                )
+            ),
+            semantic_reason=(
+                semantic_search_classification.get(
+                    "reason"
+                )
+            ),
         )
 
         should_search = search_decision.get(
@@ -450,6 +519,11 @@ class DoxaEnginePhase2:
         workspace.add_interpretation(
             "search_decision",
             search_decision,
+        )
+
+        workspace.add_interpretation(
+            "semantic_search_classification",
+            semantic_search_classification,
         )
 
         if should_search:
