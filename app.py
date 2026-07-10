@@ -721,6 +721,21 @@ if text:
         # --------------------------------------------------
     
         semantic_graph = report.get("semantic_graph", {})
+
+        # --------------------------------------------------
+        # Universal Text Analysis
+        # --------------------------------------------------
+        
+        st.subheader("Universal Text Analysis")
+        
+        st.write("USER")
+        st.json(report.get("user_text_analysis", {}))
+        
+        st.write("WEB")
+        st.json(report.get("web_text_analysis", {}))
+        
+        st.write("FINAL RESPONSE")
+        st.json(report.get("final_response_analysis", {}))
         
         st.subheader("Semantic Graph")
     
