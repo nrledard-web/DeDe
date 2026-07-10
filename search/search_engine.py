@@ -117,13 +117,29 @@ class SearchEngine:
         return {
             "engine": self.name,
             "status": "success" if all_results else "empty",
-            "provider": "+".join(providers),
-            "providers": providers,
-            "query": query,
-            "results": all_results,
-            "provider_results": provider_results,
-            "summary": (
-                f"Search completed with {len(providers)} provider(s), "
-                f"{len(all_results)} total result(s)."
-            ),
-        }
+            provider_errors = [
+                result
+                for result in provider_results
+                if result.get("status") == "error"
+            ]
+    
+            if all_results:
+                final_status = "success"
+            elif provider_errors:
+                final_status = "error"
+            else:
+                final_status = "no_results"
+    
+            return {
+                "engine": self.name,
+                "status": final_status,
+                "provider": "+".join(providers),
+                "providers": providers,
+                "query": query,
+                "results": all_results,
+                "provider_results": provider_results,
+                "summary": (
+                    f"Search completed with {len(providers)} provider(s), "
+                    f"{len(all_results)} total result(s)."
+                ),
+            }
