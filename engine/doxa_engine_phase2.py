@@ -102,6 +102,7 @@ from llm.llm_bridge import LLMBridge
 from committee.cognitive_committee import CognitiveCommittee
 
 from core.daimon_filter import DaimonFilter
+from governance.cognitive_governor import CognitiveGovernor
 
 from formulas.doxa_formula_engine import DoxaFormulaEngine
 from agents.nous_agent import NousAgent
@@ -144,6 +145,7 @@ class DoxaEnginePhase2:
         self.dede_identity = DeDeIdentity()
         self.dede_state = DeDeState()
         self.daimon_filter = DaimonFilter()
+        self.cognitive_governor = CognitiveGovernor()
         
         # --------------------------------------------------
         # Estimation layer
@@ -697,9 +699,26 @@ class DoxaEnginePhase2:
             url_read_result=url_read_result,
         )
 
+        # --------------------------------------------------
+        # Cognitive Governor 4.11b
+        # --------------------------------------------------
+
+        llm_package = self.cognitive_governor.apply_to_prompt_package(
+            llm_package=llm_package,
+            search_result=search_result,
+            search_validation=search_validation,
+            search_summary=search_summary,
+            retrieved_memory=retrieved_memory,
+        )
+
         workspace.add_interpretation(
             "llm_package",
             llm_package,
+        )
+
+        workspace.add_interpretation(
+            "cognitive_governor",
+            llm_package.get("cognitive_governor", {}),
         )
 
         # --------------------------------------------------
