@@ -157,7 +157,7 @@ class SearchValidator:
         )[:5]
 
     # --------------------------------------------------
-    # Extract Query Terms
+    # Extract Fallback Query Terms
     # --------------------------------------------------
 
     def _extract_query_terms(
@@ -172,102 +172,60 @@ class SearchValidator:
             normalized_query,
         )
 
-        stopwords = {
+        generic_search_terms = {
             # French
-            "a",
-            "au",
-            "aux",
-            "avec",
-            "ce",
-            "ces",
-            "dans",
-            "de",
-            "des",
-            "du",
-            "elle",
-            "en",
-            "et",
-            "fais",
-            "fait",
-            "il",
-            "la",
-            "le",
-            "les",
-            "leur",
-            "leurs",
             "lien",
             "liens",
-            "mais",
-            "me",
-            "moi",
-            "nous",
-            "ou",
-            "par",
-            "pas",
-            "peux",
-            "plus",
-            "pour",
-            "que",
-            "qui",
             "recherche",
             "rechercher",
             "resume",
-            "résumé",
-            "sa",
-            "se",
-            "ses",
-            "son",
-            "sur",
-            "stp",
-            "svp",
-            "te",
-            "toi",
             "trouve",
             "trouver",
-            "tu",
-            "un",
-            "une",
-            "vous",
 
             # English
-            "about",
-            "and",
-            "can",
             "find",
-            "for",
-            "give",
+            "link",
             "links",
-            "me",
-            "more",
-            "of",
-            "on",
-            "please",
             "search",
-            "the",
-            "to",
+            "summary",
 
             # Spanish
             "buscar",
             "busca",
-            "con",
-            "dame",
-            "de",
-            "en",
+            "enlace",
             "enlaces",
-            "los",
-            "más",
-            "por",
-            "sobre",
-            "una",
-            "unos",
+            "resumen",
+
+            # Filipino / Tagalog
+            "hanap",
+            "hanapin",
+            "link",
+            "links",
+            "buod",
+            "tungkol",
+            "magbigay",
+            "bigyan",
         }
 
-        return [
+        candidates = [
             word
             for word in words
-            if len(word) > 2
-            and word not in stopwords
+            if len(word) > 3
+            and word not in generic_search_terms
         ]
+
+        if not candidates:
+            return []
+
+        # Prefer the longest words because they are more likely
+        # to represent meaningful concepts across languages.
+        candidates = sorted(
+            candidates,
+            key=len,
+            reverse=True,
+        )
+
+        return candidates[:5]
 
     # --------------------------------------------------
     # Anchor Validation
