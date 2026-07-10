@@ -1436,6 +1436,25 @@ class DoxaEnginePhase2:
             "agent_results": agent_results,
             "committee": committee_result,
             "formulas": formulas,
+
+            "user_text_analysis": (
+                workspace.interpretations.get(
+                    "user_text_analysis",
+                    {},
+                )
+            ),
+            "web_text_analysis": (
+                workspace.interpretations.get(
+                    "web_text_analysis",
+                    {},
+                )
+            ),
+            "final_response_analysis": (
+                workspace.interpretations.get(
+                    "final_response_analysis",
+                    {},
+                )
+            ),
             
             "search_result": workspace.interpretations.get(
                 "search_result",
