@@ -501,17 +501,23 @@ class DoxaEnginePhase2:
                     search_result = fallback_result
                     search_validation = fallback_validation
 
-            if not search_validation.get("is_relevant", False):
-                search_result["results"] = []
-                search_result["status"] = "irrelevant"
-                search_result["summary"] = (
-                    "Search completed, but results were not relevant enough."
+                # --------------------------------------------------
+                # Preserve Search Results
+                # --------------------------------------------------
+            
+                if not search_validation.get("is_relevant", False):
+            
+                    search_result["status"] = "low_relevance"
+            
+                    search_result["summary"] = (
+                        "Search completed. Results were preserved, "
+                        "but their relevance may be limited."
+                    )
+            
+                search_summary = self.search_summarizer.summarize(
+                    search_result=search_result,
+                    search_validation=search_validation,
                 )
-
-            search_summary = self.search_summarizer.summarize(
-                search_result=search_result,
-                search_validation=search_validation,
-            )
 
         else:
             search_query = text
