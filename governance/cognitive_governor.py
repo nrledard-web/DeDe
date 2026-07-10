@@ -3,21 +3,30 @@ DeDe - Cognitive Governor
 
 Controls cognitive and epistemic decisions before the LLM answers.
 
-Current responsibilities:
-- decide whether a web search is required;
-- distinguish explicit search requests from ordinary dialogue;
-- preserve information provenance;
-- prevent DeDe from claiming that a search occurred when it did not.
+Principles:
+- no language-specific keyword lists;
+- no personal markers;
+- explicit search is controlled by the interface;
+- automatic search is based on semantic classification;
+- information provenance must remain explicit.
 """
 
 from __future__ import annotations
 
-import re
-import unicodedata
 from typing import Any
 
 
 class CognitiveGovernor:
+    """
+    Governs search decisions and information provenance.
+
+    The Governor does not attempt to understand natural language
+    through lists of words.
+
+    Search intent is supplied through:
+    - an explicit interface decision;
+    - or a semantic classification produced by a reasoning model.
+    """
 
     name = "cognitive_governor"
 
@@ -27,404 +36,257 @@ class CognitiveGovernor:
 
     def decide_search(
         self,
-        text: str,
         search_mode: str,
-        conversation_context: dict[str, Any] | None = None,
+        explicit_request: bool = False,
+        semantic_decision: str | None = None,
+        semantic_reason: str | None = None,
     ) -> dict[str, Any]:
+        """
+        Decide whether an external search should be performed.
 
-        conversation_context = conversation_context or {}
+        Parameters
+        ----------
+        search_mode:
+            off, on_request, governor or always.
+
+        explicit_request:
+            Boolean supplied by the interface.
+            It does not depend on language detection.
+
+        semantic_decision:
+            SEARCH or SKIP, normally produced by an LLM classifier.
+
+        semantic_reason:
+            Optional explanation supplied by the semantic classifier.
+        """
 
         normalized_mode = (
             search_mode
             or "off"
         ).lower().strip()
 
-        normalized_text = self._normalize(text)
+        normalized_semantic_decision = (
+            semantic_decision
+            or ""
+        ).upper().strip()
 
         # --------------------------------------------------
         # Search Disabled
         # --------------------------------------------------
 
         if normalized_mode == "off":
-            return {
-                "engine": self.name,
-                "status": "ready",
-                "mode": normalized_mode,
-                "should_search": False,
-                "decision": "skip_search",
-                "reason": "Search is disabled by the user.",
-                "explicit_request": False,
-                "automatic_need": False,
-            }
+            return self._build_decision(
+                mode=normalized_mode,
+                should_search=False,
+                reason="External search is disabled.",
+                explicit_request=explicit_request,
+                semantic_decision=normalized_semantic_decision,
+            )
 
         # --------------------------------------------------
         # Forced Search
         # --------------------------------------------------
 
         if normalized_mode == "always":
-            return {
-                "engine": self.name,
-                "status": "ready",
-                "mode": normalized_mode,
-                "should_search": True,
-                "decision": "perform_search",
-                "reason": "Search is forced for every message.",
-                "explicit_request": True,
-                "automatic_need": True,
-            }
+            return self._build_decision(
+                mode=normalized_mode,
+                should_search=True,
+                reason="External search is enabled for every message.",
+                explicit_request=explicit_request,
+                semantic_decision=normalized_semantic_decision,
+            )
 
         # --------------------------------------------------
-        # Greeting and Simple Dialogue Protection
-        # --------------------------------------------------
-
-        if self._is_simple_dialogue(normalized_text):
-            return {
-                "engine": self.name,
-                "status": "ready",
-                "mode": normalized_mode,
-                "should_search": False,
-                "decision": "skip_search",
-                "reason": (
-                    "The message is simple conversational dialogue "
-                    "and does not require external information."
-                ),
-                "explicit_request": False,
-                "automatic_need": False,
-            }
-
-        explicit_request = self._contains_explicit_search_request(
-            normalized_text
-        )
-
-        # --------------------------------------------------
-        # On Request Mode
+        # Explicit Interface Request
         # --------------------------------------------------
 
         if normalized_mode == "on_request":
-            return {
-                "engine": self.name,
-                "status": "ready",
-                "mode": normalized_mode,
-                "should_search": explicit_request,
-                "decision": (
-                    "perform_search"
-                    if explicit_request
-                    else "skip_search"
-                ),
-                "reason": (
-                    "The user explicitly requested external search."
+            return self._build_decision(
+                mode=normalized_mode,
+                should_search=bool(explicit_request),
+                reason=(
+                    "The user explicitly enabled search for this message."
                     if explicit_request
                     else (
-                        "No explicit request for links, sources, "
-                        "verification or web search was detected."
+                        "Search was not enabled for this message."
                     )
                 ),
-                "explicit_request": explicit_request,
-                "automatic_need": False,
-            }
-
-        # --------------------------------------------------
-        # Governor Mode
-        # --------------------------------------------------
-
-        automatic_need = self._requires_external_verification(
-            text=text,
-            normalized_text=normalized_text,
-            conversation_context=conversation_context,
-        )
-
-        should_search = (
-            explicit_request
-            or automatic_need
-        )
-
-        return {
-            "engine": self.name,
-            "status": "ready",
-            "mode": normalized_mode,
-            "should_search": should_search,
-            "decision": (
-                "perform_search"
-                if should_search
-                else "skip_search"
-            ),
-            "reason": self._build_search_reason(
                 explicit_request=explicit_request,
-                automatic_need=automatic_need,
+                semantic_decision=normalized_semantic_decision,
+            )
+
+        # --------------------------------------------------
+        # Semantic Governor
+        # --------------------------------------------------
+
+        if normalized_mode == "governor":
+            should_search = (
+                normalized_semantic_decision == "SEARCH"
+            )
+
+            return self._build_decision(
+                mode=normalized_mode,
+                should_search=should_search,
+                reason=(
+                    semantic_reason
+                    or (
+                        "Semantic classification requires external search."
+                        if should_search
+                        else (
+                            "Semantic classification does not require "
+                            "external search."
+                        )
+                    )
+                ),
+                explicit_request=explicit_request,
+                semantic_decision=normalized_semantic_decision,
+            )
+
+        # --------------------------------------------------
+        # Unknown Mode: Safe Default
+        # --------------------------------------------------
+
+        return self._build_decision(
+            mode=normalized_mode,
+            should_search=False,
+            reason=(
+                f"Unknown search mode '{normalized_mode}'. "
+                "Search was skipped safely."
             ),
-            "explicit_request": explicit_request,
-            "automatic_need": automatic_need,
-        }
-
-    # --------------------------------------------------
-    # Explicit Search Request Detection
-    # --------------------------------------------------
-
-    def _contains_explicit_search_request(
-        self,
-        normalized_text: str,
-    ) -> bool:
-
-        markers = [
-            # French
-            "cherche",
-            "chercher",
-            "recherche",
-            "rechercher",
-            "trouve",
-            "trouver",
-            "verifie",
-            "verifier",
-            "donne moi des liens",
-            "donne-moi des liens",
-            "des liens sur",
-            "des sources sur",
-            "sur internet",
-            "sur le web",
-
-            # English
-            "search for",
-            "look up",
-            "find links",
-            "find sources",
-            "give me links",
-            "give me sources",
-            "check online",
-            "verify online",
-            "on the web",
-            "on the internet",
-
-            # Spanish
-            "busca",
-            "buscar",
-            "encuentra",
-            "dame enlaces",
-            "dame fuentes",
-            "verifica",
-            "en internet",
-            "en la web",
-
-            # Filipino / Tagalog
-            "hanap",
-            "hanapin",
-            "maghanap",
-            "bigyan mo ako ng link",
-            "bigyan mo ako ng mga link",
-            "mga sanggunian",
-            "mga source",
-            "suriin sa internet",
-            "sa web",
-            "sa internet",
-        ]
-
-        return any(
-            marker in normalized_text
-            for marker in markers
+            explicit_request=explicit_request,
+            semantic_decision=normalized_semantic_decision,
         )
 
     # --------------------------------------------------
-    # Automatic Verification Need
+    # Semantic Classification Prompt
     # --------------------------------------------------
 
-    def _requires_external_verification(
+    def build_search_classification_prompt(
         self,
         text: str,
-        normalized_text: str,
-        conversation_context: dict[str, Any],
-    ) -> bool:
+        conversation_context: dict[str, Any] | None = None,
+    ) -> str:
+        """
+        Build a language-independent semantic classification request.
 
-        current_information_markers = [
-            # French
-            "aujourd hui",
-            "actuellement",
-            "dernier",
-            "derniere",
-            "recemment",
-            "actualite",
-            "prix",
-            "cours actuel",
-            "qui est",
+        Natural-language understanding is delegated to the selected LLM.
+        No vocabulary list is maintained inside the Governor.
+        """
 
-            # English
-            "today",
-            "currently",
-            "latest",
-            "recent",
-            "news",
-            "current price",
-            "who is",
-
-            # Spanish
-            "hoy",
-            "actualmente",
-            "ultimo",
-            "ultima",
-            "reciente",
-            "noticias",
-            "precio actual",
-            "quien es",
-
-            # Filipino / Tagalog
-            "ngayon",
-            "kasalukuyan",
-            "pinakabagong",
-            "balita",
-            "presyo ngayon",
-            "sino si",
-        ]
-
-        if any(
-            marker in normalized_text
-            for marker in current_information_markers
-        ):
-            return True
-
-        # A sequence of two or more capitalized words may represent
-        # a person, publication, institution or public entity.
-        proper_name_pattern = re.compile(
-            r"\b[A-ZÀ-ÖØ-Ý][a-zà-öø-ÿ'-]+"
-            r"(?:\s+[A-ZÀ-ÖØ-Ý][a-zà-öø-ÿ'-]+)+\b"
-        )
-
-        if proper_name_pattern.search(text):
-            return True
+        conversation_context = conversation_context or {}
 
         recent_topics = conversation_context.get(
             "recent_topics",
             [],
         )
 
-        reference_markers = [
-            "lui",
-            "elle",
-            "cette personne",
-            "cet auteur",
-            "ce chercheur",
-            "sur lui",
-            "sur elle",
-            "him",
-            "her",
-            "this person",
-            "this author",
-            "sobre el",
-            "sobre ella",
-            "esa persona",
-            "tungkol sa kanya",
-            "siya",
-        ]
+        recent_turns = conversation_context.get(
+            "recent_turns",
+            [],
+        )
 
-        if recent_topics and any(
-            marker in normalized_text
-            for marker in reference_markers
-        ):
-            return True
-
-        return False
-
-    # --------------------------------------------------
-    # Simple Dialogue Detection
-    # --------------------------------------------------
-
-    def _is_simple_dialogue(
-        self,
-        normalized_text: str,
-    ) -> bool:
-
-        cleaned = normalized_text.strip()
-
-        simple_messages = {
-            # French
-            "bonjour",
-            "bonjour dede",
-            "salut",
-            "salut dede",
-            "bonsoir",
-            "merci",
-            "merci dede",
-            "comment vas tu",
-            "comment allez vous",
-
-            # English
-            "hello",
-            "hello dede",
-            "hi",
-            "hi dede",
-            "thanks",
-            "thank you",
-            "how are you",
-
-            # Spanish
-            "hola",
-            "hola dede",
-            "gracias",
-            "como estas",
-
-            # Filipino / Tagalog
-            "kumusta",
-            "kumusta dede",
-            "kamusta",
-            "salamat",
-            "maraming salamat",
+        context_summary = {
+            "recent_topics": recent_topics[-3:],
+            "recent_turns": recent_turns[-2:],
         }
 
-        if cleaned in simple_messages:
-            return True
-
-        word_count = len(cleaned.split())
-
-        conversational_starts = [
-            "bonjour",
-            "salut",
-            "hello",
-            "hi",
-            "hola",
-            "kumusta",
-            "kamusta",
-            "merci",
-            "thanks",
-            "gracias",
-            "salamat",
-        ]
-
         return (
-            word_count <= 3
-            and any(
-                cleaned.startswith(marker)
-                for marker in conversational_starts
-            )
+            "You are the search-decision layer of an AI reasoning system.\n\n"
+            "Determine whether answering the user's message requires "
+            "external and potentially current information.\n\n"
+            "Return SEARCH when external verification is materially needed, "
+            "for example because the request concerns current facts, "
+            "recent events, changing information, external sources, "
+            "a named public entity requiring verification, or information "
+            "that cannot be grounded safely from the supplied context.\n\n"
+            "Return SKIP when the message is conversational, creative, "
+            "reflective, based on supplied material, or answerable without "
+            "external verification.\n\n"
+            "Do not answer the user's question.\n"
+            "Do not add explanations.\n"
+            "Return exactly one word: SEARCH or SKIP.\n\n"
+            f"Conversation context:\n{context_summary}\n\n"
+            f"User message:\n{text}"
         )
 
     # --------------------------------------------------
-    # Search Decision Explanation
+    # Semantic Classification Parsing
     # --------------------------------------------------
 
-    def _build_search_reason(
+    def parse_search_classification(
         self,
+        model_response: str | None,
+    ) -> dict[str, Any]:
+        """
+        Convert the semantic classifier response into a safe decision.
+
+        Ambiguous or malformed output defaults to SKIP.
+        """
+
+        cleaned = (
+            model_response
+            or ""
+        ).strip().upper()
+
+        if cleaned == "SEARCH":
+            return {
+                "status": "classified",
+                "decision": "SEARCH",
+                "reason": (
+                    "The semantic classifier determined that external "
+                    "verification is required."
+                ),
+                "raw_response": model_response or "",
+            }
+
+        if cleaned == "SKIP":
+            return {
+                "status": "classified",
+                "decision": "SKIP",
+                "reason": (
+                    "The semantic classifier determined that external "
+                    "verification is not required."
+                ),
+                "raw_response": model_response or "",
+            }
+
+        return {
+            "status": "invalid_response",
+            "decision": "SKIP",
+            "reason": (
+                "The semantic classifier returned an invalid response. "
+                "Search was skipped safely."
+            ),
+            "raw_response": model_response or "",
+        }
+
+    # --------------------------------------------------
+    # Decision Structure
+    # --------------------------------------------------
+
+    def _build_decision(
+        self,
+        mode: str,
+        should_search: bool,
+        reason: str,
         explicit_request: bool,
-        automatic_need: bool,
-    ) -> str:
+        semantic_decision: str,
+    ) -> dict[str, Any]:
 
-        if explicit_request and automatic_need:
-            return (
-                "The user explicitly requested a search and the subject "
-                "also requires external verification."
-            )
-
-        if explicit_request:
-            return (
-                "The user explicitly requested links, sources, "
-                "verification or web search."
-            )
-
-        if automatic_need:
-            return (
-                "The Governor detected information that should be "
-                "externally verified before answering."
-            )
-
-        return (
-            "The message can be answered without external search."
-        )
+        return {
+            "engine": self.name,
+            "status": "ready",
+            "mode": mode,
+            "should_search": should_search,
+            "decision": (
+                "perform_search"
+                if should_search
+                else "skip_search"
+            ),
+            "reason": reason,
+            "explicit_request": explicit_request,
+            "semantic_decision": semantic_decision or None,
+        }
 
     # --------------------------------------------------
     # Prompt Provenance Governance
@@ -450,7 +312,11 @@ class CognitiveGovernor:
         )
 
         search_performed = (
-            search_result.get("status") == "success"
+            search_result.get("status")
+            in {
+                "success",
+                "low_relevance",
+            }
             and bool(search_results)
         )
 
@@ -475,7 +341,7 @@ class CognitiveGovernor:
             "",
         )
 
-        governed_prompt = (
+        llm_package["full_prompt"] = (
             full_prompt
             + "\n\n"
             + "COGNITIVE GOVERNOR RULES:\n\n"
@@ -486,8 +352,6 @@ class CognitiveGovernor:
             "cognitive_governor",
             {},
         )
-
-        llm_package["full_prompt"] = governed_prompt
 
         llm_package["cognitive_governor"] = {
             **previous_governance,
@@ -514,89 +378,67 @@ class CognitiveGovernor:
         memory_available: bool,
     ) -> str:
 
-        lines = []
+        lines = [
+            "Distinguish clearly between:",
+            "- information retrieved from external search;",
+            "- information retrieved from memory;",
+            "- general internal knowledge;",
+            "- hypothesis or reconstruction;",
+            "",
+        ]
 
-        lines.append(
-            "You must distinguish clearly between:"
-        )
-        lines.append(
-            "- information retrieved from web search;"
-        )
-        lines.append(
-            "- information retrieved from memory;"
-        )
-        lines.append(
-            "- general internal knowledge;"
-        )
-        lines.append(
-            "- hypothesis or reconstruction."
-        )
-        lines.append("")
+        if search_performed:
+            lines.extend(
+                [
+                    "External search results are available.",
+                    (
+                        "Use them only according to their demonstrated "
+                        "relevance and reliability."
+                    ),
+                ]
+            )
 
-        if search_performed and search_relevant:
-            lines.append(
-                "A web search was performed and relevant results are available."
-            )
-            lines.append(
-                "You may say that the answer uses retrieved web results."
-            )
-            lines.append(
-                "When useful, include the supplied URLs."
-            )
+            if not search_relevant:
+                lines.append(
+                    "The retrieved results have limited relevance. "
+                    "Express appropriate caution."
+                )
         else:
-            lines.append(
-                "No relevant web search result is available."
-            )
-            lines.append(
-                "You must not say or imply that DeDe searched the web."
-            )
-            lines.append(
-                "Do not invent links, sources, titles, biographies "
-                "or public credentials."
+            lines.extend(
+                [
+                    "No external search result is available.",
+                    (
+                        "Do not say or imply that an external search "
+                        "was performed."
+                    ),
+                    (
+                        "Do not invent links, sources, publications, "
+                        "biographies or credentials."
+                    ),
+                ]
             )
 
         lines.append("")
 
         if memory_available:
             lines.append(
-                "Relevant memory is available. Use it carefully, "
-                "but do not present memory as external verification."
+                "Relevant memory is available, but memory is not "
+                "external verification."
             )
         else:
             lines.append(
                 "No relevant memory is available. Do not invent "
-                "personal or biographical information."
+                "personal information."
             )
 
-        lines.append("")
-        lines.append(
-            "If evidence is missing, express epistemic caution."
+        lines.extend(
+            [
+                "",
+                (
+                    "When evidence is missing or incomplete, preserve "
+                    "epistemic caution and revisability."
+                ),
+            ]
         )
 
         return "\n".join(lines)
-
-    # --------------------------------------------------
-    # Text Normalization
-    # --------------------------------------------------
-
-    def _normalize(
-        self,
-        text: str,
-    ) -> str:
-
-        lowered = str(text).lower().strip()
-
-        decomposed = unicodedata.normalize(
-            "NFKD",
-            lowered,
-        )
-
-        without_accents = "".join(
-            character
-            for character in decomposed
-            if not unicodedata.combining(character)
-        )
-
-        return " ".join(
-            without_accents.split()
-        )
