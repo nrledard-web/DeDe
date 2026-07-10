@@ -531,21 +531,28 @@ class DoxaEnginePhase2:
             if not search_provider and search_profile:
                 search_provider = search_profile
 
-            concept_data = workspace.interpretations.get(
-                "concepts",
-                {},
-            )
+            # --------------------------------------------------
+            # Universal Search Query
+            # --------------------------------------------------
+            # Preserve the user's natural-language request.
+            #
+            # Search providers already understand natural language.
+            # DeDe must not degrade the request through multilingual
+            # keyword lists, stop-word lists or lexical markers.
 
-            search_query_data = self.search_query_builder.build(
-                text=text,
-                conversation_context=conversation_context,
-                concept_data=concept_data,
-            )
+            search_query = text.strip()
 
-            search_query = search_query_data.get(
-                "query",
-                "",
-            ).strip()
+            search_query_data = {
+                "builder": "natural_language_query",
+                "status": "ready",
+                "query": search_query,
+                "original_text": text,
+                "source": "original_user_request",
+                "summary": (
+                    "The original user request was preserved as the "
+                    "search query without lexical filtering."
+                ),
+            }
 
             print("=" * 80)
             print("SEARCH DIAGNOSTIC")
