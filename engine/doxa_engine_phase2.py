@@ -459,7 +459,7 @@ class DoxaEnginePhase2:
                 {},
             )
 
-            search_query_data = self.search_query_builder.build(
+            raise RuntimeError("SearchQueryBuilder EXECUTED")
                 text=text,
                 conversation_context=conversation_context,
                 concept_data=concept_data,
