@@ -71,18 +71,35 @@ class CognitiveGovernor:
         ).upper().strip()
 
         # --------------------------------------------------
-        # Search Disabled
+        # Semantic Search Modes
         # --------------------------------------------------
 
-        if normalized_mode == "off":
-            return self._build_decision(
-                mode=normalized_mode,
-                should_search=False,
-                reason="External search is disabled.",
-                explicit_request=explicit_request,
-                semantic_decision=normalized_semantic_decision,
+        if normalized_mode in {
+            "on_request",
+            "governor",
+        }:
+            should_search = (
+                normalized_semantic_decision == "SEARCH"
             )
 
+            return self._build_decision(
+                mode=normalized_mode,
+                should_search=should_search,
+                reason=(
+                    semantic_reason
+                    or (
+                        "Semantic classification requires external search."
+                        if should_search
+                        else (
+                            "Semantic classification does not require "
+                            "external search."
+                        )
+                    )
+                ),
+                explicit_request=False,
+                semantic_decision=normalized_semantic_decision,
+            )
+            
         # --------------------------------------------------
         # Forced Search
         # --------------------------------------------------
@@ -165,15 +182,26 @@ class CognitiveGovernor:
         self,
         text: str,
         conversation_context: dict[str, Any] | None = None,
+        search_mode: str = "governor",
     ) -> str:
         """
-        Build a language-independent semantic classification request.
+        Build a language-independent semantic search decision prompt.
 
-        Natural-language understanding is delegated to the selected LLM.
-        No vocabulary list is maintained inside the Governor.
+        on_request:
+            Search only when the user is requesting external information,
+            sources, links, verification or web retrieval.
+
+        governor:
+            Search whenever external verification is materially required,
+            even when it was not explicitly requested.
         """
 
         conversation_context = conversation_context or {}
+
+        normalized_mode = (
+            search_mode
+            or "governor"
+        ).lower().strip()
 
         recent_topics = conversation_context.get(
             "recent_topics",
@@ -190,21 +218,39 @@ class CognitiveGovernor:
             "recent_turns": recent_turns[-2:],
         }
 
+        if normalized_mode == "on_request":
+            decision_policy = (
+                "Return SEARCH only when the user is asking for external "
+                "retrieval, web information, links, sources, references, "
+                "verification, research, or information that clearly depends "
+                "on consulting external material.\n\n"
+                "Return SKIP for greetings, thanks, casual conversation, "
+                "creative writing, reflection, ordinary explanation, "
+                "summarization of supplied material, or questions that do "
+                "not ask for external retrieval."
+            )
+
+        else:
+            decision_policy = (
+                "Return SEARCH whenever external verification is materially "
+                "needed, including current or changing facts, recent events, "
+                "public figures, prices, schedules, laws, external sources, "
+                "or claims that cannot be grounded safely from the supplied "
+                "context.\n\n"
+                "Return SKIP for greetings, thanks, introductions, casual "
+                "conversation, creative writing, reflection, or requests "
+                "answerable safely without external verification."
+            )
+
         return (
             "You are the search-decision layer of an AI reasoning system.\n\n"
-            "Determine whether answering the user's message requires "
-            "external and potentially current information.\n\n"
-            "Return SEARCH when external verification is materially needed, "
-            "for example because the request concerns current facts, "
-            "recent events, changing information, external sources, "
-            "a named public entity requiring verification, or information "
-            "that cannot be grounded safely from the supplied context.\n\n"
-            "Return SKIP when the message is conversational, creative, "
-            "reflective, based on supplied material, or answerable without "
-            "external verification.\n\n"
-            "Do not answer the user's question.\n"
-            "Do not add explanations.\n"
-            "Return exactly one word: SEARCH or SKIP.\n\n"
+            f"Search mode: {normalized_mode}\n\n"
+            f"{decision_policy}\n\n"
+            "Important rules:\n"
+            "- A greeting or conversational opening must return SKIP.\n"
+            "- Do not answer the user's request.\n"
+            "- Do not explain your decision.\n"
+            "- Return exactly one word: SEARCH or SKIP.\n\n"
             f"Conversation context:\n{context_summary}\n\n"
             f"User message:\n{text}"
         )
