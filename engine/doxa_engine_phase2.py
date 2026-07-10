@@ -852,6 +852,88 @@ class DoxaEnginePhase2:
                 ),
             }
 
+        # --------------------------------------------------
+        # Universal Text Analysis — Web Results
+        # --------------------------------------------------
+
+        web_analysis_items = []
+
+        for index, result_item in enumerate(
+            search_result.get(
+                "results",
+                [],
+            )
+        ):
+            if not isinstance(result_item, dict):
+                continue
+
+            title = str(
+                result_item.get(
+                    "title",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            snippet = str(
+                result_item.get(
+                    "snippet",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            web_text = "\n\n".join(
+                value
+                for value in [
+                    title,
+                    snippet,
+                ]
+                if value
+            )
+
+            if not web_text:
+                continue
+
+            web_analysis_items.append(
+                {
+                    "text": web_text,
+                    "source_type": "web",
+                    "provenance": {
+                        "result_index": index,
+                        "provider": result_item.get(
+                            "provider",
+                            search_result.get(
+                                "provider",
+                                "unknown",
+                            ),
+                        ),
+                        "title": title,
+                        "url": result_item.get(
+                            "url",
+                            "",
+                        ),
+                        "query": search_query,
+                    },
+                }
+            )
+
+        web_text_analysis = (
+            self.text_analysis_engine.analyze_many(
+                items=web_analysis_items,
+                source_type="web",
+                shared_context={
+                    "search_mode": search_mode,
+                    "search_query": search_query,
+                },
+            )
+        )
+
+        workspace.add_interpretation(
+            "web_text_analysis",
+            web_text_analysis,
+        )
+
         print("=" * 80)
         print("SEARCH MODE :", search_mode)
         print("SEARCH PROVIDER :", search_provider)
