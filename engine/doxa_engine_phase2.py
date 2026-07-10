@@ -794,6 +794,15 @@ class DoxaEnginePhase2:
         # Phase 4.11
         # LLM Connector
         # --------------------------------------------------
+        print("=" * 80)
+        print("SEARCH SENT TO LLM CONNECTOR")
+        print("STATUS :", search_result.get("status"))
+        print("QUERY :", search_result.get("query"))
+        print("RESULT COUNT :", len(search_result.get("results", [])))
+        print("SUMMARY :", search_summary)
+        print("=" * 80)
+
+        
         llm_package = self.llm_connector.build_prompt_package(
             text=text,
             graph_queries=graph_queries,
