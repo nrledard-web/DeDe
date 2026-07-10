@@ -433,21 +433,23 @@ class DoxaEnginePhase2:
         # Search Provider
         # --------------------------------------------------
 
-        search_mode = (search_mode or "auto").lower().strip()
+        search_mode = (search_mode or "off").lower().strip()
 
-        should_search = False
+        search_decision = self.cognitive_governor.decide_search(
+            text=text,
+            search_mode=search_mode,
+            conversation_context=conversation_context,
+        )
 
-        if search_mode == "always":
-            should_search = True
+        should_search = search_decision.get(
+            "should_search",
+            False,
+        )
 
-        elif search_mode == "off":
-            should_search = False
-
-        elif search_mode == "on_request":
-            should_search = True
-
-        elif search_mode == "governor":
-            should_search = False
+        workspace.add_interpretation(
+            "search_decision",
+            search_decision,
+        )
 
         if should_search:
 
