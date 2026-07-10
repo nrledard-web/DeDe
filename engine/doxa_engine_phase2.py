@@ -271,7 +271,6 @@ class DoxaEnginePhase2:
         search_provider: str | list[str] = "none",
         search_profile: str | None = None,
         search_mode: str = "off",
-        search_requested: bool = False,
         llm_profile: str = "fast",
         llm_providers: list[str] | None = None,
         conversation_history: list[dict[str, Any]] | None = None,
@@ -450,10 +449,13 @@ class DoxaEnginePhase2:
         }
 
         # --------------------------------------------------
-        # Governor Semantic Classification
+        # Semantic Search Classification
         # --------------------------------------------------
 
-        if search_mode == "governor":
+        if search_mode in {
+            "on_request",
+            "governor",
+        }:
 
             if enable_llm and llm_providers:
                 classification_prompt = (
@@ -461,6 +463,7 @@ class DoxaEnginePhase2:
                     .build_search_classification_prompt(
                         text=text,
                         conversation_context=conversation_context,
+                        search_mode=search_mode,
                     )
                 )
 
@@ -486,8 +489,8 @@ class DoxaEnginePhase2:
                     "status": "unavailable",
                     "decision": "SKIP",
                     "reason": (
-                        "Governor mode requires an active reasoning model. "
-                        "Search was skipped safely."
+                        "Semantic search classification requires an "
+                        "active reasoning model. Search was skipped safely."
                     ),
                     "raw_response": "",
                 }
@@ -498,7 +501,6 @@ class DoxaEnginePhase2:
 
         search_decision = self.cognitive_governor.decide_search(
             search_mode=search_mode,
-            explicit_request=search_requested,
             semantic_decision=(
                 semantic_search_classification.get(
                     "decision"
@@ -510,7 +512,7 @@ class DoxaEnginePhase2:
                 )
             ),
         )
-
+        
         should_search = search_decision.get(
             "should_search",
             False,
