@@ -49,6 +49,9 @@ class LLMConnector:
         autobiographical_reasoning = autobiographical_reasoning or {}
         dede_identity = dede_identity or {}
         dede_state = dede_state or {}
+        
+        search_result = search_result or {}   # <-- à ajouter
+        
         search_summary = search_summary or {}
         url_read_result = url_read_result or {}
 
@@ -69,9 +72,12 @@ class LLMConnector:
             url_read_result=url_read_result,
         )
        
-        search_has_results = bool(
-            search_result.get("results", [])
+        search_results = search_result.get(
+            "results",
+            [],
         )
+        
+        search_has_results = len(search_results) > 0
 
         if search_has_results:
             user_prompt = (
