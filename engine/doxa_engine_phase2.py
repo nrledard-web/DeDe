@@ -464,63 +464,144 @@ class DoxaEnginePhase2:
                 conversation_context=conversation_context,
                 concept_data=concept_data,
             )
-            
+
             search_query = search_query_data.get(
                 "query",
-                text,
-            )
+                "",
+            ).strip()
+
+            # Never send an empty query.
+            if not search_query:
+                search_query = text.strip()
+
+                search_query_data = {
+                    **search_query_data,
+                    "status": "fallback",
+                    "query": search_query,
+                    "source": "original_text_fallback",
+                    "summary": (
+                        "Search query builder returned no usable topic; "
+                        "the original message was preserved."
+                    ),
+                }
+
+            # --------------------------------------------------
+            # First search
+            # --------------------------------------------------
 
             search_result = self.search_engine.search(
                 query=search_query,
                 provider=search_provider,
             )
-            
+
             search_validation = self.search_validator.validate(
                 query=search_query,
                 search_result=search_result,
             )
-            
-            if not search_validation.get("is_relevant", False):
-                fallback_query = f"{search_query} wikipedia"
-            
+
+            # --------------------------------------------------
+            # Optional fallback search
+            # --------------------------------------------------
+
+            if not search_validation.get(
+                "is_relevant",
+                False,
+            ):
+                fallback_query = (
+                    f"{search_query} wikipedia"
+                )
+
                 fallback_result = self.search_engine.search(
                     query=fallback_query,
                     provider=search_provider,
                 )
-            
-                fallback_validation = self.search_validator.validate(
-                    query=fallback_query,
-                    search_result=fallback_result,
+
+                fallback_validation = (
+                    self.search_validator.validate(
+                        query=fallback_query,
+                        search_result=fallback_result,
+                    )
                 )
-            
-                if fallback_validation.get("relevance", 0.0) > search_validation.get(
-                    "relevance",
-                    0.0,
-                ):
+
+                original_relevance = float(
+                    search_validation.get(
+                        "relevance",
+                        0.0,
+                    )
+                )
+
+                fallback_relevance = float(
+                    fallback_validation.get(
+                        "relevance",
+                        0.0,
+                    )
+                )
+
+                if fallback_relevance > original_relevance:
+                    initial_query = search_query
+
                     search_query = fallback_query
                     search_result = fallback_result
                     search_validation = fallback_validation
 
-                # --------------------------------------------------
-                # Preserve Search Results
-                # --------------------------------------------------
-            
-                if not search_validation.get("is_relevant", False):
-            
-                    search_result["status"] = "low_relevance"
-            
-                    search_result["summary"] = (
-                        "Search completed. Results were preserved, "
-                        "but their relevance may be limited."
-                    )
-            
-                search_summary = self.search_summarizer.summarize(
-                    search_result=search_result,
-                    search_validation=search_validation,
+                    search_query_data = {
+                        **search_query_data,
+                        "fallback_used": True,
+                        "initial_query": initial_query,
+                        "query": fallback_query,
+                    }
+
+                else:
+                    search_query_data["fallback_used"] = False
+
+            # --------------------------------------------------
+            # Preserve results even when relevance is limited
+            # --------------------------------------------------
+
+            results = search_result.get(
+                "results",
+                [],
+            )
+
+            if (
+                results
+                and not search_validation.get(
+                    "is_relevant",
+                    False,
                 )
+            ):
+                search_result["status"] = "low_relevance"
+
+                search_result["summary"] = (
+                    "Search completed. Results were preserved, "
+                    "but their relevance may be limited."
+                )
+
+            elif not results:
+                search_result["status"] = "no_results"
+
+                search_result["summary"] = (
+                    "No search results were found for "
+                    f"'{search_query}'."
+                )
+
+            search_summary = self.search_summarizer.summarize(
+                search_result=search_result,
+                search_validation=search_validation,
+            )
 
         else:
             search_query = text
+
+            search_query_data = {
+                "builder": "search_query_builder",
+                "status": "disabled",
+                "query": text,
+                "source": "disabled",
+                "summary": (
+                    "Search query builder skipped."
+                ),
+            }
 
             search_result = {
                 "engine": "search_engine",
@@ -541,14 +622,19 @@ class DoxaEnginePhase2:
                 "query": text,
                 "relevance": 0.0,
                 "is_relevant": False,
-                "summary": "Search validation skipped.",
+                "summary": (
+                    "Search validation skipped."
+                ),
             }
+
             search_summary = {
                 "summarizer": "search_summarizer",
                 "status": "disabled",
                 "sources": [],
                 "summary_text": "",
-                "summary": "Search summarizer skipped.",
+                "summary": (
+                    "Search summarizer skipped."
+                ),
             }
 
         print("=" * 80)
@@ -557,25 +643,26 @@ class DoxaEnginePhase2:
         print("SEARCH QUERY :", search_query)
         print("SEARCH RESULT :", search_result)
         print("=" * 80)
-        print("SEARCH VALIDATION :", search_validation)
+        print(
+            "SEARCH VALIDATION :",
+            search_validation,
+        )
 
         workspace.add_interpretation(
             "search_result",
             search_result,
         )
+
         workspace.add_interpretation(
             "search_validation",
             search_validation,
         )
+
         workspace.add_interpretation(
             "search_query",
-            search_query_data if should_search else {
-                "builder": "search_query_builder",
-                "status": "disabled",
-                "query": text,
-                "summary": "Search query builder skipped.",
-            },
+            search_query_data,
         )
+
         workspace.add_interpretation(
             "search_summary",
             search_summary,
