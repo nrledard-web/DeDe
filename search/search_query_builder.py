@@ -263,7 +263,9 @@ class SearchQueryBuilder:
             query = original_text
             source = "original_text_fallback"
 
-        query = self._clean_query(query)
+        query = "TEST-DEDE-123"
+
+        print("========== BUILDER EXECUTED ==========")
 
         print("=" * 80)
         print("SEARCH QUERY BUILDER")
