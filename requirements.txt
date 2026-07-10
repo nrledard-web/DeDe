@@ -2,7 +2,7 @@ streamlit>=1.40.0
 typing_extensions>=4.10.0
 openai
 langdetect
-duckduckgo-search
+ddgs
 wikipedia-api
 arxiv
 requests
