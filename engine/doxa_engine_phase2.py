@@ -1199,6 +1199,7 @@ class DoxaEnginePhase2:
             persistent_memory=self.persistent_memory.get_memory(),
             retrieved_memory=retrieved_memory,
             autobiographical_reasoning=autobiographical_reasoning,
+            philosophical_context=philosophical_context,
             dede_identity=identity_state,
             dede_state=dede_state,
             search_result=search_result,
@@ -1602,6 +1603,12 @@ class DoxaEnginePhase2:
             ),
             "memory_governance": memory_governance,
             "concepts": workspace.interpretations.get("concepts", {}),
+            "philosophical_context": (
+                workspace.interpretations.get(
+                    "philosophical_context",
+                    {},
+                )
+            ),
             "semantic": workspace.interpretations.get("semantic", {}),
             "semantic_reasoning": workspace.interpretations.get(
                 "semantic_reasoner",
