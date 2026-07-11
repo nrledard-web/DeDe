@@ -146,13 +146,29 @@ if BANNER_PATH.exists():
 else:
     st.warning("Banner01.png not found in assets/")
 
-st.title("DeDe — Cognitive Daimon")
 st.markdown(
-    "<p style='text-align:center; color:#6b7280;'><strong>A Cognitive AI Controller with Evolving Multi-AI and Multi-Tool Capabilities</strong></p>",
-    unsafe_allow_html=True,
-)
-st.markdown(
-    "<p style='text-align:center; color:#6b7280;'><strong>A little more time to think leads to more accurate answers.</strong></p>",
+    """
+    <h1 style="text-align:center; margin-bottom:0.2rem;">
+        DeDe — Cognitive Daimon
+    </h1>
+
+    <h4 style="
+        text-align:center;
+        color:#9aa0a6;
+        font-weight:400;
+        margin-top:0;
+        margin-bottom:0.3rem;">
+        A Cognitive AI Controller with Evolving Multi-AI and Multi-Tool Capabilities
+    </h4>
+
+    <p style="
+        text-align:center;
+        color:#b8b8b8;
+        font-style:italic;
+        margin-top:0;">
+        A little more time to think leads to more accurate answers.
+    </p>
+    """,
     unsafe_allow_html=True,
 )
 
