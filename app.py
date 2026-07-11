@@ -152,7 +152,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown(
-    "<p style='text-align:center; color:#6b7280;'><strong>A little more reasoning. A much better answer.</strong></p>",
+    "<p style='text-align:center; color:#6b7280;'><strong>A little more time to think. A much better answer.</strong></p>",
     unsafe_allow_html=True,
 )
 
