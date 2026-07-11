@@ -932,6 +932,24 @@ class LLMConnector:
             )
 
         # --------------------------------------------------
+        # Relevant Philosophical Context
+        # --------------------------------------------------
+
+        philosophical_prompt_context = str(
+            philosophical_context.get(
+                "prompt_context",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if philosophical_prompt_context:
+            lines.append("")
+            lines.append(
+                philosophical_prompt_context
+            )
+
+        # --------------------------------------------------
         # Foundational context
         # --------------------------------------------------
 
