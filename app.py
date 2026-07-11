@@ -148,7 +148,7 @@ else:
 
 st.title("DeDe — Cognitive Daimon")
 st.markdown(
-    "<p style='text-align:center; color:#6b7280;'><strong>An AI Reasoning Controller</strong></p>",
+    "<p style='text-align:center; color:#6b7280;'><strong>A Cognitive AI Controller with Evolving Multi-AI and Multi-Tool Capabilities</strong></p>",
     unsafe_allow_html=True,
 )
 st.markdown(
