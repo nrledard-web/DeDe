@@ -34,6 +34,7 @@ class LLMConnector:
         persistent_memory: dict[str, Any] | None = None,
         retrieved_memory: dict[str, Any] | None = None,
         autobiographical_reasoning: dict[str, Any] | None = None,
+        philosophical_context: dict[str, Any] | None = None,
         dede_identity: dict[str, Any] | None = None,
         dede_state: dict[str, Any] | None = None,
         search_result: dict[str, Any] | None = None,
@@ -48,6 +49,7 @@ class LLMConnector:
         persistent_memory = persistent_memory or {}
         retrieved_memory = retrieved_memory or {}
         autobiographical_reasoning = autobiographical_reasoning or {}
+        philosophical_context = philosophical_context or {}
         dede_identity = dede_identity or {}
         dede_state = dede_state or {}
         
@@ -73,6 +75,7 @@ class LLMConnector:
             persistent_memory=persistent_memory,
             retrieved_memory=retrieved_memory,
             autobiographical_reasoning=autobiographical_reasoning,
+            philosophical_context=philosophical_context,
             dede_identity=dede_identity,
             dede_state=dede_state,
             search_result=search_result,
@@ -384,6 +387,7 @@ class LLMConnector:
         persistent_memory: dict[str, Any],
         retrieved_memory: dict[str, Any],
         autobiographical_reasoning: dict[str, Any],
+        philosophical_context: dict[str, Any],
         dede_identity: dict[str, Any],
         dede_state: dict[str, Any],
         search_result: dict[str, Any],
