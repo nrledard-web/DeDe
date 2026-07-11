@@ -38,6 +38,7 @@ class LLMConnector:
         dede_state: dict[str, Any] | None = None,
         search_result: dict[str, Any] | None = None,
         search_summary: dict[str, Any] | None = None,
+        source_analysis: dict[str, Any] | None = None,
         url_read_result: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
@@ -52,7 +53,9 @@ class LLMConnector:
         
         search_result = search_result or {}   # <-- à ajouter
         
+        search_result = search_result or {}
         search_summary = search_summary or {}
+        source_analysis = source_analysis or {}
         url_read_result = url_read_result or {}
 
         system_prompt = self._build_system_prompt()
@@ -69,6 +72,7 @@ class LLMConnector:
             dede_state=dede_state,
             search_result=search_result,
             search_summary=search_summary,
+            source_analysis=source_analysis,
             url_read_result=url_read_result,
         )
        
@@ -82,10 +86,14 @@ class LLMConnector:
         if search_has_results:
             user_prompt = (
                 "Prepare DeDe's user-facing response to the following message. "
-                "IMPORTANT: DeDe has already performed a web search. "
-                "Use the WEB SEARCH CONTEXT above as the primary source. "
-                "Do not say that you cannot access the Internet. "
-                "If useful, include the supplied URLs.\n\n"
+                "DeDe has already performed a web search and evaluated the "
+                "retrieved sources. "
+                "Use the COGNITIVE WEB SOURCE CONTEXT as the primary support. "
+                "Do not reproduce raw search-result dumps. "
+                "Give a direct synthesis adapted to the user's request. "
+                "Preserve useful URLs when links were requested. "
+                "Respect the reported source quality, relevance and limitations. "
+                "Do not say that you cannot access the Internet.\n\n"
                 f"User message:\n{text}"
             )
         else:
@@ -168,6 +176,7 @@ class LLMConnector:
         dede_state: dict[str, Any],
         search_result: dict[str, Any],
         search_summary: dict[str, Any],
+        source_analysis: dict[str, Any],
         url_read_result: dict[str, Any],
     ) -> str:
 
@@ -197,45 +206,274 @@ class LLMConnector:
             lines.append("")
 
         # --------------------------------------------------
-        # Search Provider
+        # Search Provider — Cognitive Compact Context
         # --------------------------------------------------
 
-        search_summary = search_summary or {}
         search_result = search_result or {}
+        search_summary = search_summary or {}
+        source_analysis = source_analysis or {}
 
-        if search_summary.get("summary_text"):
+        results = search_result.get(
+            "results",
+            [],
+        )
+
+        analyzed_sources = source_analysis.get(
+            "sources",
+            [],
+        )
+
+        source_analysis_ready = (
+            source_analysis.get("status") == "ready"
+            and isinstance(analyzed_sources, list)
+            and bool(analyzed_sources)
+        )
+
+        if source_analysis_ready:
+            lines.append("COGNITIVE WEB SOURCE CONTEXT")
+            lines.append("")
+
+            lines.append(
+                "DeDe has already retrieved and cognitively "
+                "evaluated the following web sources."
+            )
+
+            lines.append(
+                "Use this structured source context instead of "
+                "repeating the raw search snippets."
+            )
+
+            lines.append("")
+
+            lines.append(
+                f'- provider: '
+                f'{search_result.get("provider", "none")}'
+            )
+
+            lines.append(
+                f'- search status: '
+                f'{search_result.get("status", "unknown")}'
+            )
+
+            lines.append(
+                f'- analyzed source count: '
+                f'{source_analysis.get("source_count", len(analyzed_sources))}'
+            )
+
+            aggregate = source_analysis.get(
+                "aggregate",
+                {},
+            )
+
+            average_scores = aggregate.get(
+                "average_scores",
+                {},
+            )
+
+            source_type_counts = aggregate.get(
+                "source_type_counts",
+                {},
+            )
+
+            if average_scores:
+                lines.append(
+                    "- average evidence: "
+                    f'{average_scores.get("evidence_level", 0.0)}'
+                )
+
+                lines.append(
+                    "- average relevance: "
+                    f'{average_scores.get("relevance", 0.0)}'
+                )
+
+                lines.append(
+                    "- average independence: "
+                    f'{average_scores.get("independence", 0.0)}'
+                )
+
+            if source_type_counts:
+                lines.append(
+                    "- source types: "
+                    f"{source_type_counts}"
+                )
+
+            overall_summary = str(
+                source_analysis.get(
+                    "overall_summary",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            if overall_summary:
+                lines.append("")
+                lines.append("Overall source assessment:")
+                lines.append(overall_summary)
+
+            lines.append("")
+            lines.append("Evaluated sources:")
+
+            for index, source in enumerate(
+                analyzed_sources,
+                start=1,
+            ):
+                if not isinstance(source, dict):
+                    continue
+
+                analysis = source.get(
+                    "analysis",
+                    {},
+                )
+
+                if not isinstance(analysis, dict):
+                    analysis = {}
+
+                title = str(
+                    source.get(
+                        "title",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                url = str(
+                    source.get(
+                        "url",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                source_type = analysis.get(
+                    "source_type",
+                    "unknown",
+                )
+
+                evidence = analysis.get(
+                    "evidence_level",
+                    0.0,
+                )
+
+                relevance = analysis.get(
+                    "relevance",
+                    0.0,
+                )
+
+                independence = analysis.get(
+                    "independence",
+                    0.0,
+                )
+
+                summary = str(
+                    analysis.get(
+                        "summary",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                lines.append("")
+                lines.append(f"{index}. {title}")
+
+                if url:
+                    lines.append(f"   URL: {url}")
+
+                lines.append(
+                    f"   Type: {source_type}"
+                )
+
+                lines.append(
+                    f"   Evidence: {evidence}"
+                )
+
+                lines.append(
+                    f"   Relevance: {relevance}"
+                )
+
+                lines.append(
+                    f"   Independence: {independence}"
+                )
+
+                if summary:
+                    lines.append(
+                        f"   Assessment: {summary}"
+                    )
+
+            lines.append("")
+            lines.append(
+                "Answer from these evaluated sources. "
+                "Preserve useful URLs when the user requests links. "
+                "Do not reproduce long raw snippets. "
+                "Mention uncertainty or source limitations when relevant."
+            )
+
+            lines.append("")
+
+        elif results:
+            lines.append("WEB SEARCH CONTEXT")
+            lines.append("")
+
+            lines.append(
+                "Cognitive source analysis was unavailable. "
+                "Use these compact raw results cautiously."
+            )
+
+            lines.append("")
+
+            for index, item in enumerate(
+                results,
+                start=1,
+            ):
+                title = str(
+                    item.get(
+                        "title",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                url = str(
+                    item.get(
+                        "url",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                snippet = str(
+                    item.get(
+                        "snippet",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                # Safety limit: do not send enormous snippets.
+                if len(snippet) > 500:
+                    snippet = (
+                        snippet[:500].rstrip()
+                        + "..."
+                    )
+
+                lines.append(f"{index}. {title}")
+
+                if url:
+                    lines.append(f"   URL: {url}")
+
+                if snippet:
+                    lines.append(
+                        f"   Snippet: {snippet}"
+                    )
+
+                lines.append("")
+
+        elif search_summary.get("summary_text"):
             lines.append("WEB SOURCE SUMMARY")
             lines.append("")
-            lines.append(search_summary["summary_text"])
+            lines.append(
+                search_summary["summary_text"]
+            )
             lines.append("")
-
-        else:
-            results = search_result.get("results", [])
-
-            if results:
-                lines.append("WEB SEARCH CONTEXT")
-                lines.append("")
-
-                lines.append("Search provider:")
-                lines.append(
-                    f'- provider: {search_result.get("provider", "none")}'
-                )
-                lines.append(
-                    f'- status: {search_result.get("status", "disabled")}'
-                )
-                lines.append(
-                    f'- summary: {search_result.get("summary", "")}'
-                )
-                lines.append("")
-
-                lines.append("Search results found. Use these results when relevant.")
-                lines.append("")
-
-                for index, item in enumerate(results, start=1):
-                    lines.append(f"{index}. {item.get('title', '')}")
-                    lines.append(f"   URL: {item.get('url', '')}")
-                    lines.append(f"   Snippet: {item.get('snippet', '')}")
-                    lines.append("")
 
         lines.append("DEDE IDENTITY AND MEMORY CONTEXT")
         lines.append("")
