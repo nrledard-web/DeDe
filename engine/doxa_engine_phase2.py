@@ -1402,6 +1402,29 @@ class DoxaEnginePhase2:
             "final_response_analysis",
             final_response_analysis,
         )
+        
+        # --------------------------------------------------
+        # Cognitive Comparison
+        # --------------------------------------------------
+
+        cognitive_comparison = (
+            self.cognitive_comparator.compare(
+                user_analysis=workspace.interpretations.get(
+                    "user_text_analysis",
+                    {},
+                ),
+                web_analysis=workspace.interpretations.get(
+                    "web_text_analysis",
+                    {},
+                ),
+                final_analysis=final_response_analysis,
+            )
+        )
+
+        workspace.add_interpretation(
+            "cognitive_comparison",
+            cognitive_comparison,
+        )
 
         print("=" * 80)
         print("FINAL RESPONSE ANALYSIS DIAGNOSTIC")
@@ -1557,7 +1580,12 @@ class DoxaEnginePhase2:
                     {},
                 )
             ),
-            
+            "cognitive_comparison": (
+                workspace.interpretations.get(
+                    "cognitive_comparison",
+                    {},
+                )
+            ),
             "search_result": workspace.interpretations.get(
                 "search_result",
                 {},
