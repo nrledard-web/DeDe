@@ -1006,6 +1006,10 @@ class DoxaEnginePhase2:
             "source_analysis",
             source_analysis,
         )
+        print("=" * 80)
+        print("SOURCE ANALYSIS")
+        print(source_analysis)
+        print("=" * 80)
 
         print("=" * 80)
         print("SEARCH MODE :", search_mode)
