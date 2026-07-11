@@ -1308,16 +1308,116 @@ class DoxaEnginePhase2:
         # ----------------------------------------
         # Daimon Filter
         # ----------------------------------------
-        
+
         user_response = self.daimon_filter.filter_response(
             response=user_response,
             dede_state=dede_state,
         )
+
+        # --------------------------------------------------
+        # Universal Text Analysis — Final DeDe Response
+        # --------------------------------------------------
+
+        final_response_text = ""
+
+        if isinstance(user_response, str):
+            final_response_text = user_response.strip()
+
+        elif isinstance(user_response, dict):
+
+            # Most likely direct response fields.
+            response_keys = [
+                "final_answer",
+                "response",
+                "message",
+                "text",
+                "content",
+                "answer",
+                "user_facing_response",
+            ]
+
+            for response_key in response_keys:
+                candidate = user_response.get(
+                    response_key
+                )
+
+                if isinstance(candidate, str) and candidate.strip():
+                    final_response_text = candidate.strip()
+                    break
+
+            # Safe fallback for a nested dialogue structure.
+            if not final_response_text:
+                for container_key in [
+                    "dialogue",
+                    "result",
+                    "output",
+                ]:
+                    nested = user_response.get(
+                        container_key
+                    )
+
+                    if not isinstance(nested, dict):
+                        continue
+
+                    for response_key in response_keys:
+                        candidate = nested.get(
+                            response_key
+                        )
+
+                        if isinstance(candidate, str) and candidate.strip():
+                            final_response_text = candidate.strip()
+                            break
+
+                    if final_response_text:
+                        break
+
+        final_response_analysis = (
+            self.text_analysis_engine.analyze(
+                text=final_response_text,
+                source_type="final_response",
+                provenance={
+                    "origin": "dede",
+                    "role": "assistant",
+                    "llm_providers": (
+                        llm_providers
+                        or []
+                    ),
+                    "search_used": bool(
+                        search_result.get(
+                            "results",
+                            [],
+                        )
+                    ),
+                },
+                context={
+                    "search_mode": search_mode,
+                    "search_query": search_query,
+                },
+            )
+        )
+
+        workspace.add_interpretation(
+            "final_response_analysis",
+            final_response_analysis,
+        )
+
+        print("=" * 80)
+        print("FINAL RESPONSE ANALYSIS DIAGNOSTIC")
+        print("USER RESPONSE TYPE :", type(user_response).__name__)
+        print("USER RESPONSE :", user_response)
+        print("FINAL RESPONSE TEXT :", repr(final_response_text))
+        print(
+            "FINAL ANALYSIS STATUS :",
+            final_response_analysis.get(
+                "status",
+            ),
+        )
+        print("=" * 80)
+
         workspace.add_interpretation(
             "user_response",
             user_response,
         )
-        
     
         # --------------------------------------------------
         # Phase 4.20
