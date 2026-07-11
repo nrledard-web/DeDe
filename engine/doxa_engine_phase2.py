@@ -49,6 +49,7 @@ Report
 """
 
 from typing import Any
+import re
 
 from search.search_engine import SearchEngine
 from search.search_validator import SearchValidator
