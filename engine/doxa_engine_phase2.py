@@ -937,6 +937,75 @@ class DoxaEnginePhase2:
             "web_text_analysis",
             web_text_analysis,
         )
+        
+        # --------------------------------------------------
+        # Cognitive Source Analysis
+        # --------------------------------------------------
+
+        retrieved_sources = search_result.get(
+            "results",
+            [],
+        )
+
+        if retrieved_sources:
+
+            if enable_llm and llm_providers:
+                source_analysis_prompt = (
+                    self.source_analysis_engine.build_prompt(
+                        search_results=retrieved_sources,
+                        user_request=text,
+                        search_query=search_query,
+                    )
+                )
+
+                source_analysis_response = self.llm_engine.ask(
+                    prompt=source_analysis_prompt,
+                    profile="fast",
+                    providers=llm_providers,
+                    enabled=True,
+                )
+
+                source_analysis = (
+                    self.source_analysis_engine.parse_response(
+                        model_response=source_analysis_response.get(
+                            "response",
+                            "",
+                        ),
+                        search_results=retrieved_sources,
+                    )
+                )
+
+            else:
+                source_analysis = (
+                    self.source_analysis_engine.unavailable(
+                        search_results=retrieved_sources,
+                        reason=(
+                            "Source analysis requires an active "
+                            "reasoning model."
+                        ),
+                    )
+                )
+
+        else:
+            source_analysis = {
+                "engine": "source_analysis_engine",
+                "status": "empty",
+                "source_count": 0,
+                "sources": [],
+                "aggregate": {
+                    "source_type_counts": {},
+                    "average_scores": {},
+                },
+                "overall_summary": (
+                    "No retrieved source was available for analysis."
+                ),
+                "raw_response": "",
+            }
+
+        workspace.add_interpretation(
+            "source_analysis",
+            source_analysis,
+        )
 
         print("=" * 80)
         print("SEARCH MODE :", search_mode)
@@ -1573,6 +1642,12 @@ class DoxaEnginePhase2:
             "web_text_analysis": (
                 workspace.interpretations.get(
                     "web_text_analysis",
+                    {},
+                )
+            ),
+            "source_analysis": (
+                workspace.interpretations.get(
+                    "source_analysis",
                     {},
                 )
             ),
