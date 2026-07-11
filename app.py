@@ -451,7 +451,29 @@ if text:
 
     anchor_engine = RealWorldAnchor()
 
-    anchor_result = anchor_engine.analyze(text)
+    source_analysis = report.get(
+        "source_analysis",
+        {},
+    )
+
+    search_validation = report.get(
+        "search_validation",
+        {},
+    )
+
+    cognitive_comparison = report.get(
+        "cognitive_comparison",
+        {},
+    )
+
+    anchor_result = anchor_engine.analyze(
+        text=text,
+        source_analysis=source_analysis,
+        search_validation=search_validation,
+        cognitive_comparison=cognitive_comparison,
+    )
+
+    report["real_world_anchor"] = anchor_result
 
     st.session_state.conversation_history = report.get(
         "conversation_history",
