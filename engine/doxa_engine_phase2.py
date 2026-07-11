@@ -645,6 +645,12 @@ class DoxaEnginePhase2:
 
                     if candidate_query:
                         search_query = candidate_query
+                    
+                        search_query = self._clean_search_query(
+                            query=search_query,
+                            original_text=original_search_request,
+                        )
+                    
                         query_rewrite_status = "success"
 
             search_query_data = {
