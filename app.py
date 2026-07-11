@@ -628,6 +628,70 @@ if text:
             st.json(final_response_analysis)
 
         # --------------------------------------------------
+        # Cognitive Comparison
+        # --------------------------------------------------
+
+        st.subheader("Cognitive Comparison")
+
+        cognitive_comparison = report.get(
+            "cognitive_comparison",
+            {},
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric(
+                "Comparison Status",
+                cognitive_comparison.get(
+                    "status",
+                    "N/A",
+                ),
+            )
+
+        with col2:
+            st.metric(
+                "Warnings",
+                cognitive_comparison.get(
+                    "warning_count",
+                    0,
+                ),
+            )
+
+        st.write(
+            cognitive_comparison.get(
+                "summary",
+                "",
+            )
+        )
+
+        warnings = cognitive_comparison.get(
+            "warnings",
+            [],
+        )
+
+        for warning in warnings:
+            message = warning.get(
+                "message",
+                "",
+            )
+
+            severity = warning.get(
+                "severity",
+                "medium",
+            )
+
+            if severity == "high":
+                st.error(message)
+            else:
+                st.warning(message)
+
+        with st.expander(
+            "Cognitive Comparison Details"
+        ):
+            st.json(cognitive_comparison)
+
+        # --------------------------------------------------
         # Autobiographical Memory
         # --------------------------------------------------
 
