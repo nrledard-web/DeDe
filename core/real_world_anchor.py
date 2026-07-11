@@ -351,35 +351,101 @@ class RealWorldAnchor:
         cognitive_comparison: dict[str, Any],
     ) -> dict[str, Any]:
         """
-        Convert the existing source analysis into a simple
-        external anchoring score.
+        Convert the existing source analysis into
+        an external epistemic anchoring score.
         """
 
-        source_count = self._safe_int(
-            source_analysis.get(
-                "source_count",
-                source_analysis.get("sources", 0),
-            )
+        sources = source_analysis.get(
+            "sources",
+            [],
         )
 
-        evidence = self._normalize_score(
-            source_analysis.get(
-                "average_evidence",
-                source_analysis.get(
-                    "average_evidence_score",
-                    0.0,
-                ),
+        if not isinstance(sources, list):
+            sources = []
+
+        source_count = len(sources)
+
+        evidence_values = []
+        relevance_values = []
+        independence_values = []
+        commercial_pressure_values = []
+        ideological_pressure_values = []
+
+        for source in sources:
+            if not isinstance(source, dict):
+                continue
+
+            analysis = source.get(
+                "analysis",
+                {},
             )
+
+            if not isinstance(analysis, dict):
+                continue
+
+            evidence_values.append(
+                self._normalize_score(
+                    analysis.get(
+                        "evidence_level",
+                        0.0,
+                    )
+                )
+            )
+
+            relevance_values.append(
+                self._normalize_score(
+                    analysis.get(
+                        "relevance",
+                        0.0,
+                    )
+                )
+            )
+
+            independence_values.append(
+                self._normalize_score(
+                    analysis.get(
+                        "independence",
+                        0.0,
+                    )
+                )
+            )
+
+            commercial_pressure_values.append(
+                self._normalize_score(
+                    analysis.get(
+                        "commercial_pressure",
+                        0.0,
+                    )
+                )
+            )
+
+            ideological_pressure_values.append(
+                self._normalize_score(
+                    analysis.get(
+                        "ideological_pressure",
+                        0.0,
+                    )
+                )
+            )
+
+        evidence = self._average(
+            evidence_values
         )
 
-        relevance = self._normalize_score(
-            source_analysis.get(
-                "average_relevance",
-                source_analysis.get(
-                    "average_relevance_score",
-                    0.0,
-                ),
-            )
+        relevance = self._average(
+            relevance_values
+        )
+
+        independence = self._average(
+            independence_values
+        )
+
+        commercial_pressure = self._average(
+            commercial_pressure_values
+        )
+
+        ideological_pressure = self._average(
+            ideological_pressure_values
         )
 
         if source_count <= 0:
@@ -399,6 +465,12 @@ class RealWorldAnchor:
             search_validation
         )
 
+        if (
+            validation_score == 0.0
+            and source_count > 0
+        ):
+            validation_score = 1.0
+
         (
             comparison_score,
             comparison_risk,
@@ -407,11 +479,26 @@ class RealWorldAnchor:
             cognitive_comparison
         )
 
-        score = (
-            evidence * 0.35
-            + relevance * 0.30
+        quality_score = (
+            evidence * 0.30
+            + relevance * 0.25
+            + independence * 0.20
             + quantity * 0.15
             + validation_score * 0.10
+        )
+
+        pressure_penalty = (
+            commercial_pressure * 0.40
+            + ideological_pressure * 0.40
+        )
+
+        score = (
+            quality_score
+            - pressure_penalty * 0.20
+        )
+
+        score = (
+            score * 0.90
             + comparison_score * 0.10
         )
 
@@ -421,9 +508,10 @@ class RealWorldAnchor:
         )
 
         confidence = (
-            evidence * 0.40
-            + relevance * 0.25
-            + quantity * 0.15
+            evidence * 0.30
+            + relevance * 0.20
+            + independence * 0.20
+            + quantity * 0.10
             + validation_score * 0.10
             + comparison_score * 0.10
         )
@@ -440,11 +528,35 @@ class RealWorldAnchor:
                 else "unavailable"
             ),
             "score": round(score, 3),
-            "confidence": round(confidence, 3),
+            "confidence": round(
+                confidence,
+                3,
+            ),
             "source_count": source_count,
-            "evidence": round(evidence, 3),
-            "relevance": round(relevance, 3),
-            "quantity": round(quantity, 3),
+            "evidence": round(
+                evidence,
+                3,
+            ),
+            "relevance": round(
+                relevance,
+                3,
+            ),
+            "independence": round(
+                independence,
+                3,
+            ),
+            "quantity": round(
+                quantity,
+                3,
+            ),
+            "commercial_pressure": round(
+                commercial_pressure,
+                3,
+            ),
+            "ideological_pressure": round(
+                ideological_pressure,
+                3,
+            ),
             "validation_score": round(
                 validation_score,
                 3,
@@ -545,6 +657,15 @@ class RealWorldAnchor:
         risk = warning_penalty
 
         return score, risk, warning_count
+
+    def _average(
+        self,
+        values: list[float],
+    ) -> float:
+        if not values:
+            return 0.0
+
+        return sum(values) / len(values)
 
     def _normalize_score(
         self,
