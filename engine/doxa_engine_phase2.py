@@ -1705,6 +1705,68 @@ class DoxaEnginePhase2:
     
         return report
 
+    def _clean_search_query(
+        self,
+        query: str,
+        original_text: str = "",
+    ) -> str:
+        """
+        Remove residual output-format words from a query already
+        rewritten by the reasoning model.
+        """
+
+        cleaned = str(query or "").strip()
+
+        if not cleaned:
+            cleaned = str(original_text or "").strip()
+
+        if not cleaned:
+            return ""
+
+        removable_words = {
+            "link",
+            "links",
+            "website",
+            "websites",
+            "webpage",
+            "webpages",
+            "lien",
+            "liens",
+            "site",
+            "sites",
+            "enlace",
+            "enlaces",
+            "sitio",
+            "sitios",
+        }
+
+        words = cleaned.split()
+
+        filtered_words = [
+            word
+            for word in words
+            if word.lower().strip(
+                ".,;:!?()[]{}"
+            ) not in removable_words
+        ]
+
+        cleaned = " ".join(
+            filtered_words
+        ).strip()
+
+        cleaned = re.sub(
+            r"\s+",
+            " ",
+            cleaned,
+        ).strip()
+
+        if len(cleaned) < 2:
+            return str(
+                original_text or query or ""
+            ).strip()
+
+        return cleaned
+
     def _build_summary(
         self,
         workspace: CognitiveWorkspace,
