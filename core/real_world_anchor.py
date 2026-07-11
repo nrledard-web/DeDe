@@ -229,10 +229,8 @@ class RealWorldAnchor:
         )
 
         if external_evidence_available:
-            anchor_score = (
-                textual_anchor * 0.30
-                + external_anchor["score"] * 0.70
-            )
+            anchor_score = external_anchor["score"]
+            
         else:
             anchor_score = textual_anchor
 
