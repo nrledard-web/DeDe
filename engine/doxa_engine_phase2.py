@@ -62,6 +62,7 @@ from core.cognitive_workspace import CognitiveWorkspace
 from knowledge.knowledge_agent import KnowledgeAgent
 from knowledge.concept_extractor import ConceptExtractor
 from knowledge.url_reader import URLReader
+from knowledge.philosophical_retriever import PhilosophicalRetriever
 
 from semantic.semantic_engine import SemanticEngine
 from semantic.semantic_reasoner import SemanticReasoner
@@ -134,6 +135,7 @@ class DoxaEnginePhase2:
         self.knowledge = KnowledgeAgent()
         self.url_reader = URLReader()
         self.concept_extractor = ConceptExtractor()
+        self.philosophical_retriever = PhilosophicalRetriever()
         self.semantic_engine = SemanticEngine()
         self.semantic_reasoner = SemanticReasoner()
         self.semantic_graph = SemanticGraph()
