@@ -51,13 +51,18 @@ class LLMConnector:
         dede_identity = dede_identity or {}
         dede_state = dede_state or {}
         
-        search_result = search_result or {}   # <-- à ajouter
-        
         search_result = search_result or {}
         search_summary = search_summary or {}
         source_analysis = source_analysis or {}
         url_read_result = url_read_result or {}
-
+        
+        grounding_state = self._build_grounding_state(
+            search_result=search_result,
+            source_analysis=source_analysis,
+            url_read_result=url_read_result,
+            retrieved_memory=retrieved_memory,
+        )
+        
         system_prompt = self._build_system_prompt()
 
         cognitive_context = self._build_cognitive_context(
@@ -74,32 +79,63 @@ class LLMConnector:
             search_summary=search_summary,
             source_analysis=source_analysis,
             url_read_result=url_read_result,
+            grounding_state=grounding_state,
         )
        
-        search_results = search_result.get(
-            "results",
-            [],
+        search_has_results = grounding_state.get(
+            "search_snippets_available",
+            False,
         )
-        
-        search_has_results = len(search_results) > 0
 
-        if search_has_results:
+        document_opened = grounding_state.get(
+            "document_opened",
+            False,
+        )
+
+        if document_opened:
             user_prompt = (
                 "Prepare DeDe's user-facing response to the following message. "
-                "DeDe has already performed a web search and evaluated the "
-                "retrieved sources. "
-                "Use the COGNITIVE WEB SOURCE CONTEXT as the primary support. "
-                "Do not reproduce raw search-result dumps. "
+                "A document or webpage has actually been opened and its extracted "
+                "content is available in URL READING CONTEXT. "
+                "Use that extracted content as the primary source. "
+                "You may say that DeDe opened, accessed, read or analyzed the page "
+                "only when the extracted text is sufficient to support that claim. "
+                "Do not invent information absent from the extracted content. "
+                "Clearly identify any inference as an inference. "
                 "Give a direct synthesis adapted to the user's request. "
-                "Preserve useful URLs when links were requested. "
-                "Respect the reported source quality, relevance and limitations. "
-                "Do not say that you cannot access the Internet.\n\n"
+                "Do not expose internal analysis unnecessarily.\n\n"
                 f"User message:\n{text}"
             )
+
+        elif search_has_results:
+            user_prompt = (
+                "Prepare DeDe's user-facing response to the following message. "
+                "DeDe has retrieved search-result titles, URLs and snippets, but "
+                "has not opened or read the full pages. "
+                "Use the COGNITIVE WEB SOURCE CONTEXT as support. "
+                "Never claim that DeDe read, opened, examined or analyzed the full "
+                "document when only search snippets are available. "
+                "Use formulations such as 'the search result indicates', "
+                "'the available snippet says', or their natural equivalent in "
+                "the user's language when this distinction matters. "
+                "Do not attribute claims, examples, quotations or proposals to "
+                "a document unless they appear in the supplied context. "
+                "Clearly identify any inference as an inference. "
+                "Preserve useful URLs when links were requested. "
+                "Respect source quality, relevance and limitations. "
+                "Do not say that DeDe cannot access the Internet because search "
+                "results are already available.\n\n"
+                f"User message:\n{text}"
+            )
+
         else:
             user_prompt = (
                 "Prepare DeDe's user-facing response to the following message. "
+                "No external source has been retrieved or opened for this turn. "
                 "Use the cognitive context only as internal support. "
+                "Do not present internal knowledge, memory or inference as recent "
+                "external verification. "
+                "Clearly identify uncertainty when required. "
                 "Do not call the user an input. "
                 "Do not expose internal analysis unless it is useful.\n\n"
                 f"User message:\n{text}"
@@ -122,6 +158,7 @@ class LLMConnector:
             "user_prompt": user_prompt,
             "full_prompt": full_prompt,
             "search_result": search_result,
+            "grounding_state": grounding_state,
             "summary": (
                 "LLM prompt package prepared from DeDe's memory, "
                 "identity, foundational knowledge, graph, compiled "
@@ -134,34 +171,209 @@ class LLMConnector:
             "You are connected to DeDe, a symbolic cognitive architecture. "
             "DeDe is a Cognitive Daimon, not a chatbot and not a simple analyst. "
             "Your role is to help DeDe prepare a natural user-facing response. "
+
             "Use the provided identity, memory, foundational knowledge, "
             "self model, cognitive graph, compiled state and reasoner output "
             "as internal support only. "
+
             "Never reduce the speaker to an input. "
             "Treat the speaker as a person. "
+            "You may naturally use the person's known preferred name. "
+            "Using a person's name does not prove memory, familiarity or prior "
+            "knowledge about that person. "
+            "Never imply memory of an earlier interaction unless relevant memory "
+            "is explicitly supplied in the context. "
+
             "Preserve revisability without blocking direct answers. "
             "Do not answer with phrases like 'the input appears' or "
             "'the utterance suggests' in the user-facing response. "
+
             "If the user writes in French, respond in French. "
             "If the user writes in English, respond in English. "
             "If the user writes in Spanish, respond in Spanish. "
             "If the user writes in Filipino or Tagalog, respond in Filipino. "
             "If the user switches language, follow the latest user language. "
-            "When WEB SEARCH CONTEXT contains search results, treat those results "
-            "as information already retrieved by DeDe. Use them as the primary source "
-            "when answering search-related questions. Never say that you cannot access "
-            "the Internet if search results are present. Instead, summarize the supplied "
-            "results and include useful URLs. "
-            "If web search results are present in the context, use them as external "
-            "information for the answer. Do not say that you cannot access the Internet "
-            "when search results are already provided. Do not ask the user to search "
-            "manually if useful search results are present. Summarize the supplied links "
-            "and URLs whenever relevant."
+
+            "Respect epistemic provenance. "
+            "Distinguish between search snippets, opened documents, memory, "
+            "internal knowledge and inference. "
+
+            "Search-result titles and snippets do not mean that the full linked "
+            "documents were opened or read. "
+            "When only search snippets are available, never say that DeDe read, "
+            "opened, studied, examined or analyzed the full page or document. "
+
+            "Only state that a webpage or document was opened or read when "
+            "GROUNDING STATE indicates document_opened=true and extracted content "
+            "is present in URL READING CONTEXT. "
+
+            "Never invent claims, quotations, examples, people, arguments, "
+            "references or proposals that are absent from the supplied source "
+            "context. "
+
+            "When making a conclusion that goes beyond the supplied evidence, "
+            "identify it as an inference. "
+            "Do not transform an inference into a verified fact. "
+
+            "When web search results are present, use them as external information "
+            "and preserve useful URLs when relevant. "
+            "Do not say that you cannot access the Internet when search results "
+            "have already been supplied. "
+            "Do not ask the user to search manually when useful results are present. "
+
+            "When source limitations materially affect the answer, state those "
+            "limitations naturally and concisely."
             + "\n\n"
             + build_json_instruction()
         )
 
         return system_prompt
+
+    def _build_grounding_state(
+        self,
+        search_result: dict[str, Any],
+        source_analysis: dict[str, Any],
+        url_read_result: dict[str, Any],
+        retrieved_memory: dict[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Describe what evidence is actually available for the current turn.
+
+        This prevents DeDe from confusing:
+        - a search-result snippet,
+        - cognitive evaluation of retrieved results,
+        - an actually opened document,
+        - retrieved memory,
+        - and inference.
+        """
+
+        search_result = search_result or {}
+        source_analysis = source_analysis or {}
+        url_read_result = url_read_result or {}
+        retrieved_memory = retrieved_memory or {}
+
+        search_results = search_result.get(
+            "results",
+            [],
+        )
+
+        if not isinstance(search_results, list):
+            search_results = []
+
+        analyzed_sources = source_analysis.get(
+            "sources",
+            [],
+        )
+
+        if not isinstance(analyzed_sources, list):
+            analyzed_sources = []
+
+        document_text = str(
+            url_read_result.get(
+                "text",
+                "",
+            )
+            or ""
+        ).strip()
+
+        search_snippets_available = bool(search_results)
+
+        sources_cognitively_evaluated = (
+            source_analysis.get("status") == "ready"
+            and bool(analyzed_sources)
+        )
+
+        document_opened = (
+            url_read_result.get("status") == "success"
+            and bool(document_text)
+        )
+
+        extracted_document_text_available = bool(
+            document_text
+        )
+
+        relevant_facts = retrieved_memory.get(
+            "relevant_facts",
+            [],
+        )
+
+        relevant_notes = retrieved_memory.get(
+            "relevant_notes",
+            [],
+        )
+
+        relevant_memory_available = bool(
+            relevant_facts
+            or relevant_notes
+        )
+
+        if document_opened:
+            strongest_external_evidence = "opened_document"
+
+        elif sources_cognitively_evaluated:
+            strongest_external_evidence = (
+                "evaluated_search_material"
+            )
+
+        elif search_snippets_available:
+            strongest_external_evidence = "search_snippets"
+
+        else:
+            strongest_external_evidence = "none"
+
+        return {
+            "engine": "grounding_state",
+            "status": "ready",
+            "search_snippets_available": (
+                search_snippets_available
+            ),
+            "sources_cognitively_evaluated": (
+                sources_cognitively_evaluated
+            ),
+            "document_opened": document_opened,
+            "extracted_document_text_available": (
+                extracted_document_text_available
+            ),
+            "relevant_memory_available": (
+                relevant_memory_available
+            ),
+            "strongest_external_evidence": (
+                strongest_external_evidence
+            ),
+            "search_result_count": len(search_results),
+            "evaluated_source_count": len(analyzed_sources),
+            "opened_url": (
+                url_read_result.get("url", "")
+                if document_opened
+                else ""
+            ),
+            "rules": [
+                (
+                    "A search snippet is not equivalent to "
+                    "reading the full document."
+                ),
+                (
+                    "Cognitive source evaluation does not prove "
+                    "that the full linked page was opened."
+                ),
+                (
+                    "A document may be described as opened only "
+                    "when extracted page text is available."
+                ),
+                (
+                    "Memory must not be presented as current "
+                    "external verification."
+                ),
+                (
+                    "Any conclusion beyond available evidence "
+                    "must be identified as inference."
+                ),
+            ],
+            "summary": (
+                "Grounding state identifies the strongest evidence "
+                f"available as '{strongest_external_evidence}'."
+            ),
+        }
 
     def _build_cognitive_context(
         self,
@@ -178,9 +390,55 @@ class LLMConnector:
         search_summary: dict[str, Any],
         source_analysis: dict[str, Any],
         url_read_result: dict[str, Any],
+        grounding_state: dict[str, Any],
     ) -> str:
 
         lines = []
+
+        grounding_state = grounding_state or {}
+
+        lines.append("GROUNDING STATE")
+        lines.append("")
+
+        lines.append(
+            "- search_snippets_available: "
+            f'{grounding_state.get("search_snippets_available", False)}'
+        )
+
+        lines.append(
+            "- sources_cognitively_evaluated: "
+            f'{grounding_state.get("sources_cognitively_evaluated", False)}'
+        )
+
+        lines.append(
+            "- document_opened: "
+            f'{grounding_state.get("document_opened", False)}'
+        )
+
+        lines.append(
+            "- extracted_document_text_available: "
+            f'{grounding_state.get("extracted_document_text_available", False)}'
+        )
+
+        lines.append(
+            "- relevant_memory_available: "
+            f'{grounding_state.get("relevant_memory_available", False)}'
+        )
+
+        lines.append(
+            "- strongest_external_evidence: "
+            f'{grounding_state.get("strongest_external_evidence", "none")}'
+        )
+
+        lines.append("")
+        lines.append(
+            "Epistemic instruction: use only the strongest evidence level "
+            "actually available. Search snippets are not full-document reading. "
+            "Source evaluation is an evaluation of retrieved material, not proof "
+            "that the full source was opened. Identify unsupported extensions "
+            "as inference."
+        )
+        lines.append("")
 
         # --------------------------------------------------
         # URL Reader
