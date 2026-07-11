@@ -692,6 +692,93 @@ if text:
             st.json(cognitive_comparison)
 
         # --------------------------------------------------
+        # Cognitive Source Analysis
+        # --------------------------------------------------
+
+        st.subheader("Cognitive Source Analysis")
+
+        source_analysis = report.get(
+            "source_analysis",
+            {},
+        )
+
+        source_aggregate = source_analysis.get(
+            "aggregate",
+            {},
+        )
+
+        average_scores = source_aggregate.get(
+            "average_scores",
+            {},
+        )
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric(
+                "Sources",
+                source_analysis.get(
+                    "source_count",
+                    0,
+                ),
+            )
+
+        with col2:
+            evidence_score = average_scores.get(
+                "evidence_level"
+            )
+
+            st.metric(
+                "Average Evidence",
+                (
+                    f"{evidence_score:.0%}"
+                    if isinstance(
+                        evidence_score,
+                        (int, float),
+                    )
+                    else "N/A"
+                ),
+            )
+
+        with col3:
+            relevance_score = average_scores.get(
+                "relevance"
+            )
+
+            st.metric(
+                "Average Relevance",
+                (
+                    f"{relevance_score:.0%}"
+                    if isinstance(
+                        relevance_score,
+                        (int, float),
+                    )
+                    else "N/A"
+                ),
+            )
+
+        st.write(
+            source_analysis.get(
+                "overall_summary",
+                "",
+            )
+        )
+
+        st.write("Source Types")
+
+        st.json(
+            source_aggregate.get(
+                "source_type_counts",
+                {},
+            )
+        )
+
+        with st.expander(
+            "Cognitive Source Analysis Details"
+        ):
+            st.json(source_analysis)
+
+        # --------------------------------------------------
         # Autobiographical Memory
         # --------------------------------------------------
 
