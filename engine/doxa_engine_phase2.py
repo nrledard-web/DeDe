@@ -460,6 +460,27 @@ class DoxaEnginePhase2:
         workspace = self.semantic_reasoner.run(workspace)
 
         # --------------------------------------------------
+        # Foundational Philosophical Retrieval
+        # --------------------------------------------------
+
+        concept_data = workspace.interpretations.get(
+            "concepts",
+            {},
+        )
+
+        philosophical_context = (
+            self.philosophical_retriever.retrieve(
+                text=text,
+                concept_data=concept_data,
+            )
+        )
+
+        workspace.add_interpretation(
+            "philosophical_context",
+            philosophical_context,
+        )
+
+        # --------------------------------------------------
         # Phase 5.4b
         # Search Provider
         # --------------------------------------------------
