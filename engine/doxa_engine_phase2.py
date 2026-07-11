@@ -112,6 +112,7 @@ from agents.nouscope_agent import NOUSCOPEAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
 
 from analysis.text_analysis_engine import TextAnalysisEngine
+from analysis.cognitive_comparator import CognitiveComparator
 
 class DoxaEnginePhase2:
     """
@@ -175,6 +176,7 @@ class DoxaEnginePhase2:
         self.search_query_builder = SearchQueryBuilder()
         self.search_summarizer = SearchSummarizer()
         self.text_analysis_engine = TextAnalysisEngine()
+        self.cognitive_comparator = CognitiveComparator()
 
         # --------------------------------------------------
         # LLM preparation layers
