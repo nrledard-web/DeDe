@@ -1175,10 +1175,12 @@ class DoxaEnginePhase2:
             user_memory=user_memory,
             persistent_memory=self.persistent_memory.get_memory(),
             retrieved_memory=retrieved_memory,
+            autobiographical_reasoning=autobiographical_reasoning,
             dede_identity=identity_state,
             dede_state=dede_state,
             search_result=search_result,
             search_summary=search_summary,
+            source_analysis=source_analysis,
             url_read_result=url_read_result,
         )
 
