@@ -7,6 +7,7 @@ from engine.doxa_engine_phase2 import DoxaEnginePhase2
 from pathlib import Path
 from core.real_world_anchor import RealWorldAnchor
 from tools.media.image_generator import ImageGenerator
+from tools.tool_manager import ToolManager
 
 def pct(value):
     if value is None:
