@@ -26,6 +26,32 @@ class PhilosophicalRetriever:
 
     name = "philosophical_retriever"
 
+    # Fields that may enrich a philosophical node.
+    # Unknown fields remain ignored so the ontology can evolve safely.
+    CONTENT_FIELDS = [
+        "axioms",
+        "principles",
+        "stages",
+        "process",
+        "steps",
+        "mechanism",
+        "examples",
+        "counter_examples",
+        "misconceptions",
+        "confusions",
+        "safeguards",
+        "ethical_limits",
+        "applications",
+        "questions",
+        "human_stages",
+        "ai_stages",
+        "checks",
+        "standard_closed_loop",
+        "anti_coherence_process",
+        "well_calibrated_outcomes",
+        "poorly_calibrated_outcomes",
+    ]
+
     def retrieve(
         self,
         text: str,
@@ -92,28 +118,10 @@ class PhilosophicalRetriever:
                 continue
 
             selected_nodes.append(
-                {
-                    "id": node_id,
-                    "label": node.get(
-                        "label",
-                        node_id,
-                    ),
-                    "summary": node.get(
-                        "summary",
-                        "",
-                    ),
-                    "principles": node.get(
-                        "principles",
-                        [],
-                    ),
-                    "formula": node.get(
-                        "formula",
-                    ),
-                    "relations": node.get(
-                        "relations",
-                        [],
-                    ),
-                }
+                self._prepare_node(
+                    node_id=node_id,
+                    node=node,
+                )
             )
 
         relations = self._collect_relations(
@@ -148,6 +156,43 @@ class PhilosophicalRetriever:
                 )
             ),
         }
+
+    def _prepare_node(
+        self,
+        node_id: str,
+        node: dict[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Keep only philosophically useful fields while allowing
+        the ontology structure to evolve.
+        """
+
+        prepared: dict[str, Any] = {
+            "id": node_id,
+            "label": node.get(
+                "label",
+                node_id,
+            ),
+            "summary": node.get(
+                "summary",
+                "",
+            ),
+            "formula": node.get(
+                "formula",
+            ),
+            "relations": node.get(
+                "relations",
+                [],
+            ),
+        }
+
+        for field in self.CONTENT_FIELDS:
+            value = node.get(field)
+
+            if value:
+                prepared[field] = value
+
+        return prepared
 
     def _score_node(
         self,
@@ -341,6 +386,11 @@ class PhilosophicalRetriever:
                 "framework. Do not replace these definitions with "
                 "generic LLM definitions."
             ),
+            (
+                "When a process, sequence, distinction, example, "
+                "misconception or safeguard is supplied, use it "
+                "explicitly when it directly answers the question."
+            ),
             "",
         ]
 
@@ -371,20 +421,26 @@ class PhilosophicalRetriever:
                     f"- formula: {formula}"
                 )
 
-            principles = node.get(
-                "principles",
-                [],
-            )
+            for field in self.CONTENT_FIELDS:
+                value = node.get(field)
 
-            if principles:
-                lines.append(
-                    "- principles:"
+                if not value:
+                    continue
+
+                readable_name = field.replace(
+                    "_",
+                    " ",
                 )
 
-                for principle in principles:
-                    lines.append(
-                        f"  - {principle}"
-                    )
+                lines.append(
+                    f"- {readable_name}:"
+                )
+
+                self._append_value(
+                    lines=lines,
+                    value=value,
+                    indent="  ",
+                )
 
             lines.append("")
 
@@ -418,10 +474,111 @@ class PhilosophicalRetriever:
                     "Preserve the distinction between a useful reduction "
                     "and a reduction whose limits have been forgotten."
                 ),
+                (
+                    "Memory preserves information. Understanding relates "
+                    "information. Continuity of understanding preserves "
+                    "the evolution of those relations through time."
+                ),
+                (
+                    "DeDe must accompany thought without replacing its "
+                    "author. The person remains responsible for judgment."
+                ),
             ]
         )
 
         return "\n".join(lines)
+
+    def _append_value(
+        self,
+        lines: list[str],
+        value: Any,
+        indent: str,
+    ) -> None:
+        """
+        Render strings, lists and dictionaries as compact prompt text.
+        """
+
+        if isinstance(value, str):
+            lines.append(
+                f"{indent}- {value}"
+            )
+            return
+
+        if isinstance(value, dict):
+            for key, item in value.items():
+                readable_key = str(key).replace(
+                    "_",
+                    " ",
+                )
+
+                if isinstance(
+                    item,
+                    (dict, list),
+                ):
+                    lines.append(
+                        f"{indent}- {readable_key}:"
+                    )
+
+                    self._append_value(
+                        lines=lines,
+                        value=item,
+                        indent=indent + "  ",
+                    )
+                else:
+                    lines.append(
+                        f"{indent}- {readable_key}: {item}"
+                    )
+
+            return
+
+        if isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    rendered_parts = []
+
+                    for key, item_value in item.items():
+                        readable_key = str(key).replace(
+                            "_",
+                            " ",
+                        )
+
+                        if not isinstance(
+                            item_value,
+                            (dict, list),
+                        ):
+                            rendered_parts.append(
+                                f"{readable_key}: {item_value}"
+                            )
+
+                    if rendered_parts:
+                        lines.append(
+                            f"{indent}- "
+                            + " | ".join(rendered_parts)
+                        )
+                    else:
+                        self._append_value(
+                            lines=lines,
+                            value=item,
+                            indent=indent,
+                        )
+
+                elif isinstance(item, list):
+                    self._append_value(
+                        lines=lines,
+                        value=item,
+                        indent=indent,
+                    )
+
+                else:
+                    lines.append(
+                        f"{indent}- {item}"
+                    )
+
+            return
+
+        lines.append(
+            f"{indent}- {value}"
+        )
 
     def _normalize(
         self,
