@@ -470,20 +470,41 @@ with st.expander(
             with st.spinner(
                 "DeDe is generating the image..."
             ):
-                image_generator = ImageGenerator(
-                    api_key=st.secrets[
-                        "OPENAI_API_KEY"
-                    ],
+                tool_result = (
+                    st.session_state.tool_manager.run(
+                        tool_name="image_generator",
+                        arguments={
+                            "prompt": image_prompt,
+                            "size": image_size,
+                            "quality": image_quality,
+                            "transparent_background": (
+                                transparent_background
+                            ),
+                        },
+                    )
                 )
 
-                image_result = image_generator.generate(
-                    prompt=image_prompt,
-                    size=image_size,
-                    quality=image_quality,
-                    transparent_background=(
-                        transparent_background
+                image_result = {
+                    "tool": tool_result.get(
+                        "tool",
+                        "image_generator",
                     ),
-                )
+                    "status": tool_result.get(
+                        "status",
+                        "error",
+                    ),
+                    "error": tool_result.get(
+                        "error",
+                    ),
+                    "summary": tool_result.get(
+                        "summary",
+                        "",
+                    ),
+                    **tool_result.get(
+                        "data",
+                        {},
+                    ),
+                }
 
             st.session_state[
                 "last_generated_image"
