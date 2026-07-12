@@ -359,7 +359,6 @@ PHILOSOPHICAL_ONTOLOGY: dict[str, dict[str, Any]] = {
                 ),
             },
         ],
-
     "forty_two": {
         "label": "42",
         "aliases": [
