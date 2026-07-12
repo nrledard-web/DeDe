@@ -23,6 +23,32 @@ class ImageGenerator:
 
     name = "image_generator"
 
+    description = (
+        "Generate one image from a natural-language description."
+    )
+
+    input_schema = {
+        "prompt": {
+            "type": "string",
+            "required": True,
+        },
+        "size": {
+            "type": "string",
+            "required": False,
+            "default": "1024x1024",
+        },
+        "quality": {
+            "type": "string",
+            "required": False,
+            "default": "medium",
+        },
+        "transparent_background": {
+            "type": "boolean",
+            "required": False,
+            "default": False,
+        },
+    }
+
     ALLOWED_SIZES = {
         "1024x1024",
         "1024x1536",
@@ -159,3 +185,21 @@ class ImageGenerator:
                 "error": str(error),
                 "image_bytes": None,
             }
+
+    def run(
+        self,
+        prompt: str,
+        size: str = "1024x1024",
+        quality: str = "medium",
+        transparent_background: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Standard ToolManager entry point.
+        """
+
+        return self.generate(
+            prompt=prompt,
+            size=size,
+            quality=quality,
+            transparent_background=transparent_background,
+        )
