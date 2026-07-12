@@ -340,13 +340,14 @@ PHILOSOPHICAL_ONTOLOGY: dict[str, dict[str, Any]] = {
                 "description": (
                     "It is a successful and explicit reduction, not a case "
                     "of mecroyance by itself."
+                ),
+            },
+            {
                 "target": "counting_reduction",
                 "type": "requires_prior",
                 "description": (
                     "The equation operates only after singular realities "
                     "have been reduced to comparable units."
-                ),
-            },
                 ),
             },
             {
@@ -358,7 +359,6 @@ PHILOSOPHICAL_ONTOLOGY: dict[str, dict[str, Any]] = {
                 ),
             },
         ],
-    },
 
     "forty_two": {
         "label": "42",
