@@ -30,7 +30,7 @@ class PhilosophicalRetriever:
         self,
         text: str,
         concept_data: dict[str, Any] | None = None,
-        max_nodes: int = 6,
+        max_nodes: int = 8,
     ) -> dict[str, Any]:
         concept_data = concept_data or {}
 
