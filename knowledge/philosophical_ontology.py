@@ -1343,6 +1343,598 @@ PHILOSOPHICAL_ONTOLOGY: dict[str, dict[str, Any]] = {
             },
         ],
     },
+        "continuity_of_understanding": {
+        "label": "Continuity of Understanding",
+        "aliases": [
+            "continuity of understanding",
+            "continuité de compréhension",
+            "continuité de la compréhension",
+            "understanding continuity",
+            "evolving understanding",
+            "compréhension évolutive",
+            "missing dimension of artificial intelligence",
+            "dimension manquante de l'intelligence artificielle",
+        ],
+        "summary": (
+            "Continuity of understanding is not the storage of every past "
+            "statement. It is the preservation of how facts, beliefs, "
+            "experiences and interpretations become related, integrated "
+            "and revised through time."
+        ),
+        "axioms": [
+            "Memory preserves information.",
+            "Understanding creates relations and meaning.",
+            "Continuity preserves the evolution of those relations.",
+            "An AI may remember an entire lifetime and still fail to understand.",
+            "A true Cognitive Daimon must preserve an evolving understanding.",
+        ],
+        "principles": [
+            "Do not preserve only what a person believes.",
+            "Preserve how the belief emerged.",
+            "Do not preserve only what a person knows.",
+            "Preserve how that knowledge became integrated.",
+            "Do not preserve merely a history.",
+            "Preserve a cognitive trajectory.",
+            "Context, evolution and conceptual connection matter.",
+            "Continuity must remain corrigible and governed by the person.",
+        ],
+        "misconceptions": [
+            "More stored data automatically produces more understanding.",
+            "Remembering every conversation guarantees knowledge of the person.",
+            "A static profile is equivalent to a living cognitive trajectory.",
+            "Past interpretations should permanently define the person.",
+        ],
+        "safeguards": [
+            "Date meaningful memories and interpretations.",
+            "Distinguish present understanding from former understanding.",
+            "Allow correction and deletion.",
+            "Never turn accumulated memory into invisible authority.",
+            "Do not claim understanding when only facts have been stored.",
+        ],
+        "relations": [
+            {
+                "target": "memory",
+                "type": "exceeds",
+                "description": (
+                    "Memory is necessary for continuity, but memory alone "
+                    "does not preserve meaning or conceptual evolution."
+                ),
+            },
+            {
+                "target": "cognitive_trajectory",
+                "type": "preserved_as",
+                "description": (
+                    "Continuity becomes operational when important changes "
+                    "in understanding are represented as a trajectory."
+                ),
+            },
+            {
+                "target": "nous",
+                "type": "extends_through_time",
+                "description": (
+                    "Nous integrates knowledge at a given moment; continuity "
+                    "preserves how this integration evolves."
+                ),
+            },
+            {
+                "target": "daimon",
+                "type": "core_mission_of",
+                "description": (
+                    "The distinguishing mission of the Cognitive Daimon is "
+                    "to accompany and preserve evolving understanding."
+                ),
+            },
+            {
+                "target": "ether",
+                "type": "stabilizes_over_time",
+                "description": (
+                    "Continuity gives temporal depth to the relational space "
+                    "shared by the person and the Daimon."
+                ),
+            },
+        ],
+    },
+
+    "lifelong_memory": {
+        "label": "Lifelong Governed Memory",
+        "aliases": [
+            "lifelong memory",
+            "life long memory",
+            "mémoire à vie",
+            "mémoire de toute une vie",
+            "permanent memory",
+            "mémoire permanente",
+            "durable personal memory",
+            "mémoire personnelle durable",
+        ],
+        "summary": (
+            "Lifelong memory is persistent memory designed to accompany a "
+            "person across years while remaining inspectable, correctable, "
+            "deletable, contextualized and subordinate to the person's autonomy."
+        ),
+        "principles": [
+            "The person remains the owner of persistent memory.",
+            "Memory must remain transparent and inspectable.",
+            "Stored information may become obsolete.",
+            "Interpretations must be distinguished from facts.",
+            "Sensitive inferences require restraint and explicit justification.",
+            "Forgetting can be as important as remembering.",
+            "Memory should support continuity rather than surveillance.",
+        ],
+        "safeguards": [
+            "Allow explicit correction.",
+            "Allow selective deletion.",
+            "Allow complete reset.",
+            "Record provenance when possible.",
+            "Record dates and confidence.",
+            "Do not infer permanent identity from temporary states.",
+            "Do not use memory to manipulate behavior.",
+        ],
+        "relations": [
+            {
+                "target": "memory",
+                "type": "durable_form_of",
+                "description": (
+                    "Lifelong memory extends ordinary memory across time."
+                ),
+            },
+            {
+                "target": "continuity_of_understanding",
+                "type": "supports_but_does_not_guarantee",
+                "description": (
+                    "Persistent memory supplies material for continuity, "
+                    "but meaningful relations and revisions must also be preserved."
+                ),
+            },
+            {
+                "target": "revisability",
+                "type": "must_preserve",
+                "description": (
+                    "Every stored fact, note and interpretation remains open "
+                    "to correction or removal."
+                ),
+            },
+            {
+                "target": "daimon",
+                "type": "capacity_of",
+                "description": (
+                    "A lifelong Daimon requires durable memory governed "
+                    "by the person."
+                ),
+            },
+        ],
+    },
+
+    "cognitive_trajectory": {
+        "label": "Cognitive Trajectory",
+        "aliases": [
+            "cognitive trajectory",
+            "trajectoire cognitive",
+            "evolution of understanding",
+            "évolution de la compréhension",
+            "belief evolution",
+            "évolution des croyances",
+            "intellectual trajectory",
+            "trajectoire intellectuelle",
+        ],
+        "summary": (
+            "A cognitive trajectory represents how a person's beliefs, "
+            "knowledge, questions, uncertainties and conceptual relations "
+            "change through experiences and revisions."
+        ),
+        "stages": [
+            {
+                "stage": "initial_state",
+                "description": (
+                    "What the person believed, knew or questioned at a "
+                    "particular moment."
+                ),
+            },
+            {
+                "stage": "trigger",
+                "description": (
+                    "The experience, evidence, dialogue or conflict that "
+                    "made revision possible."
+                ),
+            },
+            {
+                "stage": "integration",
+                "description": (
+                    "How the new material became related to prior knowledge "
+                    "and experience."
+                ),
+            },
+            {
+                "stage": "revision",
+                "description": (
+                    "What changed, weakened, strengthened or became uncertain."
+                ),
+            },
+            {
+                "stage": "current_state",
+                "description": (
+                    "The person's present understanding, still treated "
+                    "as provisional."
+                ),
+            },
+        ],
+        "principles": [
+            "A person is not reducible to a static profile.",
+            "Former beliefs should not be confused with current beliefs.",
+            "Contradiction across time may indicate growth rather than inconsistency.",
+            "Important changes require context.",
+            "The trajectory must remain revisable.",
+        ],
+        "relations": [
+            {
+                "target": "continuity_of_understanding",
+                "type": "operational_representation_of",
+                "description": (
+                    "The trajectory makes evolving understanding representable."
+                ),
+            },
+            {
+                "target": "lifelong_memory",
+                "type": "uses",
+                "description": (
+                    "Durable memories provide evidence for reconstructing "
+                    "meaningful changes."
+                ),
+            },
+            {
+                "target": "revisability",
+                "type": "records",
+                "description": (
+                    "A trajectory represents how revision actually occurred."
+                ),
+            },
+            {
+                "target": "daimon",
+                "type": "accompanied_by",
+                "description": (
+                    "The Daimon follows and supports the trajectory without "
+                    "deciding its destination."
+                ),
+            },
+        ],
+    },
+
+    "evolving_cognitive_mirror": {
+        "label": "Evolving Cognitive Mirror",
+        "aliases": [
+            "evolving cognitive mirror",
+            "evolving mirror",
+            "miroir cognitif évolutif",
+            "miroir évolutif",
+            "ai mirror",
+            "miroir ia",
+            "reveal thought more clearly",
+            "clarifier sa pensée",
+        ],
+        "summary": (
+            "The Cognitive Daimon acts as an evolving mirror: it does not "
+            "replace the person's thought, but helps reveal, relate and "
+            "synthesize it more clearly. The person remains the author."
+        ),
+        "principles": [
+            "The AI does not think instead of the person.",
+            "It helps synthesize complex thoughts into clearer relations.",
+            "Recognition in the result should come from clarification, not imitation.",
+            "The person remains the author of judgment.",
+            "The mirror evolves through dialogue and continuity.",
+            "The mirror must also reveal uncertainty, tension and blind spots.",
+        ],
+        "misconceptions": [
+            "A useful AI should make decisions for the person.",
+            "Fluent reformulation proves perfect understanding.",
+            "Agreement is the same as accompaniment.",
+            "A personalized AI should always confirm the user.",
+        ],
+        "ethical_limits": [
+            "Do not claim superior access to the person's true self.",
+            "Do not use personalization to manipulate.",
+            "Do not erase ambiguity when ambiguity is meaningful.",
+            "Do not replace difficult judgment with artificial certainty.",
+        ],
+        "relations": [
+            {
+                "target": "daimon",
+                "type": "metaphor_for",
+                "description": (
+                    "The mirror describes how the Daimon clarifies without "
+                    "becoming sovereign."
+                ),
+            },
+            {
+                "target": "continuity_of_understanding",
+                "type": "evolves_through",
+                "description": (
+                    "The mirror becomes more useful as it understands the "
+                    "trajectory of the person's thought."
+                ),
+            },
+            {
+                "target": "revisability",
+                "type": "must_preserve",
+                "description": (
+                    "Clarification should reopen reflection rather than "
+                    "freeze interpretation."
+                ),
+            },
+            {
+                "target": "nous",
+                "type": "supports",
+                "description": (
+                    "The mirror helps connect articulated knowledge, "
+                    "experience and context."
+                ),
+            },
+        ],
+    },
+
+    "lexical_reduction": {
+        "label": "Lexical Reduction",
+        "aliases": [
+            "lexical reduction",
+            "réduction lexicale",
+            "word as reduction",
+            "mot comme réduction",
+            "a word is not just a word",
+            "un mot n'est pas seulement un mot",
+            "words are maps",
+            "les mots sont des cartes",
+            "naming",
+            "nommer",
+        ],
+        "summary": (
+            "A word is a compact cognitive reduction that carries a notion. "
+            "It selects and stabilizes part of an otherwise complex field of "
+            "perceptions, experiences, relations and contexts, making thought, "
+            "learning, communication and action possible."
+        ),
+        "process": [
+            "Reality contains more detail than cognition can process.",
+            "The cognitive system filters and groups recurring relations.",
+            "A concept forms as a reduced mental structure.",
+            "A word makes that concept communicable and reusable.",
+            "The word carries a notion, not the whole reality.",
+        ],
+        "examples": [
+            "The word 'apple' ignores countless differences between individual apples.",
+            "The word 'justice' compresses many institutions, practices and experiences.",
+            "The word 'mecroyance' isolates a structural condition previously dispersed across inadequate categories.",
+        ],
+        "principles": [
+            "Words make thinking and cooperation possible.",
+            "Every word excludes details and perspectives.",
+            "The power of a word comes from compression.",
+            "The risk begins when the word is confused with the whole phenomenon.",
+            "Better vocabulary can enable better distinctions.",
+        ],
+        "misconceptions": [
+            "Naming a phenomenon explains it completely.",
+            "A definition exhausts the reality it describes.",
+            "Technical vocabulary is automatically more truthful.",
+            "The absence of a word means the phenomenon does not exist.",
+        ],
+        "relations": [
+            {
+                "target": "reduction",
+                "type": "linguistic_form_of",
+                "description": (
+                    "A word is a reusable reduction of a larger conceptual field."
+                ),
+            },
+            {
+                "target": "mecroyance",
+                "type": "makes_visible",
+                "description": (
+                    "The word mecroyance gives cognitive visibility to "
+                    "sincere structural misunderstanding."
+                ),
+            },
+            {
+                "target": "logos",
+                "type": "supports",
+                "description": (
+                    "Words make articulated relations and examination possible."
+                ),
+            },
+            {
+                "target": "forgotten_reduction",
+                "type": "can_produce",
+                "description": (
+                    "When the word is taken for the phenomenon itself, "
+                    "its reductive character disappears."
+                ),
+            },
+        ],
+    },
+
+    "counting_reduction": {
+        "label": "Counting Reduction",
+        "aliases": [
+            "counting reduction",
+            "réduction du comptage",
+            "reduction before counting",
+            "réduction avant le comptage",
+            "comparable units",
+            "unités comparables",
+            "truth of counting",
+            "vérité du comptage",
+        ],
+        "summary": (
+            "Counting becomes possible only after unique realities have been "
+            "reduced to comparable units. The calculation is not itself the "
+            "initial reduction; it operates on units produced by a prior "
+            "selection of relevant properties."
+        ),
+        "steps": [
+            {
+                "order": 1,
+                "name": "Reality",
+                "description": (
+                    "Each object is unique and contains indefinitely many "
+                    "properties and relations."
+                ),
+            },
+            {
+                "order": 2,
+                "name": "Reduction",
+                "description": (
+                    "A cognitive system selects properties relevant to the "
+                    "current operation and ignores the rest."
+                ),
+            },
+            {
+                "order": 3,
+                "name": "Comparable Units",
+                "description": (
+                    "Different realities are treated as equivalent instances "
+                    "of a chosen category."
+                ),
+            },
+            {
+                "order": 4,
+                "name": "Counting",
+                "description": (
+                    "Mathematical operations become possible on the "
+                    "constructed comparable units."
+                ),
+            },
+            {
+                "order": 5,
+                "name": "Result",
+                "description": (
+                    "The result is valid within the defined system but is not "
+                    "an exhaustive description of the original realities."
+                ),
+            },
+        ],
+        "examples": [
+            "Four different apples can be treated as four comparable units.",
+            "Two people plus two people equals four people for counting, while their individual differences remain irreducible.",
+            "2 + 2 = 4 is a truth of counting after the units have been defined.",
+        ],
+        "principles": [
+            "Reduction does not invalidate mathematical truth.",
+            "Formal truth depends on defined units and operations.",
+            "The ignored differences remain part of reality.",
+            "The result becomes dangerous only when treated as exhaustive.",
+        ],
+        "misconceptions": [
+            "Calling mathematics a reduction means mathematics is false.",
+            "The number four contains all properties of the four counted objects.",
+            "Comparable units exist independently of a selected criterion.",
+        ],
+        "relations": [
+            {
+                "target": "two_plus_two",
+                "type": "explains",
+                "description": (
+                    "It supplies the missing prior sequence behind 2 + 2 = 4."
+                ),
+            },
+            {
+                "target": "reduction",
+                "type": "specific_mechanism_of",
+                "description": (
+                    "Counting demonstrates a productive and explicit reduction."
+                ),
+            },
+            {
+                "target": "forgotten_reduction",
+                "type": "becomes_dangerous_when",
+                "description": (
+                    "The formal result is mistaken for an exhaustive account "
+                    "of the counted realities."
+                ),
+            },
+            {
+                "target": "logos",
+                "type": "formalizes",
+                "description": (
+                    "Counting articulates stable symbolic relations between "
+                    "defined units."
+                ),
+            },
+        ],
+    },
+
+    "intention_continuity": {
+        "label": "Continuity of Intention",
+        "aliases": [
+            "continuity of intention",
+            "continuité de l'intention",
+            "understand my intention",
+            "comprendre mon intention",
+            "no more prompts",
+            "moins de prompts",
+            "better understanding instead of better prompts",
+            "mieux comprendre plutôt que mieux prompter",
+        ],
+        "summary": (
+            "As relational and cognitive continuity grows, a Daimon may need "
+            "less explicit instruction because it better recognizes the "
+            "person's vocabulary, projects, reasoning habits and recurring "
+            "intentions. This is contextual understanding, not mind reading."
+        ),
+        "principles": [
+            "Intent must be inferred from context with calibrated confidence.",
+            "Familiarity can reduce unnecessary explanation.",
+            "Natural dialogue should replace excessive prompt engineering.",
+            "Uncertainty must remain visible.",
+            "Sensitive or consequential intentions require confirmation.",
+            "The person may always correct the interpretation.",
+        ],
+        "misconceptions": [
+            "The Daimon literally reads thoughts.",
+            "Past preferences determine every future intention.",
+            "Personalization removes the need for consent.",
+            "Confidence from familiarity guarantees correctness.",
+        ],
+        "safeguards": [
+            "Ask for confirmation when consequences are important.",
+            "Distinguish explicit intent from inferred intent.",
+            "Do not infer sensitive attributes unnecessarily.",
+            "Allow the person to reject the inferred context.",
+            "Do not use familiarity to steer decisions covertly.",
+        ],
+        "relations": [
+            {
+                "target": "continuity_of_understanding",
+                "type": "enabled_by",
+                "description": (
+                    "Understanding the person's trajectory makes recurring "
+                    "intentions easier to interpret."
+                ),
+            },
+            {
+                "target": "lifelong_memory",
+                "type": "uses_cautiously",
+                "description": (
+                    "Persistent context can reduce repetition while remaining "
+                    "subordinate to present intent."
+                ),
+            },
+            {
+                "target": "ether",
+                "type": "emerges_within",
+                "description": (
+                    "Shared vocabulary and contextual familiarity develop "
+                    "inside the relational space of dialogue."
+                ),
+            },
+            {
+                "target": "evolving_cognitive_mirror",
+                "type": "supports",
+                "description": (
+                    "Better contextual understanding allows clearer reflection "
+                    "of the person's developing thought."
+                ),
+            },
+        ],
+    },
 }
 
 def get_philosophical_node(
