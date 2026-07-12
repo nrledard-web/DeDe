@@ -1343,6 +1343,7 @@ PHILOSOPHICAL_ONTOLOGY: dict[str, dict[str, Any]] = {
             },
         ],
     },
+}
 
 def get_philosophical_node(
     node_id: str,
