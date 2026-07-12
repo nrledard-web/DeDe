@@ -45,6 +45,24 @@ if "GOOGLE_API_KEY" in st.secrets:
     os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 
 # --------------------------------------------------
+# DeDe Tool Layer
+# --------------------------------------------------
+
+if "tool_manager" not in st.session_state:
+    tool_manager = ToolManager()
+
+    if "OPENAI_API_KEY" in st.secrets:
+        tool_manager.register(
+            ImageGenerator(
+                api_key=st.secrets[
+                    "OPENAI_API_KEY"
+                ],
+            )
+        )
+
+    st.session_state.tool_manager = tool_manager
+
+# --------------------------------------------------
 # Force light theme / mobile readability
 # --------------------------------------------------
 
