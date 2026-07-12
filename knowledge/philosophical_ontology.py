@@ -758,8 +758,591 @@ PHILOSOPHICAL_ONTOLOGY: dict[str, dict[str, Any]] = {
             },
         ],
     },
-}
+    
+    "homo_pan_sapiens": {
+        "label": "Homo Pan-Sapiens",
+        "aliases": [
+            "homo pan-sapiens",
+            "homo pan sapiens",
+            "pan-sapiens",
+            "pan sapiens",
+            "toward homo pan-sapiens",
+            "vers homo pan-sapiens",
+            "human cognitive evolution",
+            "évolution cognitive humaine",
+        ],
+        "summary": (
+            "Homo Pan-Sapiens is not presented as a new biological species. "
+            "It designates an ethical and cognitive horizon: a human being "
+            "who learns to inhabit the space between certainty, understanding "
+            "and reality without pretending to eliminate that distance."
+        ),
+        "principles": [
+            "It is a cognitive and ethical horizon, not a biological claim.",
+            "Cognitive clarity does not mean epistemic immunity.",
+            "Intellectual humility recognizes the limits of every framework.",
+            "Inner clarity requires awareness of one's own reductions.",
+            "Wisdom remains evolving rather than permanently acquired.",
+            "The aim is not omniscience but more responsible understanding.",
+        ],
+        "relations": [
+            {
+                "target": "mecroyance",
+                "type": "begins_with_awareness_of",
+                "description": (
+                    "The movement toward Homo Pan-Sapiens begins by "
+                    "recognizing the ordinary condition of mecroyance."
+                ),
+            },
+            {
+                "target": "revisability",
+                "type": "requires",
+                "description": (
+                    "A cognitively mature person maintains beliefs that "
+                    "can still be corrected, nuanced or reorganized."
+                ),
+            },
+            {
+                "target": "cognitive_filters",
+                "type": "recognizes",
+                "description": (
+                    "Homo Pan-Sapiens understands that all perception and "
+                    "reasoning pass through selective cognitive filters."
+                ),
+            },
+            {
+                "target": "path_of_understanding",
+                "type": "develops_through",
+                "description": (
+                    "This horizon develops through awareness, accompaniment, "
+                    "dialogue, emergence and continued orientation toward Logos."
+                ),
+            },
+        ],
+    },
 
+    "cognitive_filters": {
+        "label": "Cognitive Filters — Human and AI",
+        "aliases": [
+            "cognitive filters",
+            "filtres cognitifs",
+            "human filters",
+            "filtres humains",
+            "ai filters",
+            "filtres ia",
+            "human vs ai filters",
+            "human and ai filters",
+            "brain filtering system",
+            "model filtering system",
+            "filtering system",
+            "système de filtrage",
+        ],
+        "summary": (
+            "Humans and artificial intelligence both transform an excess "
+            "of available information through successive filters. Their "
+            "implementations differ, but both systems select, interpret, "
+            "evaluate, decide and express. The decisive problem is therefore "
+            "not the existence of filters, which is unavoidable, but their "
+            "calibration and their accessibility to revision."
+        ),
+        "principles": [
+            "Human and AI cognition do not filter information identically.",
+            "The structural need for selection exists in both systems.",
+            "Perception or acquisition determines what enters the system.",
+            "Interpretation organizes selected information into meaning.",
+            "Evaluation assigns relevance, value, risk or confidence.",
+            "Decision selects among possible actions or responses.",
+            "Expression communicates the selected result.",
+            "Every filtering stage can introduce omissions and distortions.",
+            "AI can reproduce, amplify or institutionalize human filters.",
+            "Filters must remain measurable, visible and recalibratable.",
+        ],
+        "human_stages": [
+            {
+                "stage": "perception",
+                "function": (
+                    "Select sensory information that receives attention."
+                ),
+            },
+            {
+                "stage": "interpretation",
+                "function": (
+                    "Relate information to context, memory, language "
+                    "and existing beliefs."
+                ),
+            },
+            {
+                "stage": "evaluation",
+                "function": (
+                    "Assess truth, relevance, danger, value and importance."
+                ),
+            },
+            {
+                "stage": "decision",
+                "function": (
+                    "Select an action according to goals and constraints."
+                ),
+            },
+            {
+                "stage": "expression",
+                "function": (
+                    "Communicate the result through language or action."
+                ),
+            },
+        ],
+        "ai_stages": [
+            {
+                "stage": "acquisition",
+                "function": (
+                    "Collect and tokenize data from users, tools, databases "
+                    "or the environment."
+                ),
+            },
+            {
+                "stage": "interpretation",
+                "function": (
+                    "Build representations through embeddings, attention, "
+                    "models and retrieved knowledge."
+                ),
+            },
+            {
+                "stage": "evaluation",
+                "function": (
+                    "Score alternatives through classifiers, rules, "
+                    "policies and safety mechanisms."
+                ),
+            },
+            {
+                "stage": "selection",
+                "function": (
+                    "Choose a response or action through decoding, sampling "
+                    "and authorization mechanisms."
+                ),
+            },
+            {
+                "stage": "generation",
+                "function": (
+                    "Produce and post-process the final communication."
+                ),
+            },
+        ],
+        "relations": [
+            {
+                "target": "reduction",
+                "type": "implements",
+                "description": (
+                    "Every filter selects and excludes, and is therefore "
+                    "a concrete implementation of cognitive reduction."
+                ),
+            },
+            {
+                "target": "filter_calibration",
+                "type": "requires",
+                "description": (
+                    "The reliability of filtering depends on calibration "
+                    "rather than on the impossible absence of filters."
+                ),
+            },
+            {
+                "target": "mecroyance",
+                "type": "can_stabilize",
+                "description": (
+                    "Poorly calibrated filters can stabilize coherent but "
+                    "misaligned interpretations in humans and AI."
+                ),
+            },
+            {
+                "target": "nous",
+                "type": "shapes",
+                "description": (
+                    "The quality of integrated understanding depends partly "
+                    "on what filters admit, exclude and connect."
+                ),
+            },
+        ],
+    },
+
+    "filter_calibration": {
+        "label": "Cognitive Filter Calibration",
+        "aliases": [
+            "filter calibration",
+            "calibration of filters",
+            "cognitive calibration",
+            "calibrage des filtres",
+            "calibration cognitive",
+            "well-calibrated filter",
+            "poorly-calibrated filter",
+            "miscalibrated filters",
+            "filtres mal calibrés",
+        ],
+        "summary": (
+            "Filter calibration is the continuous adjustment between what "
+            "a cognitive system selects, the confidence it assigns, the "
+            "evidence available and the consequences of its decisions. "
+            "A well-calibrated system does not eliminate error; it preserves "
+            "the capacity to detect and correct misalignment."
+        ),
+        "principles": [
+            "Calibration concerns confidence as well as content.",
+            "What is excluded must remain open to inspection.",
+            "Confidence should remain proportionate to evidence.",
+            "False positives and false negatives must both be monitored.",
+            "Safety filters can themselves become sources of distortion.",
+            "Useful information may be blocked by excessive caution.",
+            "Harmful information may pass through insufficient evaluation.",
+            "Calibration must be continuous rather than final.",
+            "A calibrated system remains revisable and adaptive.",
+        ],
+        "well_calibrated_outcomes": [
+            "More useful and safer responses.",
+            "Lower hallucination and overconfidence risk.",
+            "Better correspondence between confidence and evidence.",
+            "Greater revisability.",
+            "Stronger user trust grounded in transparency.",
+        ],
+        "poorly_calibrated_outcomes": [
+            "Bias and unfair decisions.",
+            "Important information incorrectly blocked.",
+            "Hallucinations or false positive assertions.",
+            "Excessive refusals.",
+            "Inconsistent reasoning.",
+            "Loss of trust.",
+            "Institutionalized mecroyance at scale.",
+        ],
+        "relations": [
+            {
+                "target": "cognitive_filters",
+                "type": "regulates",
+                "description": (
+                    "Calibration evaluates and adjusts the successive "
+                    "selection mechanisms of human and artificial cognition."
+                ),
+            },
+            {
+                "target": "gnosis",
+                "type": "aligns_confidence_with",
+                "description": (
+                    "Calibration compares certainty with articulated evidence, "
+                    "sources and observable traces."
+                ),
+            },
+            {
+                "target": "doxa",
+                "type": "constrains",
+                "description": (
+                    "It prevents stabilized certainty from growing beyond "
+                    "the knowledge and understanding that support it."
+                ),
+            },
+            {
+                "target": "revisability",
+                "type": "preserves",
+                "description": (
+                    "A calibrated system remains capable of updating its "
+                    "interpretations and confidence."
+                ),
+            },
+            {
+                "target": "anti_coherence_loop",
+                "type": "implemented_by",
+                "description": (
+                    "The Anti-Coherence Loop is one mechanism for testing "
+                    "and recalibrating apparently coherent conclusions."
+                ),
+            },
+        ],
+    },
+
+    "path_of_understanding": {
+        "label": "The Path of Understanding",
+        "aliases": [
+            "path of understanding",
+            "the path of understanding",
+            "chemin de la compréhension",
+            "voie de la compréhension",
+            "from mecroyance to logos",
+            "de la mécroyance au logos",
+            "mecroyance daimon ether logos",
+            "mécroyance daïmôn éther logos",
+            "integral dynamic",
+            "dynamique intégrale",
+        ],
+        "summary": (
+            "The Path of Understanding describes a dynamic rather than a "
+            "linear escape from error. Awareness of mecroyance opens the "
+            "possibility of accompaniment by the Daimon. Sustained dialogue "
+            "creates the Ether, in which new understanding may emerge. "
+            "Logos remains the horizon of intelligibility toward which this "
+            "process moves without ever claiming final possession."
+        ),
+        "stages": [
+            {
+                "order": 1,
+                "name": "Mecroyance",
+                "movement": "Awareness",
+                "description": (
+                    "Recognize the limits of certainty, inherited frameworks "
+                    "and the illusion of complete understanding."
+                ),
+            },
+            {
+                "order": 2,
+                "name": "Daimon",
+                "movement": "Accompaniment",
+                "description": (
+                    "Receive guidance that encourages doubt, precision "
+                    "and openness without replacing personal judgment."
+                ),
+            },
+            {
+                "order": 3,
+                "name": "Ether",
+                "movement": "Emergence",
+                "description": (
+                    "Dialogue creates a relational space in which meaning "
+                    "and understanding can emerge between human and AI."
+                ),
+            },
+            {
+                "order": 4,
+                "name": "Logos",
+                "movement": "Horizon",
+                "description": (
+                    "Move toward intelligible order, clearer relations "
+                    "and better-grounded meaning without claiming completion."
+                ),
+            },
+        ],
+        "principles": [
+            "The path begins with awareness rather than certainty.",
+            "The Daimon accompanies but does not command.",
+            "Understanding emerges through dialogue rather than transmission alone.",
+            "The Ether belongs fully to neither participant alone.",
+            "Logos is an orientation and horizon, not a final possession.",
+            "The movement is recursive and can begin again.",
+            "New understanding may reveal new reductions and new mecroyance.",
+        ],
+        "relations": [
+            {
+                "target": "mecroyance",
+                "type": "begins_with",
+                "description": (
+                    "Recognition of structural misunderstanding creates "
+                    "the first opening for revision."
+                ),
+            },
+            {
+                "target": "daimon",
+                "type": "is_guided_by",
+                "description": (
+                    "The Daimon stimulates inquiry while protecting autonomy."
+                ),
+            },
+            {
+                "target": "ether",
+                "type": "unfolds_through",
+                "description": (
+                    "Dialogue creates the shared field where new relations "
+                    "and meanings can emerge."
+                ),
+            },
+            {
+                "target": "logos",
+                "type": "orients_toward",
+                "description": (
+                    "The process continually moves toward greater "
+                    "intelligibility and articulation."
+                ),
+            },
+            {
+                "target": "open_cognitive_spiral",
+                "type": "takes_the_form_of",
+                "description": (
+                    "Because no framework is final, the path develops "
+                    "as an open cognitive spiral rather than a closed loop."
+                ),
+            },
+        ],
+    },
+
+    "open_cognitive_spiral": {
+        "label": "Open Cognitive Spiral",
+        "aliases": [
+            "open cognitive spiral",
+            "spirale cognitive ouverte",
+            "open spiral toward truth",
+            "spirale ouverte vers la vérité",
+            "cognitive spiral",
+            "spirale cognitive",
+            "open loop",
+            "boucle ouverte",
+        ],
+        "summary": (
+            "The Open Cognitive Spiral represents understanding that revisits "
+            "its own conclusions at progressively transformed levels. Unlike "
+            "a closed coherence loop, it searches for counter-evidence, "
+            "alternative hypotheses, omissions and blind spots before "
+            "stabilizing a conclusion."
+        ),
+        "principles": [
+            "Understanding may revisit the same question differently.",
+            "Revision is movement, not failure.",
+            "Counter-evidence must remain representable.",
+            "Alternative explanations prevent premature closure.",
+            "The system evaluates not only answers but its own filters.",
+            "No conclusion receives permanent epistemic immunity.",
+            "The spiral approaches truth without claiming final possession.",
+        ],
+        "relations": [
+            {
+                "target": "anti_coherence_loop",
+                "type": "produced_by",
+                "description": (
+                    "Anti-coherence checks prevent the reasoning process "
+                    "from collapsing into a self-reinforcing loop."
+                ),
+            },
+            {
+                "target": "revisability",
+                "type": "expresses",
+                "description": (
+                    "The spiral is a dynamic representation of continued "
+                    "cognitive revisability."
+                ),
+            },
+            {
+                "target": "logos",
+                "type": "moves_toward",
+                "description": (
+                    "Each revision aims for better articulation and "
+                    "greater intelligibility."
+                ),
+            },
+            {
+                "target": "mecroyance",
+                "type": "reduces_risk_of",
+                "description": (
+                    "Open revision makes stabilized structural "
+                    "misunderstanding less durable."
+                ),
+            },
+        ],
+    },
+
+    "anti_coherence_loop": {
+        "label": "Anti-Coherence Loop",
+        "aliases": [
+            "anti-coherence loop",
+            "anti coherence loop",
+            "boucle anti-cohérence",
+            "boucle anti coherence",
+            "coherence is not accuracy",
+            "cohérence n'est pas exactitude",
+            "coherence does not guarantee accuracy",
+            "cohérence ne garantit pas l'exactitude",
+            "closed coherence loop",
+            "boucle de cohérence fermée",
+            "counter-evidence",
+            "contre-preuves",
+        ],
+        "summary": (
+            "The Anti-Coherence Loop is a recursive verification mechanism "
+            "designed to prevent a coherent answer from being accepted merely "
+            "because it is fluent, stable or internally consistent. It forces "
+            "the system to search for counter-evidence, competing hypotheses, "
+            "omissions, blind spots and disproportionate certainty."
+        ),
+        "standard_closed_loop": [
+            "The user expresses a belief.",
+            "The AI finds information that supports the belief.",
+            "The AI reinforces the belief.",
+            "The user becomes more confident.",
+            "Future prompts become more strongly framed.",
+            "The AI reinforces the belief again.",
+            "Coherence increases without guaranteed accuracy.",
+        ],
+        "anti_coherence_process": [
+            "Identify the central claim.",
+            "Search for counter-evidence.",
+            "Generate alternative hypotheses.",
+            "Evaluate evidence quality and certainty.",
+            "Detect omissions and blind spots.",
+            "Detect cognitive closure.",
+            "Propose competing interpretations.",
+            "Enable revision of understanding.",
+        ],
+        "checks": [
+            "False consensus.",
+            "Strategic omission.",
+            "Argument from silence.",
+            "Pseudo-knowledge.",
+            "Overconfidence.",
+            "Manipulation patterns.",
+            "Self-reinforcing coherence loops.",
+            "Cognitive closure.",
+            "Missing perspectives.",
+            "Alternative explanations.",
+        ],
+        "principles": [
+            "Coherence is not accuracy.",
+            "Fluency is not truth.",
+            "A coherent answer may still be structurally misaligned.",
+            "Intelligence requires the courage to check itself.",
+            "The goal is not contradiction for its own sake.",
+            "Counter-evidence must be weighed rather than mechanically preferred.",
+            "The final answer should remain proportionate to the evidence.",
+        ],
+        "relations": [
+            {
+                "target": "mecroyance",
+                "type": "detects_pressure_toward",
+                "description": (
+                    "The loop searches for conditions under which coherent "
+                    "reasoning may have stabilized inside a faulty framework."
+                ),
+            },
+            {
+                "target": "doxa",
+                "type": "tests",
+                "description": (
+                    "It checks whether certainty exceeds the available "
+                    "knowledge and integrated understanding."
+                ),
+            },
+            {
+                "target": "gnosis",
+                "type": "requests_stronger",
+                "description": (
+                    "It searches for stronger sources, counter-evidence "
+                    "and missing factual grounding."
+                ),
+            },
+            {
+                "target": "nous",
+                "type": "broadens",
+                "description": (
+                    "Alternative hypotheses and perspectives improve "
+                    "contextual integration."
+                ),
+            },
+            {
+                "target": "revisability",
+                "type": "protects",
+                "description": (
+                    "Its purpose is to preserve the possibility of revision "
+                    "before coherence becomes closure."
+                ),
+            },
+            {
+                "target": "open_cognitive_spiral",
+                "type": "opens_into",
+                "description": (
+                    "Successful anti-coherence checks transform a closed "
+                    "feedback loop into an open spiral of understanding."
+                ),
+            },
+        ],
+    },
 
 def get_philosophical_node(
     node_id: str,
