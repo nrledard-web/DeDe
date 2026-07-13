@@ -146,7 +146,8 @@ class LLMConnector:
                 "Do not expose internal analysis unless it is useful.\n\n"
                 f"User message:\n{text}"
             )
-                    document_is_active = bool(
+            
+        document_is_active = bool(
             document_context.get(
                 "text",
                 "",
