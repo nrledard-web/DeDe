@@ -652,6 +652,50 @@ with st.expander(
                     "PDF read successfully.",
                 )
             )
+            # --------------------------------------------------
+            # Active Document
+            # --------------------------------------------------
+
+            st.session_state.active_document = {
+                "status": "ready",
+                "source_type": "pdf",
+                "filename": pdf_data.get(
+                    "filename",
+                    "document.pdf",
+                ),
+                "text": pdf_data.get(
+                    "text",
+                    "",
+                ),
+                "pages": pdf_data.get(
+                    "pages",
+                    [],
+                ),
+                "page_count": pdf_data.get(
+                    "page_count",
+                    0,
+                ),
+                "pages_read": pdf_data.get(
+                    "pages_read",
+                    0,
+                ),
+                "metadata": pdf_data.get(
+                    "metadata",
+                    {},
+                ),
+                "word_count": pdf_data.get(
+                    "word_count",
+                    0,
+                ),
+                "character_count": pdf_data.get(
+                    "character_count",
+                    0,
+                ),
+                "summary": pdf_tool_result.get(
+                    "summary",
+                    "",
+                ),
+            }
 
             col1, col2, col3 = st.columns(
                 3
@@ -683,6 +727,45 @@ with st.expander(
                         0,
                     ),
                 )
+
+    # --------------------------------------------------
+    # Active PDF Status
+    # --------------------------------------------------
+
+    active_document = st.session_state.get(
+        "active_document",
+        {},
+    )
+
+    if active_document.get("status") == "ready":
+        st.success(
+            "Active document: "
+            + active_document.get(
+                "filename",
+                "document.pdf",
+            )
+        )
+
+        st.caption(
+            f'{active_document.get("page_count", 0)} page(s) '
+            f'| {active_document.get("word_count", 0)} words'
+        )
+
+        if st.button(
+            "Remove active PDF",
+            key="remove_active_pdf",
+        ):
+            st.session_state.pop(
+                "active_document",
+                None,
+            )
+
+            st.session_state.pop(
+                "last_pdf_result",
+                None,
+            )
+
+            st.rerun()
 
             metadata = pdf_data.get(
                 "metadata",
