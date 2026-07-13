@@ -195,7 +195,7 @@ st.markdown(
         font-weight:400;
         margin-top:0;
         margin-bottom:0.3rem;">
-        A Cognitive AI Controller with Evolving Multi-AI and Multi-Tool Capabilities
+        The first Cognitive AI Controller with Evolving Multi-AI and Multi-Tool Capabilities
     </h4>
 
     <p style="
