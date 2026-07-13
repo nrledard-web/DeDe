@@ -1185,6 +1185,67 @@ if text:
             st.json(anchor_result["components"])
 
         # --------------------------------------------------
+        # Active Document
+        # --------------------------------------------------
+
+        st.subheader("Active Document")
+
+        active_document_report = report.get(
+            "document_context",
+            {},
+        )
+
+        if (
+            active_document_report.get(
+                "status"
+            )
+            == "ready"
+        ):
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.metric(
+                    "Filename",
+                    active_document_report.get(
+                        "filename",
+                        "N/A",
+                    ),
+                )
+
+            with col2:
+                st.metric(
+                    "Pages",
+                    active_document_report.get(
+                        "page_count",
+                        0,
+                    ),
+                )
+
+            with col3:
+                st.metric(
+                    "Words",
+                    active_document_report.get(
+                        "word_count",
+                        0,
+                    ),
+                )
+
+            with st.expander(
+                "Document metadata"
+            ):
+                st.json(
+                    active_document_report.get(
+                        "metadata",
+                        {},
+                    )
+                )
+
+        else:
+            st.caption(
+                "No active document."
+            )
+
+        # --------------------------------------------------
         # Search Engine
         # --------------------------------------------------
         
