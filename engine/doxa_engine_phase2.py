@@ -1622,6 +1622,44 @@ class DoxaEnginePhase2:
                     {},
                 )
             ),
+            "document_context": {
+                "status": document_context.get(
+                    "status",
+                    "unavailable",
+                ),
+                "source_type": document_context.get(
+                    "source_type",
+                    "",
+                ),
+                "filename": document_context.get(
+                    "filename",
+                    "",
+                ),
+                "page_count": document_context.get(
+                    "page_count",
+                    0,
+                ),
+                "pages_read": document_context.get(
+                    "pages_read",
+                    0,
+                ),
+                "word_count": document_context.get(
+                    "word_count",
+                    0,
+                ),
+                "character_count": document_context.get(
+                    "character_count",
+                    0,
+                ),
+                "metadata": document_context.get(
+                    "metadata",
+                    {},
+                ),
+                "summary": document_context.get(
+                    "summary",
+                    "",
+                ),
+            },
             "semantic": workspace.interpretations.get("semantic", {}),
             "semantic_reasoning": workspace.interpretations.get(
                 "semantic_reasoner",
