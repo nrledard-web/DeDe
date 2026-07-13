@@ -412,6 +412,79 @@ with st.sidebar:
             item.replace(" — planned", "")
             for item in search_provider
         ]
+    # --------------------------------------------------
+    # Tools
+    # --------------------------------------------------
+
+    st.markdown("### Tools")
+
+    st.caption(
+        "Choose active tool providers. Planned providers "
+        "show DeDe's modular architecture."
+    )
+
+    # Text Generation
+    st.markdown("#### Text Generation")
+
+    st.selectbox(
+        "Text Generator",
+        [
+            "DeDe Chat — active",
+        ],
+        index=0,
+        key="text_generator_provider",
+    )
+
+    st.caption(
+        "Active: DeDe Chat through selected reasoning models."
+    )
+
+    # Image Generation
+    st.markdown("#### Image Generation")
+
+    image_provider_label = st.selectbox(
+        "Image Provider",
+        [
+            "OpenAI Image — active",
+        ],
+        index=0,
+        key="image_provider_label",
+    )
+
+    image_provider = "openai"
+
+    st.caption(
+        "Active: OpenAI Image | "
+        "Planned: High Definition Image, Google Imagen, "
+        "Local/Open Source Image"
+    )
+
+    # Document Reading
+    st.markdown("#### Document Reading")
+
+    document_reader_label = st.selectbox(
+        "Document Reader",
+        [
+            "PyPDF + Text Reader — active",
+        ],
+        index=0,
+        key="document_reader_label",
+    )
+
+    document_reader_provider = "local"
+
+    st.caption(
+        "Active formats: PDF, TXT, Markdown | "
+        "Planned: DOCX, PPTX, XLSX, CSV, HTML, OCR/Multimodal"
+    )
+
+    # Speech and Media
+    st.markdown("#### Speech & Media")
+
+    st.caption(
+        "Active: Speech-to-Text, Text-to-Speech | "
+        "Planned: Short Video Generator"
+    )
 
 # --------------------------------------------------
 # DeDe Image Studio
@@ -566,275 +639,6 @@ with st.expander(
         )
 
 # --------------------------------------------------
-# DeDe PDF Studio
-# --------------------------------------------------
-
-with st.expander(
-    "📄 PDF Studio",
-    expanded=False,
-):
-    st.caption(
-        "Upload a PDF to extract and inspect its text."
-    )
-
-    uploaded_pdf = st.file_uploader(
-        "Choose a PDF document",
-        type=["pdf"],
-        key="pdf_studio_uploader",
-    )
-
-    pdf_max_pages = st.number_input(
-        "Maximum pages to read",
-        min_value=1,
-        max_value=500,
-        value=100,
-        step=1,
-        key="pdf_studio_max_pages",
-    )
-
-    if st.button(
-        "Read PDF",
-        key="read_pdf_button",
-        type="primary",
-    ):
-        if uploaded_pdf is None:
-            st.warning(
-                "Choose a PDF document first."
-            )
-
-        else:
-            with st.spinner(
-                "DeDe is reading the PDF..."
-            ):
-                pdf_result = (
-                    st.session_state.tool_manager.run(
-                        tool_name="pdf_reader",
-                        arguments={
-                            "file_bytes": (
-                                uploaded_pdf.getvalue()
-                            ),
-                            "filename": (
-                                uploaded_pdf.name
-                            ),
-                            "max_pages": int(
-                                pdf_max_pages
-                            ),
-                        },
-                    )
-                )
-
-            st.session_state[
-                "last_pdf_result"
-            ] = pdf_result
-
-    pdf_tool_result = st.session_state.get(
-        "last_pdf_result",
-        {},
-    )
-
-    if pdf_tool_result:
-        pdf_status = pdf_tool_result.get(
-            "status",
-            "unknown",
-        )
-
-        pdf_data = pdf_tool_result.get(
-            "data",
-            {},
-        )
-
-        if pdf_status == "success":
-            st.success(
-                pdf_tool_result.get(
-                    "summary",
-                    "PDF read successfully.",
-                )
-            )
-
-            # --------------------------------------------------
-            # Active Document
-            # --------------------------------------------------
-
-            st.session_state.active_document = {
-                "status": "ready",
-                "source_type": "pdf",
-                "filename": pdf_data.get(
-                    "filename",
-                    "document.pdf",
-                ),
-                "text": pdf_data.get(
-                    "text",
-                    "",
-                ),
-                "pages": pdf_data.get(
-                    "pages",
-                    [],
-                ),
-                "page_count": pdf_data.get(
-                    "page_count",
-                    0,
-                ),
-                "pages_read": pdf_data.get(
-                    "pages_read",
-                    0,
-                ),
-                "metadata": pdf_data.get(
-                    "metadata",
-                    {},
-                ),
-                "word_count": pdf_data.get(
-                    "word_count",
-                    0,
-                ),
-                "character_count": pdf_data.get(
-                    "character_count",
-                    0,
-                ),
-                "summary": pdf_tool_result.get(
-                    "summary",
-                    "",
-                ),
-            }
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.metric(
-                    "Pages",
-                    pdf_data.get(
-                        "page_count",
-                        0,
-                    ),
-                )
-
-            with col2:
-                st.metric(
-                    "Pages read",
-                    pdf_data.get(
-                        "pages_read",
-                        0,
-                    ),
-                )
-
-            with col3:
-                st.metric(
-                    "Words",
-                    pdf_data.get(
-                        "word_count",
-                        0,
-                    ),
-                )
-
-            metadata = pdf_data.get(
-                "metadata",
-                {},
-            )
-
-            with st.expander(
-                "PDF metadata"
-            ):
-                st.json(
-                    metadata
-                )
-
-            extracted_text = str(
-                pdf_data.get(
-                    "text",
-                    "",
-                )
-            )
-
-            st.text_area(
-                "Extracted text preview",
-                value=extracted_text[:20000],
-                height=400,
-                disabled=True,
-                key="pdf_text_preview",
-            )
-
-            if len(extracted_text) > 20000:
-                st.caption(
-                    "The preview is limited to "
-                    "20,000 characters."
-                )
-
-            st.download_button(
-                label="Download extracted text",
-                data=extracted_text.encode(
-                    "utf-8"
-                ),
-                file_name=(
-                    Path(
-                        pdf_data.get(
-                            "filename",
-                            "document.pdf",
-                        )
-                    ).stem
-                    + ".txt"
-                ),
-                mime="text/plain",
-                key="download_pdf_text",
-            )
-
-        elif pdf_status == "no_text":
-            st.warning(
-                pdf_tool_result.get(
-                    "summary",
-                    (
-                        "No text was found. "
-                        "The document may require OCR."
-                    ),
-                )
-            )
-
-        else:
-            st.error(
-                pdf_tool_result.get(
-                    "error",
-                    "PDF reading failed.",
-                )
-            )
-
-    # --------------------------------------------------
-    # Active PDF Status
-    # --------------------------------------------------
-
-    active_document = st.session_state.get(
-        "active_document",
-        {},
-    )
-
-    if active_document.get("status") == "ready":
-        st.success(
-            "Active document: "
-            + active_document.get(
-                "filename",
-                "document.pdf",
-            )
-        )
-
-        st.caption(
-            f'{active_document.get("page_count", 0)} page(s) '
-            f'| {active_document.get("word_count", 0)} words'
-        )
-
-        if st.button(
-            "Remove active PDF",
-            key="remove_active_pdf",
-        ):
-            st.session_state.pop(
-                "active_document",
-                None,
-            )
-
-            st.session_state.pop(
-                "last_pdf_result",
-                None,
-            )
-
-            st.rerun()
-
-# --------------------------------------------------
 # Chat Display
 # --------------------------------------------------
 
@@ -961,6 +765,224 @@ if audio_value:
         st.session_state["voice_text"] = voice_text
         st.success("Voice transcribed.")
         st.write(voice_text)
+
+# --------------------------------------------------
+# Document Upload
+# --------------------------------------------------
+
+st.markdown("#### 📎 Document")
+
+uploaded_document = st.file_uploader(
+    "Add a document to DeDe",
+    type=[
+        "pdf",
+        "txt",
+        "md",
+        "markdown",
+    ],
+    key="chat_document_uploader",
+    label_visibility="collapsed",
+)
+
+if uploaded_document is not None:
+    uploaded_name = uploaded_document.name
+    uploaded_extension = (
+        Path(uploaded_name)
+        .suffix
+        .lower()
+    )
+
+    document_signature = (
+        uploaded_name,
+        uploaded_document.size,
+    )
+
+    previous_signature = st.session_state.get(
+        "active_document_signature"
+    )
+
+    if document_signature != previous_signature:
+        document_result = {}
+
+        if uploaded_extension == ".pdf":
+            with st.spinner(
+                "DeDe is reading the PDF..."
+            ):
+                pdf_tool_result = (
+                    st.session_state.tool_manager.run(
+                        tool_name="pdf_reader",
+                        arguments={
+                            "file_bytes": (
+                                uploaded_document.getvalue()
+                            ),
+                            "filename": uploaded_name,
+                            "max_pages": 500,
+                        },
+                    )
+                )
+
+            if pdf_tool_result.get(
+                "status"
+            ) == "success":
+                pdf_data = pdf_tool_result.get(
+                    "data",
+                    {},
+                )
+
+                document_result = {
+                    "status": "ready",
+                    "source_type": "pdf",
+                    "filename": pdf_data.get(
+                        "filename",
+                        uploaded_name,
+                    ),
+                    "text": pdf_data.get(
+                        "text",
+                        "",
+                    ),
+                    "pages": pdf_data.get(
+                        "pages",
+                        [],
+                    ),
+                    "page_count": pdf_data.get(
+                        "page_count",
+                        0,
+                    ),
+                    "pages_read": pdf_data.get(
+                        "pages_read",
+                        0,
+                    ),
+                    "metadata": pdf_data.get(
+                        "metadata",
+                        {},
+                    ),
+                    "word_count": pdf_data.get(
+                        "word_count",
+                        0,
+                    ),
+                    "character_count": pdf_data.get(
+                        "character_count",
+                        0,
+                    ),
+                    "summary": pdf_tool_result.get(
+                        "summary",
+                        "",
+                    ),
+                }
+
+            else:
+                st.error(
+                    pdf_tool_result.get(
+                        "error",
+                        "The PDF could not be read.",
+                    )
+                )
+
+        elif uploaded_extension in {
+            ".txt",
+            ".md",
+            ".markdown",
+        }:
+            try:
+                decoded_text = (
+                    uploaded_document
+                    .getvalue()
+                    .decode(
+                        "utf-8",
+                        errors="replace",
+                    )
+                    .strip()
+                )
+
+                document_result = {
+                    "status": "ready",
+                    "source_type": (
+                        "markdown"
+                        if uploaded_extension
+                        in {".md", ".markdown"}
+                        else "text"
+                    ),
+                    "filename": uploaded_name,
+                    "text": decoded_text,
+                    "pages": [],
+                    "page_count": 0,
+                    "pages_read": 0,
+                    "metadata": {},
+                    "word_count": len(
+                        decoded_text.split()
+                    ),
+                    "character_count": len(
+                        decoded_text
+                    ),
+                    "summary": (
+                        "Text document loaded successfully."
+                    ),
+                }
+
+            except Exception as error:
+                st.error(
+                    f"Text document reading failed: {error}"
+                )
+
+        if document_result.get(
+            "status"
+        ) == "ready":
+            st.session_state.active_document = (
+                document_result
+            )
+
+            st.session_state[
+                "active_document_signature"
+            ] = document_signature
+
+active_document = st.session_state.get(
+    "active_document",
+    {},
+)
+
+if active_document.get("status") == "ready":
+    document_name = active_document.get(
+        "filename",
+        "document",
+    )
+
+    document_words = active_document.get(
+        "word_count",
+        0,
+    )
+
+    document_pages = active_document.get(
+        "page_count",
+        0,
+    )
+
+    if document_pages:
+        st.success(
+            f"Active document: {document_name} — "
+            f"{document_pages} page(s), "
+            f"{document_words} words"
+        )
+    else:
+        st.success(
+            f"Active document: {document_name} — "
+            f"{document_words} words"
+        )
+
+    if st.button(
+        "Remove document",
+        key="remove_chat_document",
+    ):
+        st.session_state.pop(
+            "active_document",
+            None,
+        )
+
+        st.session_state.pop(
+            "active_document_signature",
+            None,
+        )
+
+        st.rerun()
 
 # --------------------------------------------------
 # Chat Input
