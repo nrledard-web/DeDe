@@ -290,7 +290,18 @@ class DoxaEnginePhase2:
         Run the complete DeDe Phase 2 cognitive pipeline.
         """
 
-        workspace = CognitiveWorkspace(text=text)
+        document_context = (
+            document_context or {}
+        )
+
+        workspace = CognitiveWorkspace(
+            text=text
+        )
+
+        workspace.add_interpretation(
+            "document_context",
+            document_context,
+        )
 
         # --------------------------------------------------
         # Universal Text Analysis — User Input
