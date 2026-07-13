@@ -277,6 +277,7 @@ class DoxaEnginePhase2:
     def analyze(
         self,
         text: str,
+        document_context: dict[str, Any] | None = None,
         enable_llm: bool = False,
         search_provider: str | list[str] = "none",
         search_profile: str | None = None,
