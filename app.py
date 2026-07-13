@@ -195,7 +195,7 @@ st.markdown(
         font-weight:400;
         margin-top:0;
         margin-bottom:0.3rem;">
-        The first Cognitive AI Governor with Evolving and interchangeable Multi-AI and Multi-Tool Capabilities
+        The First Evolving Cognitive AI Governor — Built for Interchangeable AI Models and Tools
     </h4>
 
     <p style="
