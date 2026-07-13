@@ -146,6 +146,23 @@ class LLMConnector:
                 "Do not expose internal analysis unless it is useful.\n\n"
                 f"User message:\n{text}"
             )
+                    document_is_active = bool(
+            document_context.get(
+                "text",
+                "",
+            )
+        )
+
+        if document_is_active:
+            user_prompt = (
+                "An active PDF document is available in the cognitive "
+                "context. Determine whether the current request concerns "
+                "that document. If it does, answer from the document first "
+                "and clearly distinguish explicit document content from "
+                "interpretation. If the request is unrelated, answer "
+                "normally without forcing the PDF into the response.\n\n"
+                + user_prompt
+            )
 
         full_prompt = (
             "SYSTEM:\n\n"
