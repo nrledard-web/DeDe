@@ -1064,6 +1064,10 @@ if text:
 
     report = engine.analyze(
         text=text,
+        document_context=st.session_state.get(
+            "active_document",
+            {},
+        ),
         enable_llm=enable_llm,
         search_provider=search_provider,
         search_profile=(
