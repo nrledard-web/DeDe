@@ -78,6 +78,7 @@ class LLMConnector:
             retrieved_memory=retrieved_memory,
             autobiographical_reasoning=autobiographical_reasoning,
             philosophical_context=philosophical_context,
+            document_context=document_context,
             dede_identity=dede_identity,
             dede_state=dede_state,
             search_result=search_result,
@@ -390,6 +391,7 @@ class LLMConnector:
         retrieved_memory: dict[str, Any],
         autobiographical_reasoning: dict[str, Any],
         philosophical_context: dict[str, Any],
+        document_context: dict[str, Any],
         dede_identity: dict[str, Any],
         dede_state: dict[str, Any],
         search_result: dict[str, Any],
@@ -949,6 +951,83 @@ class LLMConnector:
             lines.append("")
             lines.append(
                 philosophical_prompt_context
+            )
+
+        # --------------------------------------------------
+        # Active Document Context
+        # --------------------------------------------------
+
+        document_text = str(
+            document_context.get(
+                "text",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if document_text:
+            document_filename = str(
+                document_context.get(
+                    "filename",
+                    "document.pdf",
+                )
+            )
+
+            document_page_count = (
+                document_context.get(
+                    "page_count",
+                    0,
+                )
+            )
+
+            max_document_characters = 60000
+
+            document_was_truncated = (
+                len(document_text)
+                > max_document_characters
+            )
+
+            if document_was_truncated:
+                document_text_for_prompt = (
+                    document_text[:45000]
+                    + "\n\n"
+                    + "[... DOCUMENT CONTEXT TRUNCATED ...]"
+                    + "\n\n"
+                    + document_text[-15000:]
+                )
+            else:
+                document_text_for_prompt = (
+                    document_text
+                )
+
+            lines.append("")
+            lines.append(
+                "ACTIVE DOCUMENT CONTEXT"
+            )
+            lines.append(
+                f"Filename: {document_filename}"
+            )
+            lines.append(
+                f"Pages: {document_page_count}"
+            )
+
+            if document_was_truncated:
+                lines.append(
+                    "Warning: only the beginning and end "
+                    "of this document are included."
+                )
+
+            lines.append("")
+            lines.append(
+                "Use this document as the primary local source "
+                "when the user's request concerns it. "
+                "Separate what the document explicitly states "
+                "from interpretation. Do not invent quotations, "
+                "claims or page numbers."
+            )
+            lines.append("")
+            lines.append(
+                document_text_for_prompt
             )
 
         # --------------------------------------------------
