@@ -10,6 +10,7 @@ from core.real_world_anchor import RealWorldAnchor
 from tools.media.image_generator import ImageGenerator
 from tools.tool_manager import ToolManager
 from tools.tool_governor import ToolGovernor
+from tools.documents.pdf_reader import PDFReader
 
 def pct(value):
     if value is None:
