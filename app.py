@@ -627,11 +627,9 @@ with st.expander(
                 "last_pdf_result"
             ] = pdf_result
 
-    pdf_tool_result = (
-        st.session_state.get(
-            "last_pdf_result",
-            {},
-        )
+    pdf_tool_result = st.session_state.get(
+        "last_pdf_result",
+        {},
     )
 
     if pdf_tool_result:
@@ -652,6 +650,7 @@ with st.expander(
                     "PDF read successfully.",
                 )
             )
+
             # --------------------------------------------------
             # Active Document
             # --------------------------------------------------
@@ -697,9 +696,7 @@ with st.expander(
                 ),
             }
 
-            col1, col2, col3 = st.columns(
-                3
-            )
+            col1, col2, col3 = st.columns(3)
 
             with col1:
                 st.metric(
@@ -728,45 +725,6 @@ with st.expander(
                     ),
                 )
 
-    # --------------------------------------------------
-    # Active PDF Status
-    # --------------------------------------------------
-
-    active_document = st.session_state.get(
-        "active_document",
-        {},
-    )
-
-    if active_document.get("status") == "ready":
-        st.success(
-            "Active document: "
-            + active_document.get(
-                "filename",
-                "document.pdf",
-            )
-        )
-
-        st.caption(
-            f'{active_document.get("page_count", 0)} page(s) '
-            f'| {active_document.get("word_count", 0)} words'
-        )
-
-        if st.button(
-            "Remove active PDF",
-            key="remove_active_pdf",
-        ):
-            st.session_state.pop(
-                "active_document",
-                None,
-            )
-
-            st.session_state.pop(
-                "last_pdf_result",
-                None,
-            )
-
-            st.rerun()
-
             metadata = pdf_data.get(
                 "metadata",
                 {},
@@ -788,9 +746,7 @@ with st.expander(
 
             st.text_area(
                 "Extracted text preview",
-                value=extracted_text[
-                    :20000
-                ],
+                value=extracted_text[:20000],
                 height=400,
                 disabled=True,
                 key="pdf_text_preview",
@@ -838,6 +794,45 @@ with st.expander(
                     "PDF reading failed.",
                 )
             )
+
+    # --------------------------------------------------
+    # Active PDF Status
+    # --------------------------------------------------
+
+    active_document = st.session_state.get(
+        "active_document",
+        {},
+    )
+
+    if active_document.get("status") == "ready":
+        st.success(
+            "Active document: "
+            + active_document.get(
+                "filename",
+                "document.pdf",
+            )
+        )
+
+        st.caption(
+            f'{active_document.get("page_count", 0)} page(s) '
+            f'| {active_document.get("word_count", 0)} words'
+        )
+
+        if st.button(
+            "Remove active PDF",
+            key="remove_active_pdf",
+        ):
+            st.session_state.pop(
+                "active_document",
+                None,
+            )
+
+            st.session_state.pop(
+                "last_pdf_result",
+                None,
+            )
+
+            st.rerun()
 
 # --------------------------------------------------
 # Chat Display
