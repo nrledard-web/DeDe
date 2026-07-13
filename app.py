@@ -62,7 +62,11 @@ if "tool_manager" not in st.session_state:
                 ],
             )
         )
-
+        
+    tool_manager.register(
+        PDFReader()
+    )
+    
     st.session_state.tool_manager = tool_manager
 
 if "tool_governor" not in st.session_state:
@@ -560,6 +564,197 @@ with st.expander(
                 "Image generation failed.",
             )
         )
+
+# --------------------------------------------------
+# DeDe PDF Studio
+# --------------------------------------------------
+
+with st.expander(
+    "📄 PDF Studio",
+    expanded=False,
+):
+    st.caption(
+        "Upload a PDF to extract and inspect its text."
+    )
+
+    uploaded_pdf = st.file_uploader(
+        "Choose a PDF document",
+        type=["pdf"],
+        key="pdf_studio_uploader",
+    )
+
+    pdf_max_pages = st.number_input(
+        "Maximum pages to read",
+        min_value=1,
+        max_value=500,
+        value=100,
+        step=1,
+        key="pdf_studio_max_pages",
+    )
+
+    if st.button(
+        "Read PDF",
+        key="read_pdf_button",
+        type="primary",
+    ):
+        if uploaded_pdf is None:
+            st.warning(
+                "Choose a PDF document first."
+            )
+
+        else:
+            with st.spinner(
+                "DeDe is reading the PDF..."
+            ):
+                pdf_result = (
+                    st.session_state.tool_manager.run(
+                        tool_name="pdf_reader",
+                        arguments={
+                            "file_bytes": (
+                                uploaded_pdf.getvalue()
+                            ),
+                            "filename": (
+                                uploaded_pdf.name
+                            ),
+                            "max_pages": int(
+                                pdf_max_pages
+                            ),
+                        },
+                    )
+                )
+
+            st.session_state[
+                "last_pdf_result"
+            ] = pdf_result
+
+    pdf_tool_result = (
+        st.session_state.get(
+            "last_pdf_result",
+            {},
+        )
+    )
+
+    if pdf_tool_result:
+        pdf_status = pdf_tool_result.get(
+            "status",
+            "unknown",
+        )
+
+        pdf_data = pdf_tool_result.get(
+            "data",
+            {},
+        )
+
+        if pdf_status == "success":
+            st.success(
+                pdf_tool_result.get(
+                    "summary",
+                    "PDF read successfully.",
+                )
+            )
+
+            col1, col2, col3 = st.columns(
+                3
+            )
+
+            with col1:
+                st.metric(
+                    "Pages",
+                    pdf_data.get(
+                        "page_count",
+                        0,
+                    ),
+                )
+
+            with col2:
+                st.metric(
+                    "Pages read",
+                    pdf_data.get(
+                        "pages_read",
+                        0,
+                    ),
+                )
+
+            with col3:
+                st.metric(
+                    "Words",
+                    pdf_data.get(
+                        "word_count",
+                        0,
+                    ),
+                )
+
+            metadata = pdf_data.get(
+                "metadata",
+                {},
+            )
+
+            with st.expander(
+                "PDF metadata"
+            ):
+                st.json(
+                    metadata
+                )
+
+            extracted_text = str(
+                pdf_data.get(
+                    "text",
+                    "",
+                )
+            )
+
+            st.text_area(
+                "Extracted text preview",
+                value=extracted_text[
+                    :20000
+                ],
+                height=400,
+                disabled=True,
+                key="pdf_text_preview",
+            )
+
+            if len(extracted_text) > 20000:
+                st.caption(
+                    "The preview is limited to "
+                    "20,000 characters."
+                )
+
+            st.download_button(
+                label="Download extracted text",
+                data=extracted_text.encode(
+                    "utf-8"
+                ),
+                file_name=(
+                    Path(
+                        pdf_data.get(
+                            "filename",
+                            "document.pdf",
+                        )
+                    ).stem
+                    + ".txt"
+                ),
+                mime="text/plain",
+                key="download_pdf_text",
+            )
+
+        elif pdf_status == "no_text":
+            st.warning(
+                pdf_tool_result.get(
+                    "summary",
+                    (
+                        "No text was found. "
+                        "The document may require OCR."
+                    ),
+                )
+            )
+
+        else:
+            st.error(
+                pdf_tool_result.get(
+                    "error",
+                    "PDF reading failed.",
+                )
+            )
 
 # --------------------------------------------------
 # Chat Display
