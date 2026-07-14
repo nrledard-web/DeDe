@@ -365,16 +365,18 @@ with st.sidebar:
         "Search Strategy",
         [
             "Off",
+            "Manual",
             "On Request",
             "Governor (Beta)",
         ],
-        index=1,
+        index=2,
     )
 
     st.caption(
-        "Off: no external search. "
-        "On Request: search when the message requests external information. "
-        "Governor: search automatically when verification is needed."
+        "Off: never search externally. "
+        "Manual: search only when you explicitly activate it. "
+        "On Request: search when semantic analysis detects that external information is needed. "
+        "Governor: DeDe decides automatically when verification is beneficial."
     )
 
     search_mode_map = {
