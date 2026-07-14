@@ -71,35 +71,18 @@ class CognitiveGovernor:
         ).upper().strip()
 
         # --------------------------------------------------
-        # Semantic Search Modes
+        # Search Disabled
         # --------------------------------------------------
 
-        if normalized_mode in {
-            "on_request",
-            "governor",
-        }:
-            should_search = (
-                normalized_semantic_decision == "SEARCH"
-            )
-
+        if normalized_mode == "off":
             return self._build_decision(
                 mode=normalized_mode,
-                should_search=should_search,
-                reason=(
-                    semantic_reason
-                    or (
-                        "Semantic classification requires external search."
-                        if should_search
-                        else (
-                            "Semantic classification does not require "
-                            "external search."
-                        )
-                    )
-                ),
-                explicit_request=False,
+                should_search=False,
+                reason="External search is disabled.",
+                explicit_request=explicit_request,
                 semantic_decision=normalized_semantic_decision,
             )
-            
+
         # --------------------------------------------------
         # Forced Search
         # --------------------------------------------------
@@ -114,20 +97,42 @@ class CognitiveGovernor:
             )
 
         # --------------------------------------------------
-        # Explicit Interface Request
+        # Search On Request
         # --------------------------------------------------
 
         if normalized_mode == "on_request":
+            should_search = (
+                bool(explicit_request)
+                or normalized_semantic_decision == "SEARCH"
+            )
+
+            if explicit_request:
+                reason = (
+                    "External search was explicitly requested "
+                    "for this message."
+                )
+
+            elif normalized_semantic_decision == "SEARCH":
+                reason = (
+                    semantic_reason
+                    or (
+                        "Semantic classification detected a request "
+                        "for external information."
+                    )
+                )
+
+            else:
+                reason = (
+                    semantic_reason
+                    or (
+                        "No external-search request was detected."
+                    )
+                )
+
             return self._build_decision(
                 mode=normalized_mode,
-                should_search=bool(explicit_request),
-                reason=(
-                    "The user explicitly enabled search for this message."
-                    if explicit_request
-                    else (
-                        "Search was not enabled for this message."
-                    )
-                ),
+                should_search=should_search,
+                reason=reason,
                 explicit_request=explicit_request,
                 semantic_decision=normalized_semantic_decision,
             )
