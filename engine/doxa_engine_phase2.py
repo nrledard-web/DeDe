@@ -285,6 +285,7 @@ class DoxaEnginePhase2:
         llm_profile: str = "fast",
         llm_providers: list[str] | None = None,
         conversation_history: list[dict[str, Any]] | None = None,
+        explicit_search_request: bool = False,
     ) -> dict[str, Any]:
         """
         Run the complete DeDe Phase 2 cognitive pipeline.
