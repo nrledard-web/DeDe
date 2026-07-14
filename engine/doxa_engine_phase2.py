@@ -566,6 +566,7 @@ class DoxaEnginePhase2:
 
         search_decision = self.cognitive_governor.decide_search(
             search_mode=search_mode,
+            explicit_request=explicit_search_request,
             semantic_decision=(
                 semantic_search_classification.get(
                     "decision"
