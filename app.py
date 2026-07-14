@@ -487,16 +487,21 @@ with st.sidebar:
     )
 
     # --------------------------------------------------
-    # Image Studio Settings
+    # Image Studio
     # --------------------------------------------------
 
     with st.expander(
         "🎨 Image Studio",
         expanded=False,
     ):
-        st.caption(
-            "Image settings used when you ask DeDe "
-            "to create an image in the chat."
+        image_prompt = st.text_area(
+            "Describe the image",
+            placeholder=(
+                "Example: A cinematic sunset over Barcelona, "
+                "vertical composition, realistic photography."
+            ),
+            key="image_studio_prompt",
+            height=120,
         )
 
         image_format_labels = {
@@ -532,400 +537,96 @@ with st.sidebar:
             key="image_studio_transparent",
         )
 
-    # --------------------------------------------------
-    # Voice Input
-    # --------------------------------------------------
-
-    with st.expander(
-        "🎤 Voice Input",
-        expanded=False,
-    ):
-        st.caption(
-            "Record and transcribe a voice message."
-        )
-
-        sidebar_audio = st.audio_input(
-            "Record a voice message",
-            sample_rate=16000,
-            key="sidebar_voice_audio",
-        )
-
-        if sidebar_audio:
-            st.audio(
-                sidebar_audio
-            )
-
-            if st.button(
-                "Transcribe voice",
-                key="sidebar_transcribe_voice",
-                type="primary",
-            ):
-                if "OPENAI_API_KEY" not in st.secrets:
-                    st.error(
-                        "OPENAI_API_KEY is missing."
-                    )
-
-                else:
-                    with st.spinner(
-                        "DeDe is transcribing..."
-                    ):
-                        client = OpenAI(
-                            api_key=st.secrets[
-                                "OPENAI_API_KEY"
-                            ]
-                        )
-
-                        with tempfile.NamedTemporaryFile(
-                            delete=False,
-                            suffix=".wav",
-                        ) as temporary_audio:
-                            temporary_audio.write(
-                                sidebar_audio.getvalue()
-                            )
-
-                            temporary_audio_path = (
-                                temporary_audio.name
-                            )
-
-                        try:
-                            with open(
-                                temporary_audio_path,
-                                "rb",
-                            ) as audio_file:
-                                transcript = (
-                                    client.audio.transcriptions.create(
-                                        model="whisper-1",
-                                        file=audio_file,
-                                        response_format="text",
-                                    )
-                                )
-
-                            transcribed_text = str(
-                                transcript or ""
-                            ).strip()
-
-                            st.session_state[
-                                "voice_text"
-                            ] = transcribed_text
-
-                            st.success(
-                                "Voice message transcribed."
-                            )
-
-                            st.write(
-                                transcribed_text
-                            )
-
-                        finally:
-                            try:
-                                os.remove(
-                                    temporary_audio_path
-                                )
-                            except OSError:
-                                pass
-
-        pending_voice_text = st.session_state.get(
-            "voice_text",
-            "",
-        )
-
-        if pending_voice_text:
-            st.info(
-                "The transcription is ready to be sent "
-                "to DeDe."
-            )
-
-            st.write(
-                pending_voice_text
-            )
-
-            if st.button(
-                "Clear transcription",
-                key="clear_sidebar_voice_text",
-            ):
-                st.session_state[
-                    "voice_text"
-                ] = ""
-
-                st.rerun()
-
-    # --------------------------------------------------
-    # Document Upload
-    # --------------------------------------------------
-
-    with st.expander(
-        "📎 Document Upload",
-        expanded=False,
-    ):
-        st.caption(
-            "Add a document to the current conversation."
-        )
-
-        sidebar_document = st.file_uploader(
-            "Choose a document",
-            type=[
-                "pdf",
-                "txt",
-                "md",
-                "markdown",
-            ],
-            key="sidebar_document_uploader",
-        )
-
-        if sidebar_document is not None:
-            uploaded_name = (
-                sidebar_document.name
-            )
-
-            uploaded_extension = (
-                Path(uploaded_name)
-                .suffix
-                .lower()
-            )
-
-            document_signature = (
-                uploaded_name,
-                sidebar_document.size,
-            )
-
-            previous_signature = (
-                st.session_state.get(
-                    "active_document_signature"
-                )
-            )
-
-            if (
-                document_signature
-                != previous_signature
-            ):
-                document_result = {}
-
-                if uploaded_extension == ".pdf":
-                    with st.spinner(
-                        "DeDe is reading the PDF..."
-                    ):
-                        pdf_tool_result = (
-                            st.session_state
-                            .tool_manager
-                            .run(
-                                tool_name="pdf_reader",
-                                arguments={
-                                    "file_bytes": (
-                                        sidebar_document
-                                        .getvalue()
-                                    ),
-                                    "filename": (
-                                        uploaded_name
-                                    ),
-                                    "max_pages": 500,
-                                },
-                            )
-                        )
-
-                    if (
-                        pdf_tool_result.get(
-                            "status"
-                        )
-                        == "success"
-                    ):
-                        pdf_data = (
-                            pdf_tool_result.get(
-                                "data",
-                                {},
-                            )
-                        )
-
-                        document_result = {
-                            "status": "ready",
-                            "source_type": "pdf",
-                            "filename": pdf_data.get(
-                                "filename",
-                                uploaded_name,
-                            ),
-                            "text": pdf_data.get(
-                                "text",
-                                "",
-                            ),
-                            "pages": pdf_data.get(
-                                "pages",
-                                [],
-                            ),
-                            "page_count": pdf_data.get(
-                                "page_count",
-                                0,
-                            ),
-                            "pages_read": pdf_data.get(
-                                "pages_read",
-                                0,
-                            ),
-                            "metadata": pdf_data.get(
-                                "metadata",
-                                {},
-                            ),
-                            "word_count": pdf_data.get(
-                                "word_count",
-                                0,
-                            ),
-                            "character_count": (
-                                pdf_data.get(
-                                    "character_count",
-                                    0,
-                                )
-                            ),
-                            "summary": (
-                                pdf_tool_result.get(
-                                    "summary",
-                                    "",
-                                )
-                            ),
-                        }
-
-                    else:
-                        st.error(
-                            pdf_tool_result.get(
-                                "error",
-                                (
-                                    "The PDF could "
-                                    "not be read."
-                                ),
-                            )
-                        )
-
-                elif uploaded_extension in {
-                    ".txt",
-                    ".md",
-                    ".markdown",
-                }:
-                    try:
-                        decoded_text = (
-                            sidebar_document
-                            .getvalue()
-                            .decode(
-                                "utf-8",
-                                errors="replace",
-                            )
-                            .strip()
-                        )
-
-                        document_result = {
-                            "status": "ready",
-                            "source_type": (
-                                "markdown"
-                                if uploaded_extension
-                                in {
-                                    ".md",
-                                    ".markdown",
-                                }
-                                else "text"
-                            ),
-                            "filename": uploaded_name,
-                            "text": decoded_text,
-                            "pages": [],
-                            "page_count": 0,
-                            "pages_read": 0,
-                            "metadata": {},
-                            "word_count": len(
-                                decoded_text.split()
-                            ),
-                            "character_count": len(
-                                decoded_text
-                            ),
-                            "summary": (
-                                "Text document "
-                                "loaded successfully."
-                            ),
-                        }
-
-                    except Exception as error:
-                        st.error(
-                            "Text document reading "
-                            f"failed: {error}"
-                        )
-
-                if (
-                    document_result.get(
-                        "status"
-                    )
-                    == "ready"
-                ):
-                    st.session_state[
-                        "active_document"
-                    ] = document_result
-
-                    st.session_state[
-                        "active_document_signature"
-                    ] = document_signature
-
-                    st.success(
-                        "Document loaded."
-                    )
-
-        active_document = (
-            st.session_state.get(
-                "active_document",
-                {},
-            )
-        )
-
-        if (
-            active_document.get(
-                "status"
-            )
-            == "ready"
+        if st.button(
+            "Generate image",
+            key="generate_image_button",
+            type="primary",
         ):
-            document_name = (
-                active_document.get(
-                    "filename",
-                    "document",
+            if not image_prompt.strip():
+                st.warning(
+                    "Describe the image before starting generation."
                 )
-            )
 
-            document_words = (
-                active_document.get(
-                    "word_count",
-                    0,
-                )
-            )
-
-            document_pages = (
-                active_document.get(
-                    "page_count",
-                    0,
-                )
-            )
-
-            st.markdown(
-                f"**Active document:**  \n"
-                f"{document_name}"
-            )
-
-            if document_pages:
-                st.caption(
-                    f"{document_pages} page(s) | "
-                    f"{document_words} words"
-                )
             else:
-                st.caption(
-                    f"{document_words} words"
+                with st.spinner(
+                    "DeDe is generating the image..."
+                ):
+                    tool_result = (
+                        st.session_state.tool_manager.run(
+                            tool_name="image_generator",
+                            arguments={
+                                "prompt": image_prompt,
+                                "size": image_size,
+                                "quality": image_quality,
+                                "transparent_background": (
+                                    transparent_background
+                                ),
+                            },
+                        )
+                    )
+
+                image_result = {
+                    "tool": tool_result.get(
+                        "tool",
+                        "image_generator",
+                    ),
+                    "status": tool_result.get(
+                        "status",
+                        "error",
+                    ),
+                    "error": tool_result.get(
+                        "error",
+                    ),
+                    "summary": tool_result.get(
+                        "summary",
+                        "",
+                    ),
+                    **tool_result.get(
+                        "data",
+                        {},
+                    ),
+                }
+
+                st.session_state[
+                    "last_generated_image"
+                ] = image_result
+
+        generated_image = st.session_state.get(
+            "last_generated_image",
+            {},
+        )
+
+        if generated_image.get(
+            "status"
+        ) == "success":
+            image_bytes = generated_image.get(
+                "image_bytes"
+            )
+
+            if image_bytes:
+                st.image(
+                    image_bytes,
+                    caption="Generated by DeDe",
+                    width="stretch",
                 )
 
-            if st.button(
-                "Remove document",
-                key="remove_sidebar_document",
-            ):
-                st.session_state.pop(
-                    "active_document",
-                    None,
+                st.download_button(
+                    label="Download PNG",
+                    data=image_bytes,
+                    file_name="dede_generated_image.png",
+                    mime="image/png",
+                    key="download_generated_image",
                 )
 
-                st.session_state.pop(
-                    "active_document_signature",
-                    None,
+        elif generated_image.get(
+            "status"
+        ) == "error":
+            st.error(
+                generated_image.get(
+                    "error",
+                    "Image generation failed.",
                 )
-
-                st.rerun()
-
-
+            )
 
 # --------------------------------------------------
 # Chat Display
@@ -1014,6 +715,264 @@ for index, item in enumerate(
                     "Tool execution failed.",
                 )
             )
+
+# --------------------------------------------------
+# Voice Input / Speech to Text
+# --------------------------------------------------
+
+st.subheader("Voice input")
+
+audio_value = st.audio_input(
+    "Record a voice message",
+    sample_rate=16000,
+    key="voice_audio_input",
+)
+
+voice_text = ""
+
+if audio_value:
+    st.audio(audio_value)
+
+    if st.button("Transcribe voice", key="transcribe_voice_button"):
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".wav",
+        ) as tmp:
+            tmp.write(audio_value.getvalue())
+            tmp_path = tmp.name
+
+        with open(tmp_path, "rb") as audio_file:
+            transcript = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                response_format="text",
+            )
+
+        voice_text = transcript.strip()
+
+        st.session_state["voice_text"] = voice_text
+        st.success("Voice transcribed.")
+        st.write(voice_text)
+
+# --------------------------------------------------
+# Document Upload
+# --------------------------------------------------
+
+st.markdown("#### 📎 Document")
+
+uploaded_document = st.file_uploader(
+    "Add a document to DeDe",
+    type=[
+        "pdf",
+        "txt",
+        "md",
+        "markdown",
+    ],
+    key="chat_document_uploader",
+    label_visibility="collapsed",
+)
+
+if uploaded_document is not None:
+    uploaded_name = uploaded_document.name
+    uploaded_extension = (
+        Path(uploaded_name)
+        .suffix
+        .lower()
+    )
+
+    document_signature = (
+        uploaded_name,
+        uploaded_document.size,
+    )
+
+    previous_signature = st.session_state.get(
+        "active_document_signature"
+    )
+
+    if document_signature != previous_signature:
+        document_result = {}
+
+        if uploaded_extension == ".pdf":
+            with st.spinner(
+                "DeDe is reading the PDF..."
+            ):
+                pdf_tool_result = (
+                    st.session_state.tool_manager.run(
+                        tool_name="pdf_reader",
+                        arguments={
+                            "file_bytes": (
+                                uploaded_document.getvalue()
+                            ),
+                            "filename": uploaded_name,
+                            "max_pages": 500,
+                        },
+                    )
+                )
+
+            if pdf_tool_result.get(
+                "status"
+            ) == "success":
+                pdf_data = pdf_tool_result.get(
+                    "data",
+                    {},
+                )
+
+                document_result = {
+                    "status": "ready",
+                    "source_type": "pdf",
+                    "filename": pdf_data.get(
+                        "filename",
+                        uploaded_name,
+                    ),
+                    "text": pdf_data.get(
+                        "text",
+                        "",
+                    ),
+                    "pages": pdf_data.get(
+                        "pages",
+                        [],
+                    ),
+                    "page_count": pdf_data.get(
+                        "page_count",
+                        0,
+                    ),
+                    "pages_read": pdf_data.get(
+                        "pages_read",
+                        0,
+                    ),
+                    "metadata": pdf_data.get(
+                        "metadata",
+                        {},
+                    ),
+                    "word_count": pdf_data.get(
+                        "word_count",
+                        0,
+                    ),
+                    "character_count": pdf_data.get(
+                        "character_count",
+                        0,
+                    ),
+                    "summary": pdf_tool_result.get(
+                        "summary",
+                        "",
+                    ),
+                }
+
+            else:
+                st.error(
+                    pdf_tool_result.get(
+                        "error",
+                        "The PDF could not be read.",
+                    )
+                )
+
+        elif uploaded_extension in {
+            ".txt",
+            ".md",
+            ".markdown",
+        }:
+            try:
+                decoded_text = (
+                    uploaded_document
+                    .getvalue()
+                    .decode(
+                        "utf-8",
+                        errors="replace",
+                    )
+                    .strip()
+                )
+
+                document_result = {
+                    "status": "ready",
+                    "source_type": (
+                        "markdown"
+                        if uploaded_extension
+                        in {".md", ".markdown"}
+                        else "text"
+                    ),
+                    "filename": uploaded_name,
+                    "text": decoded_text,
+                    "pages": [],
+                    "page_count": 0,
+                    "pages_read": 0,
+                    "metadata": {},
+                    "word_count": len(
+                        decoded_text.split()
+                    ),
+                    "character_count": len(
+                        decoded_text
+                    ),
+                    "summary": (
+                        "Text document loaded successfully."
+                    ),
+                }
+
+            except Exception as error:
+                st.error(
+                    f"Text document reading failed: {error}"
+                )
+
+        if document_result.get(
+            "status"
+        ) == "ready":
+            st.session_state.active_document = (
+                document_result
+            )
+
+            st.session_state[
+                "active_document_signature"
+            ] = document_signature
+
+active_document = st.session_state.get(
+    "active_document",
+    {},
+)
+
+if active_document.get("status") == "ready":
+    document_name = active_document.get(
+        "filename",
+        "document",
+    )
+
+    document_words = active_document.get(
+        "word_count",
+        0,
+    )
+
+    document_pages = active_document.get(
+        "page_count",
+        0,
+    )
+
+    if document_pages:
+        st.success(
+            f"Active document: {document_name} — "
+            f"{document_pages} page(s), "
+            f"{document_words} words"
+        )
+    else:
+        st.success(
+            f"Active document: {document_name} — "
+            f"{document_words} words"
+        )
+
+    if st.button(
+        "Remove document",
+        key="remove_chat_document",
+    ):
+        st.session_state.pop(
+            "active_document",
+            None,
+        )
+
+        st.session_state.pop(
+            "active_document_signature",
+            None,
+        )
+
+        st.rerun()
 
 # --------------------------------------------------
 # Chat Input
