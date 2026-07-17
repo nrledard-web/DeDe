@@ -28,6 +28,11 @@ class KimiProvider:
         selected_model = model or self.default_model
 
         if not self.api_key:
+            print(
+                "KIMI PROVIDER: API key missing.",
+                flush=True,
+            )
+
             return {
                 "provider": self.name,
                 "status": "missing_api_key",
@@ -67,6 +72,12 @@ class KimiProvider:
             }
 
         except Exception as error:
+            print(
+                "KIMI PROVIDER ERROR:",
+                repr(error),
+                flush=True,
+            )
+
             return {
                 "provider": self.name,
                 "status": "error",
