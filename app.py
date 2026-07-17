@@ -66,13 +66,6 @@ if "tool_manager" not in st.session_state:
         build_tool_manager()
     )
 
-if "tool_governor" not in st.session_state:
-    st.session_state.tool_governor = ToolGovernor(
-        api_key=st.secrets[
-            "OPENAI_API_KEY"
-        ],
-    )
-
 if "tool_history" not in st.session_state:
     st.session_state.tool_history = []
 
