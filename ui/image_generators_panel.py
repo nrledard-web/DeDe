@@ -37,6 +37,7 @@ def render_image_generators_panel(
             selected_provider_label = st.selectbox(
                 "Image Provider",
                 list(provider_labels.keys()),
+                index=1,
                 key="image_generator_provider",
             )
 
