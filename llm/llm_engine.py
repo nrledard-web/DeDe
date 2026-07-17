@@ -9,10 +9,13 @@ import re
 from typing import Any
 
 from llm.llm_profile import LLMProfile
+from llm.llm_committee import LLMCommittee
+
 from llm.providers.openai_provider import OpenAIProvider
 from llm.providers.gemini_provider import GeminiProvider
-from llm.llm_committee import LLMCommittee
 from llm.providers.mistral_provider import MistralProvider
+from llm.providers.kimi_provider import KimiProvider
+from llm.providers.nvidia_provider import NvidiaProvider
 
 
 class LLMEngine:
@@ -25,6 +28,8 @@ class LLMEngine:
             "openai": OpenAIProvider(),
             "gemini": GeminiProvider(),
             "mistral": MistralProvider(),
+            "kimi": KimiProvider(),
+            "nvidia": NvidiaProvider(),
         }
 
         self.committee = LLMCommittee()
