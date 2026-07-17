@@ -9,24 +9,49 @@ class LLMProfile:
 
     profiles = {
         "fast": {
-            "active": ["openai"],
+            "active": ["nvidia"],
             "planned": [],
-            "description": "Fast response using one active reasoning model.",
+            "description": (
+                "Fast response using NVIDIA Nemotron 3 Nano."
+            ),
         },
         "balanced": {
-            "active": ["openai"],
-            "planned": ["gemini", "mistral"],
-            "description": "Balanced reasoning with room for model comparison.",
+            "active": ["nvidia", "kimi"],
+            "planned": [],
+            "description": (
+                "Balanced reasoning using Nemotron and KIMI."
+            ),
         },
         "deep": {
-            "active": ["openai"],
-            "planned": ["gemini", "mistral", "deepseek", "qwen"],
-            "description": "Deep multi-model reasoning profile, prepared for committee mode.",
+            "active": [
+                "openai",
+                "gemini",
+                "mistral",
+                "kimi",
+                "nvidia",
+            ],
+            "planned": [
+                "deepseek",
+                "qwen",
+            ],
+            "description": (
+                "Deep multi-model reasoning with all connected "
+                "providers."
+            ),
         },
         "asian": {
-            "active": [],
-            "planned": ["deepseek", "qwen", "glm"],
-            "description": "Asian AI model profile prepared for future integration.",
+            "active": [
+                "kimi",
+                "nvidia",
+            ],
+            "planned": [
+                "deepseek",
+                "qwen",
+                "glm",
+            ],
+            "description": (
+                "Asian and open-model reasoning profile."
+            ),
         },
     }
 
