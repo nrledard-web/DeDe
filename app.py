@@ -844,10 +844,21 @@ if text:
         st.session_state.tool_manager.available_tools()
     )
 
+    active_tool_provider = (
+        llm_providers[0]
+        if llm_providers
+        else ""
+    )
+
+    tool_governor = ToolGovernor(
+        llm_engine=st.session_state.engine.llm_engine,
+    )
+
     tool_decision = (
-        st.session_state.tool_governor.decide(
+        tool_governor.decide(
             text=text,
             available_tools=available_tools,
+            provider=active_tool_provider,
         )
     )
 
