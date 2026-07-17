@@ -289,6 +289,8 @@ with st.sidebar:
     )
 
     llm_model_options = {
+        "NVIDIA — Nemotron 3 Nano": "nvidia",
+        "KIMI — Kimi K3": "kimi",
         "OpenAI": "openai",
         "Gemini": "gemini",
         "Mistral": "mistral",
@@ -296,14 +298,13 @@ with st.sidebar:
         "Qwen — planned": "qwen",
         "GLM — planned": "glm",
         "Claude — planned": "claude",
-        "Nemotron — planned": "nemotron",
     }
 
     selected_llm_labels = st.multiselect(
         "Reasoning Models",
         list(llm_model_options.keys()),
         default=[
-            "OpenAI",
+            "NVIDIA — Nemotron 3 Nano",
         ],
     )
 
@@ -314,23 +315,39 @@ with st.sidebar:
 
     llm_profile = "custom"
 
+    connected_llms = [
+        "openai",
+        "gemini",
+        "mistral",
+        "kimi",
+        "nvidia",
+    ]
+
     active_llms = [
         provider
         for provider in llm_providers
-        if provider in ["openai", "gemini", "mistral"]
+        if provider in connected_llms
     ]
 
     planned_llms = [
         provider
         for provider in llm_providers
-        if provider not in ["openai", "gemini", "mistral"]
+        if provider not in connected_llms
     ]
 
     st.caption(
         "Active: "
-        + (", ".join(active_llms) if active_llms else "none")
+        + (
+            ", ".join(active_llms)
+            if active_llms
+            else "none"
+        )
         + " | Planned: "
-        + (", ".join(planned_llms) if planned_llms else "none")
+        + (
+            ", ".join(planned_llms)
+            if planned_llms
+            else "none"
+        )
     )
 
     # --------------------------------------------------
