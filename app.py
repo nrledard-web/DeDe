@@ -7,10 +7,8 @@ from engine.doxa_engine_phase2 import DoxaEnginePhase2
 from pathlib import Path
 from core.real_world_anchor import RealWorldAnchor
 
-from tools.media.image_generator import ImageGenerator
-from tools.tool_manager import ToolManager
 from tools.tool_governor import ToolGovernor
-from tools.documents.pdf_reader import PDFReader
+from tools.tool_factory import build_tool_manager
 
 def pct(value):
     if value is None:
@@ -47,27 +45,23 @@ if "OPENAI_API_KEY" in st.secrets:
 if "GOOGLE_API_KEY" in st.secrets:
     os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 
+if "CLOUDFLARE_ACCOUNT_ID" in st.secrets:
+    os.environ["CLOUDFLARE_ACCOUNT_ID"] = st.secrets[
+        "CLOUDFLARE_ACCOUNT_ID"
+    ]
+
+if "CLOUDFLARE_API_TOKEN" in st.secrets:
+    os.environ["CLOUDFLARE_API_TOKEN"] = st.secrets[
+        "CLOUDFLARE_API_TOKEN"
+    ]
+
 # --------------------------------------------------
 # DeDe Tool Layer
 # --------------------------------------------------
-
 if "tool_manager" not in st.session_state:
-    tool_manager = ToolManager()
-
-    if "OPENAI_API_KEY" in st.secrets:
-        tool_manager.register(
-            ImageGenerator(
-                api_key=st.secrets[
-                    "OPENAI_API_KEY"
-                ],
-            )
-        )
-        
-    tool_manager.register(
-        PDFReader()
+    st.session_state.tool_manager = (
+        build_tool_manager()
     )
-    
-    st.session_state.tool_manager = tool_manager
 
 if "tool_governor" not in st.session_state:
     st.session_state.tool_governor = ToolGovernor(
