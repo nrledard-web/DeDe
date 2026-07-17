@@ -290,7 +290,7 @@ with st.sidebar:
 
     llm_model_options = {
         "NVIDIA — Nemotron 3 Nano": "nvidia",
-        "KIMI — Kimi K3": "kimi",
+        "KIMI — Kimi K2.6": "kimi",
         "OpenAI": "openai",
         "Gemini": "gemini",
         "Mistral": "mistral",
