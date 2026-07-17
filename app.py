@@ -398,6 +398,7 @@ with st.sidebar:
 
     search_mode_map = {
         "Off": "off",
+        "Manual": "manual",
         "On Request": "on_request",
         "Governor (Beta)": "governor",
     }
