@@ -10,11 +10,8 @@ It does not depend on fixed lists of language-specific keywords.
 from __future__ import annotations
 
 import json
-import os
 from typing import Any
-
-from openai import OpenAI
-
+from llm.llm_engine import LLMEngine
 
 class ToolGovernor:
     """
@@ -26,35 +23,15 @@ class ToolGovernor:
 
     def __init__(
         self,
-        api_key: str | None = None,
-        model: str | None = None,
+        llm_engine: LLMEngine,
     ) -> None:
-        resolved_api_key = (
-            api_key
-            or os.environ.get("OPENAI_API_KEY")
-        )
-
-        if not resolved_api_key:
-            raise ValueError(
-                "OPENAI_API_KEY is missing."
-            )
-
-        self.client = OpenAI(
-            api_key=resolved_api_key,
-        )
-
-        self.model = (
-            model
-            or os.environ.get(
-                "TOOL_GOVERNOR_MODEL",
-                "gpt-4.1-mini",
-            )
-        )
+        self.llm_engine = llm_engine
 
     def decide(
         self,
         text: str,
         available_tools: list[dict[str, Any]],
+        provider: str,
     ) -> dict[str, Any]:
         """
         Return a normalized tool decision.
@@ -75,6 +52,18 @@ class ToolGovernor:
         if not available_tools:
             return self._normal_decision(
                 reason="No tool is currently registered.",
+            )
+            
+        cleaned_provider = str(
+            provider or ""
+        ).strip()
+
+        if not cleaned_provider:
+            return self._normal_decision(
+                reason=(
+                    "No active reasoning provider "
+                    "is available for tool selection."
+                ),
             )
 
         tool_descriptions = []
@@ -153,24 +142,35 @@ For image_generator, arguments must have this form:
             + cleaned_text
         )
 
+        governor_prompt = (
+            system_instruction
+            + "\n\n"
+            + user_instruction
+        )
+
         try:
-            response = self.client.responses.create(
-                model=self.model,
-                input=[
-                    {
-                        "role": "system",
-                        "content": system_instruction,
-                    },
-                    {
-                        "role": "user",
-                        "content": user_instruction,
-                    },
+            engine_response = self.llm_engine.ask(
+                prompt=governor_prompt,
+                profile="fast",
+                providers=[
+                    cleaned_provider,
                 ],
+                enabled=True,
             )
 
             raw_output = str(
-                response.output_text or ""
+                engine_response.get(
+                    "response",
+                    "",
+                )
+                or ""
             ).strip()
+
+            if not raw_output:
+                raise ValueError(
+                    "The active reasoning provider "
+                    "returned no tool decision."
+                )
 
             parsed = self._parse_json(
                 raw_output
