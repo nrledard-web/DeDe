@@ -1,7 +1,7 @@
 """
 DeDe - KIMI Provider
 
-Moonshot AI KIMI LLM provider for DeDe.
+KIMI LLM provider through NVIDIA NIM.
 """
 
 import os
@@ -15,9 +15,9 @@ class KimiProvider:
     name = "kimi"
 
     def __init__(self) -> None:
-        self.api_key = os.getenv("KIMI_API_KEY")
-        self.base_url = "https://api.moonshot.ai/v1"
-        self.default_model = "kimi-k3"
+        self.api_key = os.getenv("NVIDIA_API_KEY")
+        self.base_url = "https://integrate.api.nvidia.com/v1"
+        self.default_model = "moonshotai/kimi-k2.6"
 
     def ask(
         self,
@@ -29,7 +29,7 @@ class KimiProvider:
 
         if not self.api_key:
             print(
-                "KIMI PROVIDER: API key missing.",
+                "KIMI PROVIDER: NVIDIA API key missing.",
                 flush=True,
             )
 
@@ -38,7 +38,7 @@ class KimiProvider:
                 "status": "missing_api_key",
                 "model": selected_model,
                 "response": "",
-                "summary": "KIMI API key is missing.",
+                "summary": "NVIDIA API key is missing.",
             }
 
         try:
@@ -55,6 +55,8 @@ class KimiProvider:
                         "content": prompt,
                     }
                 ],
+                temperature=1,
+                top_p=1,
                 max_tokens=4096,
             )
 
@@ -66,14 +68,14 @@ class KimiProvider:
                 "model": selected_model,
                 "response": content,
                 "summary": (
-                    f"KIMI response generated with "
-                    f"{selected_model}."
+                    "KIMI response generated through NVIDIA "
+                    f"with {selected_model}."
                 ),
             }
 
         except Exception as error:
             print(
-                "KIMI PROVIDER ERROR:",
+                "KIMI NVIDIA PROVIDER ERROR:",
                 repr(error),
                 flush=True,
             )
@@ -83,6 +85,6 @@ class KimiProvider:
                 "status": "error",
                 "model": selected_model,
                 "response": "",
-                "summary": "KIMI request failed.",
+                "summary": "KIMI NVIDIA request failed.",
                 "error": str(error),
             }
