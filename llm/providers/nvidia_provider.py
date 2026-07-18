@@ -52,8 +52,8 @@ class NvidiaProvider:
                         "content": prompt,
                     }
                 ],
-                temperature=0.2,
-                top_p=0.90,
+                temperature=0.6,
+                top_p=0.95,
                 max_tokens=4096,
                 extra_body={
                     "reasoning_budget": 2048,
