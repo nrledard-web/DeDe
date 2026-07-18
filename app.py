@@ -872,6 +872,60 @@ if text:
             "arguments",
             {},
         )
+        
+        image_tool_names = {
+            "image_generator",
+            "cloudflare_image_generator",
+        }
+
+        if selected_tool in image_tool_names:
+            selected_tool = st.session_state.get(
+                "selected_image_tool",
+                "cloudflare_image_generator",
+            )
+
+            if selected_tool not in image_tool_names:
+                selected_tool = (
+                    "cloudflare_image_generator"
+                )
+
+            image_prompt = str(
+                selected_arguments.get(
+                    "prompt",
+                    text,
+                )
+            ).strip()
+
+            if selected_tool == "cloudflare_image_generator":
+                selected_arguments = {
+                    "prompt": image_prompt,
+                    "steps": st.session_state.get(
+                        "cloudflare_image_steps",
+                        4,
+                    ),
+                }
+
+            else:
+                selected_arguments = {
+                    "prompt": image_prompt,
+                    "size": selected_arguments.get(
+                        "size",
+                        "1024x1024",
+                    ),
+                    "quality": selected_arguments.get(
+                        "quality",
+                        "medium",
+                    ),
+                    "transparent_background": (
+                        selected_arguments.get(
+                            "transparent_background",
+                            False,
+                        )
+                    ),
+                }
+
+            tool_decision["tool_name"] = selected_tool
+            tool_decision["arguments"] = selected_arguments
 
         with st.chat_message("user"):
             st.write(text)
