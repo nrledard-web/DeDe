@@ -990,7 +990,7 @@ class LLMConnector:
             or ""
         ).strip()
 
-        previous_user_input = str(
+        previous_answer = str(
             conversation.get(
                 "last_answer",
                 "",
