@@ -982,6 +982,87 @@ class LLMConnector:
             f'- turn count: {conversation.get("turn_count", 0)}'
         )
 
+                previous_user_input = str(
+            conversation.get(
+                "last_user_input",
+                "",
+            )
+            or ""
+        ).strip()
+
+        previous_answer = str(
+            conversation.get(
+                "last_answer",
+                "",
+            )
+            or ""
+        ).strip()
+
+        previous_focus = str(
+            conversation.get(
+                "last_focus_concept",
+                "",
+            )
+            or ""
+        ).strip()
+
+        # Prevent an unusually long previous response from
+        # unnecessarily increasing prompt size and latency.
+        if len(previous_answer) > 2500:
+            previous_answer = (
+                previous_answer[:2500].rstrip()
+                + "..."
+            )
+
+        lines.append("")
+        lines.append("Previous conversation turn:")
+
+        if previous_user_input:
+            lines.append(
+                "- previous user message: "
+                f"{previous_user_input}"
+            )
+
+        if previous_answer:
+            lines.append(
+                "- previous DeDe answer: "
+                f"{previous_answer}"
+            )
+
+        if previous_focus:
+            lines.append(
+                "- previous focus concept: "
+                f"{previous_focus}"
+            )
+
+        recent_topics = conversation.get(
+            "recent_topics",
+            [],
+        )
+
+        if recent_topics:
+            lines.append(
+                "- recent topics: "
+                + ", ".join(
+                    str(topic)
+                    for topic in recent_topics[:8]
+                )
+            )
+
+        lines.append("")
+        lines.append(
+            "Conversation continuity instruction: "
+            "When the current user message is short, elliptical, "
+            "referential or contains expressions equivalent to "
+            "'what about it', 'like what', 'which ones' or "
+            "'and this one', reconstruct its meaning from the "
+            "previous user message and DeDe answer. "
+            "Preserve the previous subject and requested operation "
+            "when they remain clear. Ask for clarification only "
+            "when the preceding context supports more than one "
+            "materially different interpretation."
+        )
+
         # --------------------------------------------------
         # Autobiographical continuity
         # --------------------------------------------------
