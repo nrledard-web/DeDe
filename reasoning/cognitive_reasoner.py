@@ -220,10 +220,14 @@ class CognitiveReasoner:
                 {
                     "dimension": "concrete_dangers",
                     "instruction": (
-                        "Name concrete harms that can emerge when the "
-                        "reduction becomes resistant to evidence or revision. "
-                        "Do not replace harms with vague words such as "
-                        "'difficulty', 'challenge' or 'complexity'."
+                        "Name at least two concrete harms when they are "
+                        "structurally or historically relevant, such as "
+                        "coercion, censorship, repression, concentration "
+                        "of power, institutional privilege, material failure "
+                        "or suppression of dissent. "
+                        "Do not replace concrete harms with vague expressions "
+                        "such as 'difficulty', 'challenge', 'complexity', "
+                        "'possible authority' or 'remain vigilant'."
                     ),
                 },
                 {
