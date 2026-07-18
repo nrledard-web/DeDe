@@ -11,7 +11,6 @@ from ui.document_studio_panel import (
 )
 
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
-from pathlib import Path
 from core.real_world_anchor import RealWorldAnchor
 
 from tools.tool_governor import ToolGovernor
@@ -432,6 +431,10 @@ with st.sidebar:
 # --------------------------------------------------
 
 render_image_generators_panel(
+    tool_manager=st.session_state.tool_manager,
+)
+
+render_document_studio_panel(
     tool_manager=st.session_state.tool_manager,
 )
 
