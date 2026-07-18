@@ -71,10 +71,27 @@ class DeDeState:
                 "preferred_name": user_name,
                 "language": language,
             },
-            "conversation": {
+             "conversation": {
                 "turn_count": turn_count,
                 "stage": conversation_stage,
                 "current_text": text,
+                "last_user_input": conversation_context.get(
+                    "last_user_input"
+                ),
+                "last_answer": conversation_context.get(
+                    "last_answer"
+                ),
+                "last_focus_concept": conversation_context.get(
+                    "last_focus_concept"
+                ),
+                "recent_focus_concepts": conversation_context.get(
+                    "recent_focus_concepts",
+                    [],
+                ),
+                "recent_topics": conversation_context.get(
+                    "recent_topics",
+                    [],
+                ),
             },
             "behavior": {
                 "use_user_name": bool(user_name),
