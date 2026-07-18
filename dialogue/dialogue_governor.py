@@ -2,60 +2,182 @@
 DeDe - Dialogue Governor
 
 Protects cognitive autonomy.
-DeDe answers, then stops.
+
+DeDe normally provides a complete answer and stops.
+Closing questions and conversational invitations are preserved
+only when the surrounding dialogue explicitly permits them.
 """
 
 import re
 
 
 class DialogueGovernor:
+
     name = "dialogue_governor"
 
-    def apply(self, text: str) -> str:
+    def apply(
+        self,
+        text: str,
+        allow_closing_question: bool = False,
+    ) -> str:
+
         if not text:
             return text
 
-        lines = text.split("\n")
-        cleaned = []
+        cleaned_text = str(text).strip()
 
-        forbidden_patterns = [
-            r"^\s*souhaites-tu\b.*\?\s*$",
-            r"^\s*veux-tu\b.*\?\s*$",
-            r"^\s*aimerais-tu\b.*\?\s*$",
-            r"^\s*te souviens-tu\b.*\?\s*$",
-            r"^\s*que veux-tu\b.*\?\s*$",
-            r"^\s*quel comportement\b.*\?\s*$",
-            r"^\s*de quoi\b.*\?\s*$",
+        if not cleaned_text:
+            return cleaned_text
 
-            r"^\s*quieres\b.*\?\s*$",
-            r"^\s*quieres que\b.*\?\s*$",
-            r"^\s*te gustaria\b.*\?\s*$",
-            r"^\s*deseas\b.*\?\s*$",
+        if allow_closing_question:
+            return cleaned_text
 
-            r"^\s*do you want\b.*\?\s*$",
-            r"^\s*would you like\b.*\?\s*$",
-            r"^\s*shall we\b.*\?\s*$",
+        # --------------------------------------------------
+        # Split the response into sentences
+        # --------------------------------------------------
 
-            r"^\s*si tu veux\b.*$",
-            r"^\s*si vous voulez\b.*$",
-            r"^\s*la prochaine étape\b.*$",
-            r"^\s*en continuité avec\b.*$",
+        sentences = re.split(
+            r"(?<=[.!?…])\s+|\n+",
+            cleaned_text,
+        )
+
+        sentences = [
+            sentence.strip()
+            for sentence in sentences
+            if sentence.strip()
         ]
 
-        for line in lines:
-            lowered = line.lower().strip()
+        if not sentences:
+            return cleaned_text
 
-            if any(re.match(pattern, lowered) for pattern in forbidden_patterns):
-                continue
+        # --------------------------------------------------
+        # Remove unnecessary closing questions
+        # --------------------------------------------------
 
-            cleaned.append(line)
+        while (
+            sentences
+            and self._is_closing_question(
+                sentences[-1]
+            )
+        ):
+            sentences.pop()
 
-        result = "\n".join(cleaned).strip()
+        # --------------------------------------------------
+        # Remove indirect conversational invitations
+        # --------------------------------------------------
 
-        # sécurité finale : si le dernier paragraphe est une question, on le retire
-        paragraphs = [p.strip() for p in result.split("\n\n") if p.strip()]
+        while (
+            sentences
+            and self._is_conversational_invitation(
+                sentences[-1]
+            )
+        ):
+            sentences.pop()
 
-        if paragraphs and paragraphs[-1].endswith("?"):
-            paragraphs = paragraphs[:-1]
+        return " ".join(sentences).strip()
 
-        return "\n\n".join(paragraphs).strip()
+    def _is_closing_question(
+        self,
+        sentence: str,
+    ) -> bool:
+
+        normalized = sentence.strip()
+
+        return normalized.endswith(
+            (
+                "?",
+                "？",
+                "¿",
+            )
+        )
+
+    def _is_conversational_invitation(
+        self,
+        sentence: str,
+    ) -> bool:
+
+        normalized = self._normalize(
+            sentence
+        )
+
+        invitation_patterns = [
+            # French
+            r"\bje (?:serais|suis) (?:heureux|heureuse|interesse|interessee|ravi|ravie) "
+            r"(?:d[' ]|de |a )?(?:en discuter|approfondir|connaitre|entendre)\b",
+
+            r"\bdis[- ]moi si\b",
+            r"\bindique[- ]moi si\b",
+            r"\bn[' ]hesite pas a\b",
+            r"\bsi tu (?:veux|souhaites|desires)\b",
+            r"\bsi vous (?:voulez|souhaitez|desirez)\b",
+
+            # English
+            r"\bi (?:would be|am) (?:happy|interested|glad) "
+            r"(?:to discuss|to explore|to hear|in discussing)\b",
+
+            r"\blet me know if\b",
+            r"\bfeel free to\b",
+            r"\bif you (?:want|wish|would like)\b",
+
+            # Spanish
+            r"\b(?:estaria|estoy) (?:encantado|encantada|interesado|interesada) "
+            r"(?:de|en) (?:hablar|discutir|profundizar|conocer)\b",
+
+            r"\bdime si\b",
+            r"\bsi quieres\b",
+            r"\bsi desea(?:s)?\b",
+            r"\bno dudes en\b",
+
+            # Filipino / Tagalog
+            r"\bkung gusto mo\b",
+            r"\bsabihin mo sa akin kung\b",
+            r"\bmaaari nating talakayin\b",
+        ]
+
+        return any(
+            re.search(
+                pattern,
+                normalized,
+            )
+            for pattern in invitation_patterns
+        )
+
+    def _normalize(
+        self,
+        text: str,
+    ) -> str:
+
+        normalized = text.lower().strip()
+
+        replacements = {
+            "à": "a",
+            "â": "a",
+            "ä": "a",
+            "á": "a",
+            "ã": "a",
+            "ç": "c",
+            "é": "e",
+            "è": "e",
+            "ê": "e",
+            "ë": "e",
+            "í": "i",
+            "î": "i",
+            "ï": "i",
+            "ñ": "n",
+            "ó": "o",
+            "ô": "o",
+            "ö": "o",
+            "õ": "o",
+            "ú": "u",
+            "ù": "u",
+            "û": "u",
+            "ü": "u",
+        }
+
+        for source, target in replacements.items():
+            normalized = normalized.replace(
+                source,
+                target,
+            )
+
+        return normalized
