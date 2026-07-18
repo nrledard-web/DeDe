@@ -937,6 +937,8 @@ if text:
         ),
         llm_profile="custom",
         llm_providers=llm_providers,
+        knowledge_providers=knowledge_providers,
+        knowledge_mode=knowledge_mode,
         conversation_history=st.session_state.conversation_history,
     )
 
