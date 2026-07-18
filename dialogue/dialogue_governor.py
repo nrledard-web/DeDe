@@ -50,6 +50,10 @@ class DialogueGovernor:
         if not sentences:
             return cleaned_text
 
+        original_sentence_count = len(
+            sentences
+        )
+
         # --------------------------------------------------
         # Remove unnecessary closing questions
         # --------------------------------------------------
@@ -74,7 +78,12 @@ class DialogueGovernor:
         ):
             sentences.pop()
 
-        return " ".join(sentences).strip()
+        if len(sentences) == original_sentence_count:
+            return cleaned_text
+
+        return " ".join(
+            sentences
+        ).strip()
 
     def _is_closing_question(
         self,
