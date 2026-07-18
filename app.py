@@ -648,6 +648,48 @@ if text:
             provider=active_tool_provider,
         )
     )
+    
+    # --------------------------------------------------
+    # Active Document Routing
+    # --------------------------------------------------
+
+    active_document = st.session_state.get(
+        "active_document",
+        {},
+    )
+
+    active_document_ready = (
+        active_document.get("status") == "ready"
+        and bool(active_document.get("text", ""))
+    )
+
+    selected_tool_name = tool_decision.get(
+        "tool_name",
+        "",
+    )
+
+    document_tool_names = {
+        "pdf_reader",
+        "document_reader",
+    }
+
+    if (
+        active_document_ready
+        and selected_tool_name in document_tool_names
+    ):
+        tool_decision = {
+            "governor": "tool_governor",
+            "status": "ready",
+            "action": "respond_normally",
+            "tool_name": "",
+            "confidence": 1.0,
+            "arguments": {},
+            "reason": (
+                "The active document has already been extracted. "
+                "Continue through DeDe's reasoning pipeline and "
+                "answer from the active document context."
+            ),
+        }
 
     if tool_decision.get("action") == "use_tool":
         selected_tool = tool_decision.get(
