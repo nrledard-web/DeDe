@@ -2,6 +2,8 @@ import streamlit as st
 from openai import OpenAI
 import tempfile
 import os
+from pathlib import Path
+
 from ui.image_generators_panel import (
     render_image_generators_panel,
 )
