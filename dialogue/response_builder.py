@@ -145,7 +145,7 @@ class ResponseBuilder:
                 dialogue["response"]
             )
 
-        if knowledge.get("found"):
+        elif knowledge.get("found"):
             answer_parts.append(
                 knowledge.get("answer", "")
             )
