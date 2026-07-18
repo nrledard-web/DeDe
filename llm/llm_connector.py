@@ -982,7 +982,7 @@ class LLMConnector:
             f'- turn count: {conversation.get("turn_count", 0)}'
         )
 
-                previous_user_input = str(
+        previous_user_input = str(
             conversation.get(
                 "last_user_input",
                 "",
@@ -990,7 +990,7 @@ class LLMConnector:
             or ""
         ).strip()
 
-        previous_answer = str(
+        previous_user_input = str(
             conversation.get(
                 "last_answer",
                 "",
