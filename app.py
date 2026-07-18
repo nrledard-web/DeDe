@@ -428,6 +428,66 @@ with st.sidebar:
             for item in search_provider
         ]
 
+    # --------------------------------------------------
+    # Semantic Dictionaries
+    # --------------------------------------------------
+
+    st.markdown("### Semantic Dictionaries")
+
+    st.caption(
+        "Choose one or several knowledge dictionaries."
+    )
+
+    knowledge_provider_labels = {
+        "Local Knowledge": "local",
+        "DeDe Foundational Knowledge": "foundational",
+    }
+
+    selected_knowledge_labels = st.multiselect(
+        "Knowledge Dictionaries",
+        list(knowledge_provider_labels.keys()),
+        default=[
+            "Local Knowledge",
+            "DeDe Foundational Knowledge",
+        ],
+        key="knowledge_dictionary_selection",
+    )
+
+    knowledge_providers = [
+        knowledge_provider_labels[label]
+        for label in selected_knowledge_labels
+    ]
+
+    if not knowledge_providers:
+        knowledge_providers = [
+            "foundational",
+        ]
+
+        st.caption(
+            "DeDe Foundational Knowledge remains active "
+            "when no dictionary is selected."
+        )
+
+    knowledge_mode_labels = {
+        "Best Source": "best",
+        "Combine Selected Sources": "combine",
+    }
+
+    selected_knowledge_mode = st.selectbox(
+        "Knowledge Mode",
+        list(knowledge_mode_labels.keys()),
+        index=0,
+        key="knowledge_dictionary_mode",
+    )
+
+    knowledge_mode = knowledge_mode_labels[
+        selected_knowledge_mode
+    ]
+
+    st.caption(
+        "Planned: Wiktionary, WordNet, ConceptNet."
+    )
+
 # --------------------------------------------------
 # DeDe Image Generators Panel
 # --------------------------------------------------
