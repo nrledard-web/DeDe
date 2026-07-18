@@ -658,25 +658,32 @@ if text:
         {},
     )
 
-    active_document_ready = (
-        active_document.get("status") == "ready"
-        and bool(active_document.get("text", ""))
+    active_document_ready = bool(
+        active_document.get(
+            "text",
+            "",
+        )
     )
 
-    selected_tool_name = tool_decision.get(
-        "tool_name",
-        "",
+    selected_tool_name = str(
+        tool_decision.get(
+            "tool_name",
+            "",
+        )
+        or ""
+    ).strip().lower()
+
+    document_tool_selected = (
+        "pdf" in selected_tool_name
+        or "document" in selected_tool_name
     )
 
-    document_tool_names = {
-        "pdf_reader",
-        "document_reader",
-    }
-
-    if (
+    active_document_request = (
         active_document_ready
-        and selected_tool_name in document_tool_names
-    ):
+        and document_tool_selected
+    )
+
+    if active_document_request:
         tool_decision = {
             "governor": "tool_governor",
             "status": "ready",
@@ -685,9 +692,9 @@ if text:
             "confidence": 1.0,
             "arguments": {},
             "reason": (
-                "The active document has already been extracted. "
-                "Continue through DeDe's reasoning pipeline and "
-                "answer from the active document context."
+                "The requested document is already active "
+                "and its extracted text is available. "
+                "Answer from the active document context."
             ),
         }
 
