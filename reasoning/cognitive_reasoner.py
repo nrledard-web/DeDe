@@ -174,8 +174,10 @@ class CognitiveReasoner:
             "compiled_confidence": state_confidence,
             "governing_principle": (
                 "Every doctrine, ideology, institution, law, "
-                "procedure or organized system is a necessary "
-                "but incomplete reduction of reality."
+                "procedure or organized system operates through "
+                "an inevitable but incomplete reduction of reality. "
+                "The reduction is inevitable; the particular system "
+                "itself is not necessarily required or justified."
             ),
             "required_dimensions": [
                 {
