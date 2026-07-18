@@ -1414,6 +1414,15 @@ class DoxaEnginePhase2:
         )
         
         # ----------------------------------------
+        # Daimon Filter
+        # ----------------------------------------
+
+        user_response = self.daimon_filter.filter_response(
+            response=user_response,
+            dede_state=dede_state,
+        )
+        
+        # ----------------------------------------
         # Dialogue Governor
         # ----------------------------------------
 
@@ -1439,15 +1448,6 @@ class DoxaEnginePhase2:
                             user_response[key]
                         )
                     )
-        
-        # ----------------------------------------
-        # Daimon Filter
-        # ----------------------------------------
-
-        user_response = self.daimon_filter.filter_response(
-            response=user_response,
-            dede_state=dede_state,
-        )
 
         # --------------------------------------------------
         # Universal Text Analysis — Final DeDe Response
