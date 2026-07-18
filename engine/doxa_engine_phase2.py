@@ -1412,23 +1412,33 @@ class DoxaEnginePhase2:
         user_response = self.response_builder.build(
             dialogue_context,
         )
-        if isinstance(user_response, dict):
-            for key in ["response", "message", "text", "content"]:
-                if key in user_response and isinstance(user_response[key], str):
-                    user_response[key] = self.dialogue_governor.apply(
-                        user_response[key]
-                    )
+        
         # ----------------------------------------
         # Dialogue Governor
         # ----------------------------------------
-        
-        if "response" in user_response:
-        
-            user_response["response"] = (
-                self.dialogue_governor.apply(
-                    user_response["response"]
-                )
-            )
+
+        if isinstance(user_response, dict):
+            for key in [
+                "final_answer",
+                "response",
+                "message",
+                "text",
+                "content",
+                "answer",
+                "user_facing_response",
+            ]:
+                if (
+                    key in user_response
+                    and isinstance(
+                        user_response[key],
+                        str,
+                    )
+                ):
+                    user_response[key] = (
+                        self.dialogue_governor.apply(
+                            user_response[key]
+                        )
+                    )
         
         # ----------------------------------------
         # Daimon Filter
