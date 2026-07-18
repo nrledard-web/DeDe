@@ -1291,4 +1291,73 @@ class LLMConnector:
             for item in cognitive_reasoning.get(key, []):
                 lines.append(f"- {item}")
 
+        # --------------------------------------------------
+        # Mandatory Reduction Audit
+        # --------------------------------------------------
+
+        reduction_audit = cognitive_reasoning.get(
+            "reduction_audit",
+            {},
+        )
+
+        if reduction_audit.get("status") == "ready":
+            lines.append("")
+            lines.append("MANDATORY REDUCTION AUDIT")
+            lines.append("")
+
+            subjects = reduction_audit.get(
+                "subjects",
+                [],
+            )
+
+            lines.append(
+                "- detected subjects: "
+                + ", ".join(subjects)
+            )
+
+            lines.append(
+                "- governing principle: "
+                + reduction_audit.get(
+                    "governing_principle",
+                    "",
+                )
+            )
+
+            lines.append("")
+            lines.append(
+                "Required analytical dimensions:"
+            )
+
+            for dimension in reduction_audit.get(
+                "required_dimensions",
+                [],
+            ):
+                lines.append(
+                    "- "
+                    + dimension.get("dimension", "")
+                    + ": "
+                    + dimension.get("instruction", "")
+                )
+
+            lines.append("")
+            lines.append(
+                "Mandatory response requirements:"
+            )
+
+            for requirement in reduction_audit.get(
+                "response_requirements",
+                [],
+            ):
+                lines.append(
+                    f"- {requirement}"
+                )
+
+            lines.append("")
+            lines.append(
+                "Apply the relevant dimensions concretely. "
+                "Do not merely mention reduction or revisability. "
+                "Show what is reduced, what is excluded and what "
+                "danger follows from closure."
+            )
+
         return "\n".join(lines)
