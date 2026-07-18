@@ -49,6 +49,12 @@ class CognitiveReasoner:
         counterfactuals = []
         inference_chains = []
 
+        reduction_audit = self._build_reduction_audit(
+            nodes=nodes,
+            orientation=orientation,
+            state_confidence=state_confidence,
+        )
+
         # --------------------------------------------------
         # Cognitive-state based reasoning
         # --------------------------------------------------
@@ -127,6 +133,132 @@ class CognitiveReasoner:
             "predictions": self._unique(predictions),
             "counterfactuals": self._unique(counterfactuals),
             "inference_chains": self._unique(inference_chains),
+            "reduction_audit": reduction_audit,
+        }
+
+    def _build_reduction_audit(
+        self,
+        nodes: list[str],
+        orientation: str,
+        state_confidence: float,
+    ) -> dict[str, Any]:
+        """
+        Build a universal reduction audit.
+    
+        This audit does not condemn a system automatically.
+        It requires DeDe to expose the relationship between:
+        - the system's promise,
+        - its reduction of reality,
+        - its blind spots,
+        - stabilized doxa,
+        - concrete consequences,
+        - and mechanisms of revision.
+        """
+    
+        subjects = self._unique(
+            [
+                str(node).strip()
+                for node in nodes
+                if str(node).strip()
+            ]
+        )
+    
+        return {
+            "status": (
+                "ready"
+                if subjects
+                else "insufficient_structure"
+            ),
+            "subjects": subjects[:8],
+            "compiled_orientation": orientation,
+            "compiled_confidence": state_confidence,
+            "governing_principle": (
+                "Every doctrine, ideology, institution, law, "
+                "procedure or organized system is a necessary "
+                "but incomplete reduction of reality."
+            ),
+            "required_dimensions": [
+                {
+                    "dimension": "promise",
+                    "instruction": (
+                        "Identify the real problem, need or aspiration "
+                        "the system attempts to address."
+                    ),
+                },
+                {
+                    "dimension": "principal_reduction",
+                    "instruction": (
+                        "Name the concrete aspect of reality that the "
+                        "system simplifies in order to remain coherent "
+                        "or operational."
+                    ),
+                },
+                {
+                    "dimension": "excluded_realities",
+                    "instruction": (
+                        "Identify the human, empirical, social, political "
+                        "or epistemic realities that the model represents "
+                        "poorly or leaves outside its frame."
+                    ),
+                },
+                {
+                    "dimension": "doxa_formation",
+                    "instruction": (
+                        "Explain which assumptions may become stabilized "
+                        "as unquestionable certainty."
+                    ),
+                },
+                {
+                    "dimension": "theory_practice_gap",
+                    "instruction": (
+                        "Distinguish the stated ideal from its institutional "
+                        "application and actual distribution of power."
+                    ),
+                },
+                {
+                    "dimension": "concrete_dangers",
+                    "instruction": (
+                        "Name concrete harms that can emerge when the "
+                        "reduction becomes resistant to evidence or revision. "
+                        "Do not replace harms with vague words such as "
+                        "'difficulty', 'challenge' or 'complexity'."
+                    ),
+                },
+                {
+                    "dimension": "power_concentration",
+                    "instruction": (
+                        "Examine who gains authority to define, enforce "
+                        "and protect the system's official interpretation."
+                    ),
+                },
+                {
+                    "dimension": "revision_mechanisms",
+                    "instruction": (
+                        "Identify the counter-powers, evidence, pluralism "
+                        "and correction mechanisms that keep the system "
+                        "open to revision."
+                    ),
+                },
+            ],
+            "response_requirements": [
+                (
+                    "Acknowledge the system's legitimate promise "
+                    "without allowing that promise to conceal its risks."
+                ),
+                (
+                    "Name reductions and consequences concretely."
+                ),
+                (
+                    "Do not confuse neutrality with vagueness."
+                ),
+                (
+                    "Do not replace one doxa with automatic condemnation."
+                ),
+                (
+                    "Preserve revisability while still reaching "
+                    "a clear analytical conclusion."
+                ),
+            ],
         }
 
     def _extract_node_names(
