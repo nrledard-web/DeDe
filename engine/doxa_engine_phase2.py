@@ -284,6 +284,8 @@ class DoxaEnginePhase2:
         search_mode: str = "off",
         llm_profile: str = "fast",
         llm_providers: list[str] | None = None,
+        knowledge_providers: list[str] | None = None,
+        knowledge_mode: str = "best",
         conversation_history: list[dict[str, Any]] | None = None,
         explicit_search_request: bool = False,
     ) -> dict[str, Any]:
@@ -462,7 +464,11 @@ class DoxaEnginePhase2:
         # Phase 4.0
         # Knowledge
         # --------------------------------------------------
-        knowledge_result = self.knowledge.analyze(workspace)
+        knowledge_result = self.knowledge.analyze(
+            workspace=workspace,
+            selected_providers=knowledge_providers,
+            mode=knowledge_mode,
+        )
 
         # --------------------------------------------------
         # Phase 4.1
