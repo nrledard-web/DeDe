@@ -1271,6 +1271,9 @@ class DoxaEnginePhase2:
             retrieved_memory=retrieved_memory,
             autobiographical_reasoning=autobiographical_reasoning,
             philosophical_context=philosophical_context,
+            historical_counterpoint_context=(
+                historical_counterpoint_context
+            ),
             document_context=document_context,
             dede_identity=identity_state,
             dede_state=dede_state,
