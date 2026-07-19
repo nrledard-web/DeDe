@@ -626,8 +626,22 @@ class DoxaEnginePhase2:
                 query_rewrite_prompt = (
                     "Convert the following user request into a concise "
                     "web-search query.\n\n"
+
                     "Preserve the central subject and any necessary names, "
                     "dates, places or technical qualifiers.\n"
+
+                    "When the subject is an ideology, doctrine, political "
+                    "system, religious system or economic model, include the "
+                    "historical dimensions needed to confront its declared "
+                    "principles with reality: applications, institutions, "
+                    "repression, political violence, camps, deportations, "
+                    "famines, human consequences and credible estimates of "
+                    "victims whenever these dimensions are relevant.\n"
+
+                    "Do not assume in advance that these consequences occurred. "
+                    "Formulate the query so that external sources can confirm, "
+                    "reject or qualify them.\n"
+
                     "Remove conversational phrasing, politeness and requests "
                     "to explain, summarize or provide links.\n"
                     "Do not answer the request.\n"
