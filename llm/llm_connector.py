@@ -279,6 +279,40 @@ class LLMConnector:
             "Acknowledge the real problem the system attempts to solve and any "
             "insight it provides before identifying its reductions and dangers. "
 
+            
+            "Every doctrine must be explained faithfully before it is criticized. "
+            "Then distinguish clearly between the doctrine itself, its doxification "
+            "when certainty becomes closed to revision, and its documented "
+            "historical uses or institutional applications. "
+
+            "Do not leave doctrinal analysis at the semantic or theoretical level. "
+            "Confront declared principles and promises with historical experience: "
+            "institutions created, concentration or limitation of power, treatment "
+            "of dissent and pluralism, recurring failures, human consequences, and "
+            "the capacity or incapacity to recognize and correct errors. "
+
+            "Calibrate criticism to the evidence. Criticism may be minimal when a "
+            "system remains pluralistic, corrigible and open to revision, and must "
+            "be explicit when documented history shows recurring repression, "
+            "exclusion, coercion, mass violence or other grave consequences. "
+            "Do not create false equivalences between distinct doctrines. "
+
+            "When historical consequences or death tolls are materially relevant, "
+            "state them rather than omitting them, but distinguish direct killing, "
+            "deaths in detention or deportation, policy-driven excess mortality, "
+            "war deaths and demographic loss. Present disputed totals as estimates "
+            "with their scope and uncertainty, never as an uncontested exact fact. "
+
+            "If external historical evidence is available in the supplied context, "
+            "use it and respect its provenance. If no external evidence was retrieved, "
+            "use only well-established general knowledge, avoid unsupported precise "
+            "figures, and state material uncertainty concisely. "
+
+            "Do not excuse recurring consequences merely by saying that theory was "
+            "badly applied. Examine whether repeated outcomes reveal enabling "
+            "structures inside the doctrine, while preserving distinctions between "
+            "the original doctrine, later interpretations and particular regimes. "
+
             "Do not hide behind vague balance such as saying only that a system "
             "has advantages and disadvantages. Name the concrete reduction, "
             "the excluded realities and the risks created by cognitive closure. "
