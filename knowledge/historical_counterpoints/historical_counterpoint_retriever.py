@@ -1,8 +1,8 @@
 """
 DeDe - Historical Counterpoint Retriever
 
-Retrieves underreported but materially important historical
-counterpoints relevant to the current user message.
+Loads underreported but materially important historical
+counterpoints selected by DeDe's semantic classification.
 
 Historical counterpoints are specialized knowledge.
 They are not part of DeDe's universal foundational knowledge.
@@ -10,8 +10,6 @@ They are not part of DeDe's universal foundational knowledge.
 
 from __future__ import annotations
 
-import re
-import unicodedata
 from typing import Any
 
 from knowledge.historical_counterpoints.islamic_thought import (
@@ -21,8 +19,11 @@ from knowledge.historical_counterpoints.islamic_thought import (
 
 class HistoricalCounterpointRetriever:
     """
-    Retrieve only historical counterpoints relevant
-    to the current subject.
+    Load historical counterpoints selected by the
+    multilingual semantic classification layer.
+
+    This Retriever does not detect languages and does not
+    search for language-specific keywords.
     """
 
     name = "historical_counterpoint_retriever"
@@ -34,57 +35,58 @@ class HistoricalCounterpointRetriever:
 
     def retrieve(
         self,
-        text: str,
-        concept_data: dict[str, Any] | None = None,
+        selected_counterpoint_ids: list[str] | None = None,
+        canonical_concepts: list[str] | None = None,
+        text: str = "",
     ) -> dict[str, Any]:
         """
-        Retrieve relevant historical counterpoints.
+        Load only counterpoints selected by the Cognitive Governor.
 
-        The retrieval is local and fast.
-        No additional LLM call is required.
+        Parameters
+        ----------
+        selected_counterpoint_ids:
+            Canonical identifiers returned by the multilingual
+            semantic classification layer.
+
+        canonical_concepts:
+            English concept labels generated from the meaning
+            of the user message.
+
+        text:
+            Original user message, preserved for provenance only.
+            It is not searched for lexical markers here.
         """
 
-        concept_data = concept_data or {}
-
-        normalized_text = self._normalize(text)
-
-        main_concepts = concept_data.get(
-            "main_concepts",
-            [],
+        selected_counterpoint_ids = (
+            selected_counterpoint_ids
+            or []
         )
 
-        normalized_concepts = {
-            self._normalize(str(concept))
-            for concept in main_concepts
-            if concept
-        }
+        canonical_concepts = (
+            canonical_concepts
+            or []
+        )
 
         selected_counterpoints = []
 
-        for counterpoint_id, counterpoint in (
-            self.counterpoints.items()
-        ):
-            score = self._score_counterpoint(
-                counterpoint=counterpoint,
-                normalized_text=normalized_text,
-                normalized_concepts=normalized_concepts,
+        for counterpoint_id in selected_counterpoint_ids:
+            normalized_id = str(
+                counterpoint_id
+            ).strip()
+
+            counterpoint = self.counterpoints.get(
+                normalized_id
             )
 
-            if score <= 0:
+            if not counterpoint:
                 continue
 
             selected_counterpoints.append(
                 {
-                    "id": counterpoint_id,
-                    "score": round(score, 3),
+                    "id": normalized_id,
                     "knowledge": counterpoint,
                 }
             )
-
-        selected_counterpoints.sort(
-            key=lambda item: item["score"],
-            reverse=True,
-        )
 
         prompt_context = self._build_prompt_context(
             selected_counterpoints
@@ -98,6 +100,10 @@ class HistoricalCounterpointRetriever:
                 else "not_relevant"
             ),
             "query": text,
+            "canonical_concepts": canonical_concepts,
+            "requested_counterpoint_ids": (
+                selected_counterpoint_ids
+            ),
             "counterpoint_count": len(
                 selected_counterpoints
             ),
@@ -108,66 +114,22 @@ class HistoricalCounterpointRetriever:
             "counterpoints": selected_counterpoints,
             "prompt_context": prompt_context,
             "summary": (
-                f"Retrieved {len(selected_counterpoints)} "
-                "relevant historical counterpoint(s)."
+                f"Loaded {len(selected_counterpoints)} "
+                "semantically selected historical counterpoint(s)."
                 if selected_counterpoints
                 else (
-                    "No historical counterpoint was relevant "
-                    "to the current message."
+                    "No historical counterpoint was selected "
+                    "for the current message."
                 )
             ),
         }
-
-    def _score_counterpoint(
-        self,
-        counterpoint: dict[str, Any],
-        normalized_text: str,
-        normalized_concepts: set[str],
-    ) -> float:
-        """
-        Score relevance from the user text and semantic concepts.
-        """
-
-        score = 0.0
-
-        retrieval_concepts = counterpoint.get(
-            "retrieval_concepts",
-            [],
-        )
-
-        for concept in retrieval_concepts:
-            normalized_term = self._normalize(
-                str(concept)
-            )
-
-            if not normalized_term:
-                continue
-
-            if self._contains_term(
-                normalized_text,
-                normalized_term,
-            ):
-                word_count = len(
-                    normalized_term.split()
-                )
-
-                score += (
-                    2.5
-                    if word_count > 1
-                    else 1.5
-                )
-
-            if normalized_term in normalized_concepts:
-                score += 1.5
-
-        return score
 
     def _build_prompt_context(
         self,
         selected_counterpoints: list[dict[str, Any]],
     ) -> str:
         """
-        Convert selected counterpoints into a compact
+        Convert selected counterpoints into compact
         context for the reasoning model.
         """
 
@@ -200,7 +162,10 @@ class HistoricalCounterpointRetriever:
 
             label = knowledge.get(
                 "label",
-                item.get("id", "Counterpoint"),
+                item.get(
+                    "id",
+                    "Counterpoint",
+                ),
             )
 
             lines.append(f"{label}:")
@@ -229,8 +194,8 @@ class HistoricalCounterpointRetriever:
         ignored_keys: set[str] | None = None,
     ) -> None:
         """
-        Render dictionaries, lists and strings as
-        readable prompt context.
+        Render dictionaries, lists and strings
+        as readable prompt context.
         """
 
         ignored_keys = ignored_keys or set()
@@ -251,7 +216,10 @@ class HistoricalCounterpointRetriever:
                     " ",
                 )
 
-                if isinstance(item, (dict, list)):
+                if isinstance(
+                    item,
+                    (dict, list),
+                ):
                     lines.append(
                         f"{indent}- {readable_key}:"
                     )
@@ -272,7 +240,10 @@ class HistoricalCounterpointRetriever:
 
         if isinstance(value, list):
             for item in value:
-                if isinstance(item, (dict, list)):
+                if isinstance(
+                    item,
+                    (dict, list),
+                ):
                     self._append_value(
                         lines=lines,
                         value=item,
@@ -290,62 +261,3 @@ class HistoricalCounterpointRetriever:
         lines.append(
             f"{indent}- {value}"
         )
-
-    def _contains_term(
-        self,
-        text: str,
-        term: str,
-    ) -> bool:
-        if not text or not term:
-            return False
-
-        pattern = (
-            r"(?<!\w)"
-            + re.escape(term)
-            + r"(?!\w)"
-        )
-
-        return bool(
-            re.search(
-                pattern,
-                text,
-            )
-        )
-
-    def _normalize(
-        self,
-        value: str,
-    ) -> str:
-        """
-        Normalize accents, punctuation and letter case
-        without altering semantic content.
-        """
-
-        normalized = unicodedata.normalize(
-            "NFKD",
-            str(value or ""),
-        )
-
-        normalized = "".join(
-            character
-            for character in normalized
-            if not unicodedata.combining(
-                character
-            )
-        )
-
-        normalized = normalized.lower()
-
-        normalized = re.sub(
-            r"[^\w\s'-]",
-            " ",
-            normalized,
-        )
-
-        normalized = re.sub(
-            r"\s+",
-            " ",
-            normalized,
-        )
-
-        return normalized.strip()
