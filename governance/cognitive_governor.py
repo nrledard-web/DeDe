@@ -13,6 +13,7 @@ Principles:
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 
@@ -190,15 +191,14 @@ class CognitiveGovernor:
         search_mode: str = "governor",
     ) -> str:
         """
-        Build a language-independent semantic search decision prompt.
+        Build a language-independent semantic classification prompt.
 
-        on_request:
-            Search only when the user is requesting external information,
-            sources, links, verification or web retrieval.
+        A single fast model call determines:
+        - whether external search is required;
+        - canonical English concepts;
+        - relevant historical counterpoint identifiers.
 
-        governor:
-            Search whenever external verification is materially required,
-            even when it was not explicitly requested.
+        The user message may be written in any language.
         """
 
         conversation_context = conversation_context or {}
@@ -225,58 +225,66 @@ class CognitiveGovernor:
 
         if normalized_mode == "on_request":
             decision_policy = (
-                "Return SEARCH when the user is asking for external "
-                "retrieval, web information, links, sources, references, "
-                "verification, research, or information that clearly depends "
-                "on consulting external material.\n\n"
-
-                "Also return SEARCH for substantive questions about an "
-                "ideology, doctrine, political system, religious system or "
-                "economic model when historical applications, human "
-                "consequences or factual claims are needed to confront "
-                "theory with reality. Detect this semantically in every "
-                "language; do not rely on keyword lists.\n\n"
-
-                "Return SKIP for greetings, thanks, casual conversation, "
-                "creative writing, reflection, ordinary explanation that "
-                "has no material historical or empirical dimension, or "
-                "summarization of supplied material."
+                "Use SEARCH when the user requests external information, "
+                "links, sources, verification or research, or when a "
+                "substantive question about an ideology, doctrine, political "
+                "system, religious system or economic model requires "
+                "historical evidence and human consequences. "
+                "Use SKIP for greetings, thanks, creative writing, casual "
+                "conversation or explanations without a material historical "
+                "or empirical dimension."
             )
 
         else:
             decision_policy = (
-                "Return SEARCH whenever external verification is materially "
-                "needed, including current or changing facts, recent events, "
-                "public figures, prices, schedules, laws, external sources, "
+                "Use SEARCH whenever external verification is materially "
+                "needed, including current facts, historical consequences, "
+                "laws, public figures, disputed quantitative claims, doctrines "
                 "or claims that cannot be grounded safely from the supplied "
-                "context.\n\n"
-
-                "Return SEARCH for substantive analysis of an ideology, "
-                "doctrine, political system, religious system or economic "
-                "model whenever its theory must be confronted with historical "
-                "applications, human consequences, recurring institutional "
-                "mechanisms or disputed quantitative claims. Detect the "
-                "category semantically in every language; do not rely on "
-                "keyword lists.\n\n"
-
-                "Return SKIP for greetings, thanks, introductions, casual "
-                "conversation, creative writing, reflection, or requests "
-                "answerable safely without external verification."
+                "context. Use SKIP only when external verification would not "
+                "materially improve the answer."
             )
 
         return (
-            "You are the search-decision layer of an AI reasoning system.\n\n"
+            "You are the multilingual semantic-classification layer of "
+            "an AI reasoning system.\n\n"
+
             f"Search mode: {normalized_mode}\n\n"
-            f"{decision_policy}\n\n"
+            f"Search policy: {decision_policy}\n\n"
+
+            "Analyze the meaning of the user message in its original language. "
+            "Do not depend on literal English keywords.\n\n"
+
+            "Produce canonical_concepts as short English concept labels. "
+            "Translate and normalize the meaning, not every individual word.\n\n"
+
+            "Available historical counterpoint identifiers:\n"
+            "- islamic_thought: use when the message materially concerns Islam, "
+            "Muslim faith, Islamic theology or philosophy, political Islam, "
+            "Islamism, jihadism, Sharia, Falsafa, Kalam, Mu'tazilism or closely "
+            "related Islamic intellectual and historical questions.\n\n"
+
+            "Use only identifiers from the available list. "
+            "Return an empty counterpoint_ids list when none is relevant.\n\n"
+
             "Important rules:\n"
-            "- A greeting or conversational opening must return SKIP.\n"
-            "- Do not answer the user's request.\n"
-            "- Do not explain your decision.\n"
-            "- Return exactly one word: SEARCH or SKIP.\n\n"
+            "- Do not answer the user's question.\n"
+            "- Do not add explanations outside the JSON object.\n"
+            "- A greeting alone must use SKIP.\n"
+            "- decision must be exactly SEARCH or SKIP.\n"
+            "- canonical_concepts must contain English labels.\n"
+            "- counterpoint_ids must contain only available identifiers.\n\n"
+
+            "Return exactly this JSON structure:\n"
+            "{\n"
+            '  "decision": "SEARCH",\n'
+            '  "canonical_concepts": ["concept"],\n'
+            '  "counterpoint_ids": ["islamic_thought"]\n'
+            "}\n\n"
+
             f"Conversation context:\n{context_summary}\n\n"
             f"User message:\n{text}"
         )
-
     # --------------------------------------------------
     # Semantic Classification Parsing
     # --------------------------------------------------
@@ -286,46 +294,141 @@ class CognitiveGovernor:
         model_response: str | None,
     ) -> dict[str, Any]:
         """
-        Convert the semantic classifier response into a safe decision.
+        Parse enriched semantic classification.
 
-        Ambiguous or malformed output defaults to SKIP.
+        The former one-word SEARCH or SKIP format remains
+        supported as a safe backward-compatible fallback.
         """
 
-        cleaned = (
+        raw_response = str(
             model_response
             or ""
+        ).strip()
+
+        cleaned = (
+            raw_response
+            .replace("```json", "")
+            .replace("```JSON", "")
+            .replace("```", "")
+            .strip()
+        )
+
+        # --------------------------------------------------
+        # Backward compatibility
+        # --------------------------------------------------
+
+        legacy_decision = cleaned.upper()
+
+        if legacy_decision in {
+            "SEARCH",
+            "SKIP",
+        }:
+            return {
+                "status": "classified_legacy",
+                "decision": legacy_decision,
+                "canonical_concepts": [],
+                "counterpoint_ids": [],
+                "reason": (
+                    "The semantic classifier returned the "
+                    "legacy one-word decision."
+                ),
+                "raw_response": raw_response,
+            }
+
+        # --------------------------------------------------
+        # Enriched JSON classification
+        # --------------------------------------------------
+
+        try:
+            parsed = json.loads(cleaned)
+        except (json.JSONDecodeError, TypeError):
+            return {
+                "status": "invalid_response",
+                "decision": "SKIP",
+                "canonical_concepts": [],
+                "counterpoint_ids": [],
+                "reason": (
+                    "The semantic classifier returned invalid JSON. "
+                    "Search and counterpoint retrieval were skipped safely."
+                ),
+                "raw_response": raw_response,
+            }
+
+        if not isinstance(parsed, dict):
+            return {
+                "status": "invalid_response",
+                "decision": "SKIP",
+                "canonical_concepts": [],
+                "counterpoint_ids": [],
+                "reason": (
+                    "The semantic classification was not a JSON object."
+                ),
+                "raw_response": raw_response,
+            }
+
+        decision = str(
+            parsed.get(
+                "decision",
+                "SKIP",
+            )
         ).strip().upper()
 
-        if cleaned == "SEARCH":
-            return {
-                "status": "classified",
-                "decision": "SEARCH",
-                "reason": (
-                    "The semantic classifier determined that external "
-                    "verification is required."
-                ),
-                "raw_response": model_response or "",
-            }
+        if decision not in {
+            "SEARCH",
+            "SKIP",
+        }:
+            decision = "SKIP"
 
-        if cleaned == "SKIP":
-            return {
-                "status": "classified",
-                "decision": "SKIP",
-                "reason": (
-                    "The semantic classifier determined that external "
-                    "verification is not required."
-                ),
-                "raw_response": model_response or "",
-            }
+        canonical_concepts = parsed.get(
+            "canonical_concepts",
+            [],
+        )
+
+        if not isinstance(
+            canonical_concepts,
+            list,
+        ):
+            canonical_concepts = []
+
+        canonical_concepts = [
+            str(concept).strip()
+            for concept in canonical_concepts
+            if str(concept).strip()
+        ]
+
+        requested_counterpoints = parsed.get(
+            "counterpoint_ids",
+            [],
+        )
+
+        if not isinstance(
+            requested_counterpoints,
+            list,
+        ):
+            requested_counterpoints = []
+
+        allowed_counterpoints = {
+            "islamic_thought",
+        }
+
+        counterpoint_ids = [
+            str(counterpoint_id).strip()
+            for counterpoint_id in requested_counterpoints
+            if str(counterpoint_id).strip()
+            in allowed_counterpoints
+        ]
 
         return {
-            "status": "invalid_response",
-            "decision": "SKIP",
+            "status": "classified",
+            "decision": decision,
+            "canonical_concepts": canonical_concepts,
+            "counterpoint_ids": counterpoint_ids,
             "reason": (
-                "The semantic classifier returned an invalid response. "
-                "Search was skipped safely."
+                "The multilingual semantic classifier returned "
+                "a search decision, canonical concepts and "
+                "historical counterpoint identifiers."
             ),
-            "raw_response": model_response or "",
+            "raw_response": raw_response,
         }
 
     # --------------------------------------------------
