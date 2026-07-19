@@ -83,6 +83,9 @@ class LLMConnector:
             retrieved_memory=retrieved_memory,
             autobiographical_reasoning=autobiographical_reasoning,
             philosophical_context=philosophical_context,
+            historical_counterpoint_context=(
+                historical_counterpoint_context
+            ),
             document_context=document_context,
             dede_identity=dede_identity,
             dede_state=dede_state,
@@ -575,6 +578,7 @@ class LLMConnector:
         retrieved_memory: dict[str, Any],
         autobiographical_reasoning: dict[str, Any],
         philosophical_context: dict[str, Any],
+        historical_counterpoint_context: dict[str, Any],
         document_context: dict[str, Any],
         dede_identity: dict[str, Any],
         dede_state: dict[str, Any],
@@ -1217,6 +1221,25 @@ class LLMConnector:
             lines.append(
                 philosophical_prompt_context
             )
+
+        # --------------------------------------------------
+        # Relevant Historical Counterpoints
+        # --------------------------------------------------
+
+        historical_counterpoint_prompt = str(
+            historical_counterpoint_context.get(
+                "prompt_context",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if historical_counterpoint_prompt:
+            lines.append("")
+            lines.append(
+                historical_counterpoint_prompt
+            )
+
 
         # --------------------------------------------------
         # Active Document Context
