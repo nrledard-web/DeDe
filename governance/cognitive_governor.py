@@ -244,7 +244,6 @@ class CognitiveGovernor:
             )
 
         else:
-        else:
             decision_policy = (
                 "Return SEARCH whenever external verification is materially "
                 "needed, including current or changing facts, recent events, "
