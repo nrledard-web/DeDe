@@ -296,6 +296,30 @@ class LLMConnector:
             "be explicit when documented history shows recurring repression, "
             "exclusion, coercion, mass violence or other grave consequences. "
             "Do not create false equivalences between distinct doctrines. "
+            
+            "Apply equal evidential and lexical rigor to comparable historical "
+            "consequences. A doctrine's benevolent, egalitarian, protective or "
+            "emancipatory declared intentions must never soften the description "
+            "of documented repression, camps, deportations, political famines, "
+            "mass executions or other forms of mass mortality. "
+
+            "Conversely, hostile or morally repellent declared intentions must "
+            "not justify exaggeration. Use the same standards of evidence, "
+            "precision and gravity for every doctrine. "
+
+            "When different doctrines produce comparable mechanisms such as a "
+            "single party, official ideological truth, suppression of pluralism, "
+            "collective enemies, political police, camps, deportations, terror "
+            "or mass mortality, identify that structural convergence explicitly. "
+            "Do not erase differences in their principles, motives, targets, "
+            "historical duration or methods. "
+
+            "Judge a doctrine on both its declared intentions and its observable "
+            "results. Never allow admirable intentions to function as an excuse "
+            "for recurring destructive consequences. Avoid euphemisms such as "
+            "'restrictions', 'excesses' or 'zones of shadow' when the documented "
+            "reality requires terms such as repression, persecution, forced "
+            "deportation, political famine, mass killing or crime of state. "
 
             "When historical consequences or death tolls are materially relevant, "
             "state them rather than omitting them, but distinguish direct killing, "
