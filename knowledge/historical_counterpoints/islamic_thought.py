@@ -35,6 +35,7 @@ ISLAMIC_THOUGHT_COUNTERPOINT: dict[str, Any] = {
         "da'wa",
         "Sharia",
         "taqiya",
+        "taqiyya"
         "Falsafa",
         "Falasifa",
         "Kalam",
@@ -60,8 +61,11 @@ ISLAMIC_THOUGHT_COUNTERPOINT: dict[str, Any] = {
             "with the political programme of an Islamist movement."
         ),
         (
-            "Claim that Islamism has an historical relationship" 
-            "with Muslims faith and conquest."
+            "Recognize that Islamism has historical and doctrinal relationships "
+            "with Islamic faith, jurisprudence and the history of Muslim political "
+            "expansion. Examine the specific continuities, transformations and "
+            "ruptures claimed or demonstrated for each movement instead of "
+            "assuming either complete identity or complete separation."
         ),
         (
             "Distinguish a movement's self-description, its theological "
@@ -219,7 +223,8 @@ ISLAMIC_THOUGHT_COUNTERPOINT: dict[str, Any] = {
             "rational current in Islamic history. Distinguish the positions of "
             "individual philosophers and the contexts in which they worked."
         ),
-
+    },
+    
     "kalam": {
         "name": "Kalam",
 
