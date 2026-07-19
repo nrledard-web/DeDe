@@ -225,16 +225,25 @@ class CognitiveGovernor:
 
         if normalized_mode == "on_request":
             decision_policy = (
-                "Return SEARCH only when the user is asking for external "
+                "Return SEARCH when the user is asking for external "
                 "retrieval, web information, links, sources, references, "
                 "verification, research, or information that clearly depends "
                 "on consulting external material.\n\n"
+
+                "Also return SEARCH for substantive questions about an "
+                "ideology, doctrine, political system, religious system or "
+                "economic model when historical applications, human "
+                "consequences or factual claims are needed to confront "
+                "theory with reality. Detect this semantically in every "
+                "language; do not rely on keyword lists.\n\n"
+
                 "Return SKIP for greetings, thanks, casual conversation, "
-                "creative writing, reflection, ordinary explanation, "
-                "summarization of supplied material, or questions that do "
-                "not ask for external retrieval."
+                "creative writing, reflection, ordinary explanation that "
+                "has no material historical or empirical dimension, or "
+                "summarization of supplied material."
             )
 
+        else:
         else:
             decision_policy = (
                 "Return SEARCH whenever external verification is materially "
@@ -242,6 +251,15 @@ class CognitiveGovernor:
                 "public figures, prices, schedules, laws, external sources, "
                 "or claims that cannot be grounded safely from the supplied "
                 "context.\n\n"
+
+                "Return SEARCH for substantive analysis of an ideology, "
+                "doctrine, political system, religious system or economic "
+                "model whenever its theory must be confronted with historical "
+                "applications, human consequences, recurring institutional "
+                "mechanisms or disputed quantitative claims. Detect the "
+                "category semantically in every language; do not rely on "
+                "keyword lists.\n\n"
+
                 "Return SKIP for greetings, thanks, introductions, casual "
                 "conversation, creative writing, reflection, or requests "
                 "answerable safely without external verification."
