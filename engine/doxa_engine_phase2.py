@@ -573,6 +573,37 @@ class DoxaEnginePhase2:
                 }
 
         # --------------------------------------------------
+        # Historical Counterpoint Retrieval
+        # --------------------------------------------------
+
+        canonical_concepts = (
+            semantic_search_classification.get(
+                "canonical_concepts",
+                [],
+            )
+        )
+
+        selected_counterpoint_ids = (
+            semantic_search_classification.get(
+                "counterpoint_ids",
+                [],
+            )
+        )
+
+        historical_counterpoint_context = (
+            self.historical_counterpoint_retriever.retrieve(
+                selected_counterpoint_ids=selected_counterpoint_ids,
+                canonical_concepts=canonical_concepts,
+                text=text,
+            )
+        )
+
+        workspace.add_interpretation(
+            "historical_counterpoint_context",
+            historical_counterpoint_context,
+        )
+
+        # --------------------------------------------------
         # Final Search Decision
         # --------------------------------------------------
 
