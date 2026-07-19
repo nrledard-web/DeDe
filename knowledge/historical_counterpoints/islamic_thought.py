@@ -59,6 +59,8 @@ ISLAMIC_THOUGHT_COUNTERPOINT: dict[str, Any] = {
         (
             "Do not automatically identify the faith of all Muslims "
             "with the political programme of an Islamist movement."
+            "Examine the Islamic texts, jurisprudence, historical "
+            "precedents and claims of orthodoxy invoked by each movement."
         ),
         (
             "Recognize that Islamism has historical and doctrinal relationships "
