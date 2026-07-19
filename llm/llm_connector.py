@@ -35,6 +35,7 @@ class LLMConnector:
         retrieved_memory: dict[str, Any] | None = None,
         autobiographical_reasoning: dict[str, Any] | None = None,
         philosophical_context: dict[str, Any] | None = None,
+        historical_counterpoint_context: dict[str, Any] | None = None,
         document_context: dict[str, Any] | None = None,
         dede_identity: dict[str, Any] | None = None,
         dede_state: dict[str, Any] | None = None,
@@ -51,6 +52,10 @@ class LLMConnector:
         retrieved_memory = retrieved_memory or {}
         autobiographical_reasoning = autobiographical_reasoning or {}
         philosophical_context = philosophical_context or {}
+        historical_counterpoint_context = (
+            historical_counterpoint_context
+            or {}
+        )
         document_context = document_context or {}
         dede_identity = dede_identity or {}
         dede_state = dede_state or {}
