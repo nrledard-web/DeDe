@@ -611,9 +611,17 @@ class SourceAnalysisEngine:
                         "url",
                         "",
                     ),
+                    "snippet": source.get(
+                        "snippet",
+                        "",
+                    ),
                     "provider": source.get(
                         "provider",
                         "",
+                    ),
+                    "validation": source.get(
+                        "validation",
+                        {},
                     ),
                     "analysis": self._unknown_analysis(
                         index
