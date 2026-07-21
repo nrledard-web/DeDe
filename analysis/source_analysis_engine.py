@@ -33,75 +33,175 @@ class SourceAnalysisEngine:
     ) -> str:
         """
         Build one semantic source-analysis prompt for all results.
+
+        The analysis must distinguish:
+        - what the snippet explicitly says;
+        - what evidence is visible in the snippet;
+        - what remains an unsupported claim or interpretation;
+        - the source's apparent framing.
         """
 
         sources = []
 
-        for index, item in enumerate(search_results):
-            if not isinstance(item, dict):
+        for index, item in enumerate(
+            search_results
+        ):
+            if not isinstance(
+                item,
+                dict,
+            ):
                 continue
+
+            validation = item.get(
+                "validation",
+                {},
+            )
+
+            if not isinstance(
+                validation,
+                dict,
+            ):
+                validation = {}
 
             sources.append(
                 {
                     "index": index,
                     "title": str(
-                        item.get("title", "")
+                        item.get(
+                            "title",
+                            "",
+                        )
                         or ""
                     ).strip(),
                     "url": str(
-                        item.get("url", "")
+                        item.get(
+                            "url",
+                            "",
+                        )
                         or ""
                     ).strip(),
                     "snippet": str(
-                        item.get("snippet", "")
+                        item.get(
+                            "snippet",
+                            "",
+                        )
                         or ""
                     ).strip(),
                     "provider": str(
-                        item.get("provider", "")
+                        item.get(
+                            "provider",
+                            "",
+                        )
                         or ""
                     ).strip(),
+                    "technical_validation": {
+                        "url_valid": validation.get(
+                            "url_valid",
+                            True,
+                        ),
+                        "hostname": validation.get(
+                            "hostname",
+                            "",
+                        ),
+                        "topical_score": validation.get(
+                            "topical_score",
+                            0.0,
+                        ),
+                        "matched_concepts": validation.get(
+                            "matched_concepts",
+                            [],
+                        ),
+                    },
                 }
             )
 
         return (
-            "You are the source-analysis layer of a cognitive reasoning "
-            "system.\n\n"
-            "Evaluate each retrieved source from its title, URL, snippet "
-            "and relationship to the user's request.\n\n"
+            "You are the source-analysis layer of a cognitive "
+            "reasoning system.\n\n"
+
+            "Evaluate each retrieved source only from the supplied "
+            "title, URL, search-result snippet and technical "
+            "validation metadata.\n\n"
+
+            "A search-result snippet is limited evidence. It may be "
+            "incomplete, truncated, promotional, editorialized or "
+            "taken out of context. Never behave as if the full linked "
+            "document has been read.\n\n"
+
+            "For every source, distinguish clearly between:\n"
+            "- what the snippet explicitly states;\n"
+            "- what evidence is actually visible in the snippet;\n"
+            "- what remains a claim, interpretation, qualification "
+            "or inference;\n"
+            "- the apparent framing or standpoint of the source.\n\n"
+
+            "Do not treat repeated wording across several results as "
+            "independent confirmation. Several results may reproduce "
+            "the same framing, institution, article or upstream "
+            "source.\n\n"
+
+            "Do not decide that a claim is true or false solely from "
+            "the source category, reputation, political orientation "
+            "or frequency in the result list.\n\n"
+
             "For every source, estimate:\n"
-            "- source_type: one of encyclopedic, academic, institutional, "
-            "governmental, journalistic, commercial, activist, forum, "
-            "personal, unknown;\n"
-            "- evidence_level: a number from 0.0 to 1.0;\n"
-            "- independence: a number from 0.0 to 1.0;\n"
-            "- commercial_pressure: a number from 0.0 to 1.0;\n"
-            "- ideological_pressure: a number from 0.0 to 1.0;\n"
-            "- relevance: a number from 0.0 to 1.0;\n"
-            "- limitations: a short list of limitations;\n"
+            "- source_type: one of encyclopedic, academic, "
+            "institutional, governmental, journalistic, commercial, "
+            "activist, forum, personal, unknown;\n"
+            "- evidence_level: number from 0.0 to 1.0 measuring the "
+            "evidence visible in the supplied snippet, not the presumed "
+            "quality of the unread full page;\n"
+            "- independence: number from 0.0 to 1.0;\n"
+            "- commercial_pressure: number from 0.0 to 1.0;\n"
+            "- ideological_pressure: number from 0.0 to 1.0;\n"
+            "- relevance: number from 0.0 to 1.0;\n"
+            "- claim_summary: a short neutral description of what the "
+            "snippet claims or reports;\n"
+            "- evidence_summary: a short description of the evidence "
+            "actually visible in the snippet; use an empty string when "
+            "no supporting evidence is visible;\n"
+            "- framing: one of descriptive, supportive, critical, "
+            "mixed, unclear;\n"
+            "- limitations: a short list of material limitations;\n"
             "- rationale: one short explanation.\n\n"
-            "Do not decide whether the source is true or false solely from "
-            "its category.\n"
-            "Do not invent information that is absent from the supplied "
-            "metadata.\n"
-            "When evidence is insufficient, use 'unknown' and moderate "
-            "scores.\n\n"
+
+            "A source may be highly relevant while providing little "
+            "visible evidence. Relevance must never be converted into "
+            "truth, reliability or confirmation.\n\n"
+
+            "When the snippet uses a categorical label, moral judgment "
+            "or contested qualification, preserve it as the source's "
+            "framing unless the supplied snippet contains sufficient "
+            "evidence to establish it independently.\n\n"
+
+            "Do not invent information absent from the supplied "
+            "metadata. When evidence is insufficient, say so and use "
+            "moderate or low evidence scores.\n\n"
+
             "Return valid JSON only, using exactly this structure:\n\n"
+
             "{\n"
             '  "sources": [\n'
             "    {\n"
             '      "index": 0,\n'
             '      "source_type": "unknown",\n'
-            '      "evidence_level": 0.5,\n'
+            '      "evidence_level": 0.0,\n'
             '      "independence": 0.5,\n'
             '      "commercial_pressure": 0.0,\n'
             '      "ideological_pressure": 0.0,\n'
             '      "relevance": 0.5,\n'
+            '      "claim_summary": "",\n'
+            '      "evidence_summary": "",\n'
+            '      "framing": "unclear",\n'
             '      "limitations": [],\n'
             '      "rationale": ""\n'
             "    }\n"
             "  ],\n"
+            '  "agreement_warning": "",\n'
+            '  "viewpoint_diversity": "unknown",\n'
             '  "overall_summary": ""\n'
             "}\n\n"
+
             f"User request:\n{user_request}\n\n"
             f"Search query:\n{search_query}\n\n"
             "Retrieved sources:\n"
