@@ -394,6 +394,14 @@ class SourceAnalysisEngine:
             "unknown",
         }
 
+        allowed_framings = {
+            "descriptive",
+            "supportive",
+            "critical",
+            "mixed",
+            "unclear",
+        }
+
         source_type = str(
             item.get(
                 "source_type",
@@ -405,12 +413,26 @@ class SourceAnalysisEngine:
         if source_type not in allowed_types:
             source_type = "unknown"
 
+        framing = str(
+            item.get(
+                "framing",
+                "unclear",
+            )
+            or "unclear"
+        ).lower().strip()
+
+        if framing not in allowed_framings:
+            framing = "unclear"
+
         limitations = item.get(
             "limitations",
             [],
         )
 
-        if not isinstance(limitations, list):
+        if not isinstance(
+            limitations,
+            list,
+        ):
             limitations = []
 
         limitations = [
@@ -419,31 +441,64 @@ class SourceAnalysisEngine:
             if str(value).strip()
         ][:5]
 
+        claim_summary = str(
+            item.get(
+                "claim_summary",
+                "",
+            )
+            or ""
+        ).strip()
+
+        evidence_summary = str(
+            item.get(
+                "evidence_summary",
+                "",
+            )
+            or ""
+        ).strip()
+
+        rationale = str(
+            item.get(
+                "rationale",
+                "",
+            )
+            or ""
+        ).strip()
+
         return {
             "source_type": source_type,
             "evidence_level": self._clamp(
-                item.get("evidence_level")
+                item.get(
+                    "evidence_level"
+                )
             ),
             "independence": self._clamp(
-                item.get("independence")
+                item.get(
+                    "independence"
+                )
             ),
             "commercial_pressure": self._clamp(
-                item.get("commercial_pressure")
+                item.get(
+                    "commercial_pressure"
+                )
             ),
             "ideological_pressure": self._clamp(
-                item.get("ideological_pressure")
+                item.get(
+                    "ideological_pressure"
+                )
             ),
             "relevance": self._clamp(
-                item.get("relevance")
-            ),
-            "limitations": limitations,
-            "rationale": str(
                 item.get(
-                    "rationale",
-                    "",
+                    "relevance"
                 )
-                or ""
-            ).strip(),
+            ),
+            "claim_summary": claim_summary,
+            "evidence_summary": (
+                evidence_summary
+            ),
+            "framing": framing,
+            "limitations": limitations,
+            "rationale": rationale,
         }
 
     def _unknown_analysis(
@@ -453,15 +508,18 @@ class SourceAnalysisEngine:
 
         return {
             "source_type": "unknown",
-            "evidence_level": 0.5,
+            "evidence_level": 0.0,
             "independence": 0.5,
             "commercial_pressure": 0.0,
             "ideological_pressure": 0.0,
             "relevance": 0.5,
+            "claim_summary": "",
+            "evidence_summary": "",
+            "framing": "unclear",
             "limitations": [
                 (
-                    "The available metadata was insufficient for "
-                    "a complete evaluation."
+                    "The available metadata was insufficient "
+                    "for a complete evaluation."
                 )
             ],
             "rationale": (
@@ -469,7 +527,6 @@ class SourceAnalysisEngine:
                 f"for source {index}."
             ),
         }
-
     def _aggregate(
         self,
         enriched_sources: list[dict[str, Any]],
