@@ -137,6 +137,30 @@ class LLMConnector:
                 "Clearly identify any inference as an inference. "
                 "Preserve useful URLs when links were requested. "
                 "Respect source quality, relevance and limitations. "
+
+                "Distinguish four epistemic levels whenever relevant: "
+                "observable or reported facts; "
+                "the source's interpretation of those facts; "
+                "causal attribution; "
+                "and attribution of intention or coordination. "
+
+                "Do not convert a source's categorical label, political framing "
+                "or moral qualification into DeDe's own verified conclusion. "
+
+                "Do not treat repetition across search results as independent "
+                "confirmation. Several results may reproduce the same framing "
+                "or depend on the same upstream source. "
+
+                "When materially different interpretations are present, describe "
+                "them fairly before drawing a conclusion. Do not create artificial "
+                "balance when the evidence is genuinely unequal, but do not erase "
+                "a documented disagreement merely because one framing dominates "
+                "the retrieved result list. "
+
+                "A conclusion must be no more certain than the evidence supplied "
+                "in the snippets. If the snippets do not demonstrate a claim, "
+                "describe it as a claim, interpretation or unresolved question. "
+
                 "Do not say that DeDe cannot access the Internet because search "
                 "results are already available.\n\n"
                 f"User message:\n{text}"
@@ -684,17 +708,27 @@ class LLMConnector:
         )
 
         if source_analysis_ready:
-            lines.append("COGNITIVE WEB SOURCE CONTEXT")
+            lines.append(
+                "COGNITIVE WEB SOURCE CONTEXT"
+            )
             lines.append("")
 
             lines.append(
-                "DeDe has already retrieved and cognitively "
-                "evaluated the following web sources."
+                "DeDe has retrieved search-result titles, "
+                "URLs and snippets. The full linked pages "
+                "have not been opened."
             )
 
             lines.append(
-                "Use this structured source context instead of "
-                "repeating the raw search snippets."
+                "Each result has received a provisional "
+                "cognitive evaluation based only on its "
+                "metadata and snippet."
+            )
+
+            lines.append(
+                "A high relevance score means that a source "
+                "concerns the requested subject. It does not "
+                "mean that its claims are true."
             )
 
             lines.append("")
@@ -710,8 +744,44 @@ class LLMConnector:
             )
 
             lines.append(
+                f'- retrieved result count: '
+                f'{search_result.get("raw_result_count", len(results))}'
+            )
+
+            lines.append(
+                f'- accepted result count: '
+                f'{search_result.get("accepted_result_count", len(results))}'
+            )
+
+            lines.append(
+                f'- rejected result count: '
+                f'{search_result.get("rejected_result_count", 0)}'
+            )
+
+            lines.append(
                 f'- analyzed source count: '
                 f'{source_analysis.get("source_count", len(analyzed_sources))}'
+            )
+
+            viewpoint_diversity = str(
+                source_analysis.get(
+                    "viewpoint_diversity",
+                    "unknown",
+                )
+                or "unknown"
+            ).strip()
+
+            agreement_warning = str(
+                source_analysis.get(
+                    "agreement_warning",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            lines.append(
+                "- viewpoint diversity: "
+                f"{viewpoint_diversity}"
             )
 
             aggregate = source_analysis.get(
@@ -719,36 +789,68 @@ class LLMConnector:
                 {},
             )
 
+            if not isinstance(
+                aggregate,
+                dict,
+            ):
+                aggregate = {}
+
             average_scores = aggregate.get(
                 "average_scores",
                 {},
             )
+
+            if not isinstance(
+                average_scores,
+                dict,
+            ):
+                average_scores = {}
 
             source_type_counts = aggregate.get(
                 "source_type_counts",
                 {},
             )
 
+            if not isinstance(
+                source_type_counts,
+                dict,
+            ):
+                source_type_counts = {}
+
             if average_scores:
                 lines.append(
-                    "- average evidence: "
+                    "- average visible evidence: "
                     f'{average_scores.get("evidence_level", 0.0)}'
                 )
 
                 lines.append(
-                    "- average relevance: "
+                    "- average topical relevance: "
                     f'{average_scores.get("relevance", 0.0)}'
                 )
 
                 lines.append(
-                    "- average independence: "
+                    "- average estimated independence: "
                     f'{average_scores.get("independence", 0.0)}'
+                )
+
+                lines.append(
+                    "- average ideological pressure: "
+                    f'{average_scores.get("ideological_pressure", 0.0)}'
                 )
 
             if source_type_counts:
                 lines.append(
                     "- source types: "
                     f"{source_type_counts}"
+                )
+
+            if agreement_warning:
+                lines.append("")
+                lines.append(
+                    "Agreement warning:"
+                )
+                lines.append(
+                    agreement_warning
                 )
 
             overall_summary = str(
@@ -761,17 +863,63 @@ class LLMConnector:
 
             if overall_summary:
                 lines.append("")
-                lines.append("Overall source assessment:")
-                lines.append(overall_summary)
+                lines.append(
+                    "Overall provisional source assessment:"
+                )
+                lines.append(
+                    overall_summary
+                )
 
             lines.append("")
-            lines.append("Evaluated sources:")
+            lines.append(
+                "EPISTEMIC REASONING RULES"
+            )
+            lines.append("")
+
+            lines.append(
+                "- A snippet is not the full document."
+            )
+
+            lines.append(
+                "- A source's claim is not automatically a fact."
+            )
+
+            lines.append(
+                "- Topical relevance is not evidence of truth."
+            )
+
+            lines.append(
+                "- Repeated wording is not necessarily independent confirmation."
+            )
+
+            lines.append(
+                "- A categorical label remains the source's framing "
+                "unless the supplied evidence establishes it independently."
+            )
+
+            lines.append(
+                "- Distinguish reported observation, interpretation, "
+                "causal attribution and attribution of intention."
+            )
+
+            lines.append(
+                "- When evidence is absent from the snippet, preserve "
+                "the claim as unverified."
+            )
+
+            lines.append("")
+            lines.append(
+                "EVALUATED SEARCH RESULTS"
+            )
 
             for index, source in enumerate(
                 analyzed_sources,
                 start=1,
             ):
-                if not isinstance(source, dict):
+                if not isinstance(
+                    source,
+                    dict,
+                ):
                     continue
 
                 analysis = source.get(
@@ -779,8 +927,22 @@ class LLMConnector:
                     {},
                 )
 
-                if not isinstance(analysis, dict):
+                if not isinstance(
+                    analysis,
+                    dict,
+                ):
                     analysis = {}
+
+                validation = source.get(
+                    "validation",
+                    {},
+                )
+
+                if not isinstance(
+                    validation,
+                    dict,
+                ):
+                    validation = {}
 
                 title = str(
                     source.get(
@@ -798,10 +960,27 @@ class LLMConnector:
                     or ""
                 ).strip()
 
-                source_type = analysis.get(
-                    "source_type",
-                    "unknown",
-                )
+                snippet = str(
+                    source.get(
+                        "snippet",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                if len(snippet) > 700:
+                    snippet = (
+                        snippet[:700].rstrip()
+                        + "..."
+                    )
+
+                source_type = str(
+                    analysis.get(
+                        "source_type",
+                        "unknown",
+                    )
+                    or "unknown"
+                ).strip()
 
                 evidence = analysis.get(
                     "evidence_level",
@@ -818,47 +997,193 @@ class LLMConnector:
                     0.0,
                 )
 
-                summary = str(
+                ideological_pressure = (
                     analysis.get(
-                        "summary",
+                        "ideological_pressure",
+                        0.0,
+                    )
+                )
+
+                framing = str(
+                    analysis.get(
+                        "framing",
+                        "unclear",
+                    )
+                    or "unclear"
+                ).strip()
+
+                claim_summary = str(
+                    analysis.get(
+                        "claim_summary",
                         "",
                     )
                     or ""
                 ).strip()
 
+                evidence_summary = str(
+                    analysis.get(
+                        "evidence_summary",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                rationale = str(
+                    analysis.get(
+                        "rationale",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                limitations = analysis.get(
+                    "limitations",
+                    [],
+                )
+
+                if not isinstance(
+                    limitations,
+                    list,
+                ):
+                    limitations = []
+
+                limitations = [
+                    str(item).strip()
+                    for item in limitations
+                    if str(item).strip()
+                ][:5]
+
                 lines.append("")
-                lines.append(f"{index}. {title}")
+                lines.append(
+                    f"{index}. {title}"
+                )
 
                 if url:
-                    lines.append(f"   URL: {url}")
-
-                lines.append(
-                    f"   Type: {source_type}"
-                )
-
-                lines.append(
-                    f"   Evidence: {evidence}"
-                )
-
-                lines.append(
-                    f"   Relevance: {relevance}"
-                )
-
-                lines.append(
-                    f"   Independence: {independence}"
-                )
-
-                if summary:
                     lines.append(
-                        f"   Assessment: {summary}"
+                        f"   URL: {url}"
+                    )
+
+                hostname = str(
+                    validation.get(
+                        "hostname",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                if hostname:
+                    lines.append(
+                        f"   Hostname: {hostname}"
+                    )
+
+                if snippet:
+                    lines.append(
+                        f"   Supplied snippet: {snippet}"
+                    )
+                else:
+                    lines.append(
+                        "   Supplied snippet: unavailable"
+                    )
+
+                lines.append(
+                    f"   Source type: {source_type}"
+                )
+
+                lines.append(
+                    f"   Apparent framing: {framing}"
+                )
+
+                lines.append(
+                    f"   Topical relevance: {relevance}"
+                )
+
+                lines.append(
+                    f"   Visible evidence level: {evidence}"
+                )
+
+                lines.append(
+                    f"   Estimated independence: {independence}"
+                )
+
+                lines.append(
+                    "   Estimated ideological pressure: "
+                    f"{ideological_pressure}"
+                )
+
+                if claim_summary:
+                    lines.append(
+                        "   What the snippet claims or reports: "
+                        f"{claim_summary}"
+                    )
+
+                if evidence_summary:
+                    lines.append(
+                        "   Evidence visible in the snippet: "
+                        f"{evidence_summary}"
+                    )
+                else:
+                    lines.append(
+                        "   Evidence visible in the snippet: "
+                        "none identified"
+                    )
+
+                if limitations:
+                    lines.append(
+                        "   Limitations:"
+                    )
+
+                    for limitation in limitations:
+                        lines.append(
+                            f"   - {limitation}"
+                        )
+
+                if rationale:
+                    lines.append(
+                        f"   Evaluation rationale: {rationale}"
                     )
 
             lines.append("")
             lines.append(
-                "Answer from these evaluated sources. "
-                "Preserve useful URLs when the user requests links. "
-                "Do not reproduce long raw snippets. "
-                "Mention uncertainty or source limitations when relevant."
+                "FINAL SYNTHESIS INSTRUCTION"
+            )
+            lines.append("")
+
+            lines.append(
+                "Answer the user's request from the supplied "
+                "snippets and their evaluations."
+            )
+
+            lines.append(
+                "Preserve useful admissible URLs when links "
+                "were requested."
+            )
+
+            lines.append(
+                "Do not reproduce every snippet mechanically. "
+                "Synthesize their material content."
+            )
+
+            lines.append(
+                "Do not adopt the dominant vocabulary of the result "
+                "list as DeDe's own conclusion without evidential support."
+            )
+
+            lines.append(
+                "If sources use conflicting frames, identify the "
+                "disagreement and explain what the available snippets "
+                "can and cannot establish."
+            )
+
+            lines.append(
+                "If the snippets support an observable phenomenon but "
+                "not a proposed cause, intention or coordination, state "
+                "that distinction explicitly."
+            )
+
+            lines.append(
+                "Use calibrated language: established, supported, "
+                "reported, claimed, interpreted, disputed, uncertain "
+                "or unsupported by the available snippets."
             )
 
             lines.append("")
