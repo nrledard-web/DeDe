@@ -263,28 +263,72 @@ class SourceAnalysisEngine:
 
         enriched_sources = []
 
-        for index, source in enumerate(search_results):
-            source_analysis = analyses_by_index.get(
-                index,
-                self._unknown_analysis(index),
+        for index, source in enumerate(
+            search_results
+        ):
+            if not isinstance(
+                source,
+                dict,
+            ):
+                continue
+
+            source_analysis = (
+                analyses_by_index.get(
+                    index,
+                    self._unknown_analysis(
+                        index
+                    ),
+                )
             )
+
+            validation = source.get(
+                "validation",
+                {},
+            )
+
+            if not isinstance(
+                validation,
+                dict,
+            ):
+                validation = {}
 
             enriched_sources.append(
                 {
                     "index": index,
-                    "title": source.get(
-                        "title",
-                        "",
+                    "title": str(
+                        source.get(
+                            "title",
+                            "",
+                        )
+                        or ""
+                    ).strip(),
+                    "url": str(
+                        source.get(
+                            "url",
+                            "",
+                        )
+                        or ""
+                    ).strip(),
+                    "snippet": str(
+                        source.get(
+                            "snippet",
+                            "",
+                        )
+                        or ""
+                    ).strip(),
+                    "provider": str(
+                        source.get(
+                            "provider",
+                            "",
+                        )
+                        or ""
+                    ).strip(),
+                    "validation": (
+                        validation
                     ),
-                    "url": source.get(
-                        "url",
-                        "",
+                    "analysis": (
+                        source_analysis
                     ),
-                    "provider": source.get(
-                        "provider",
-                        "",
-                    ),
-                    "analysis": source_analysis,
                 }
             )
 
@@ -292,22 +336,87 @@ class SourceAnalysisEngine:
             enriched_sources
         )
 
+        # --------------------------------------------------
+        # Viewpoint Diversity
+        # --------------------------------------------------
+
+        allowed_diversity_values = {
+            "low",
+            "moderate",
+            "high",
+            "unknown",
+        }
+
+        viewpoint_diversity = str(
+            parsed.get(
+                "viewpoint_diversity",
+                "unknown",
+            )
+            or "unknown"
+        ).lower().strip()
+
+        if (
+            viewpoint_diversity
+            not in allowed_diversity_values
+        ):
+            viewpoint_diversity = "unknown"
+
+        agreement_warning = str(
+            parsed.get(
+                "agreement_warning",
+                "",
+            )
+            or ""
+        ).strip()
+
+        overall_summary = str(
+            parsed.get(
+                "overall_summary",
+                "",
+            )
+            or ""
+        ).strip()
+
+        # --------------------------------------------------
+        # Coherence Loop Indicators
+        # --------------------------------------------------
+
+        coherence_loop = (
+            self._build_coherence_loop_state(
+                sources=enriched_sources,
+                viewpoint_diversity=(
+                    viewpoint_diversity
+                ),
+                agreement_warning=(
+                    agreement_warning
+                ),
+            )
+        )
+
         return {
             "engine": self.name,
             "status": "ready",
-            "source_count": len(enriched_sources),
+            "source_count": len(
+                enriched_sources
+            ),
             "sources": enriched_sources,
             "aggregate": aggregate,
-            "overall_summary": str(
-                parsed.get(
-                    "overall_summary",
-                    "",
-                )
-                or ""
-            ).strip(),
-            "raw_response": raw_response,
+            "viewpoint_diversity": (
+                viewpoint_diversity
+            ),
+            "agreement_warning": (
+                agreement_warning
+            ),
+            "coherence_loop": (
+                coherence_loop
+            ),
+            "overall_summary": (
+                overall_summary
+            ),
+            "raw_response": (
+                raw_response
+            ),
         }
-
     def unavailable(
         self,
         search_results: list[dict[str, Any]],
@@ -527,6 +636,367 @@ class SourceAnalysisEngine:
                 f"for source {index}."
             ),
         }
+        
+    # --------------------------------------------------
+    # Coherence Loop Analysis
+    # --------------------------------------------------
+
+    def _build_coherence_loop_state(
+        self,
+        sources: list[dict[str, Any]],
+        viewpoint_diversity: str,
+        agreement_warning: str,
+    ) -> dict[str, Any]:
+        """
+        Build a deterministic warning from the semantic
+        evaluations already produced.
+
+        This method performs no additional LLM call.
+        """
+
+        if not sources:
+            return {
+                "status": "empty",
+                "risk": "unknown",
+                "risk_score": 0.0,
+                "indicators": [],
+                "requires_counterpoint": False,
+                "summary": (
+                    "No source was available for "
+                    "coherence-loop analysis."
+                ),
+            }
+
+        indicators = []
+        risk_score = 0.0
+
+        analyses = []
+
+        for source in sources:
+            analysis = source.get(
+                "analysis",
+                {},
+            )
+
+            if isinstance(
+                analysis,
+                dict,
+            ):
+                analyses.append(
+                    analysis
+                )
+
+        framing_counts = {}
+
+        for analysis in analyses:
+            framing = str(
+                analysis.get(
+                    "framing",
+                    "unclear",
+                )
+                or "unclear"
+            ).lower().strip()
+
+            framing_counts[framing] = (
+                framing_counts.get(
+                    framing,
+                    0,
+                )
+                + 1
+            )
+
+        meaningful_framings = {
+            framing: count
+            for framing, count
+            in framing_counts.items()
+            if framing not in {
+                "unclear",
+                "descriptive",
+            }
+        }
+
+        if viewpoint_diversity == "low":
+            indicators.append(
+                {
+                    "type": (
+                        "low_viewpoint_diversity"
+                    ),
+                    "severity": "high",
+                    "message": (
+                        "The retrieved sources present "
+                        "limited viewpoint diversity."
+                    ),
+                }
+            )
+
+            risk_score += 0.35
+
+        elif viewpoint_diversity == "moderate":
+            indicators.append(
+                {
+                    "type": (
+                        "moderate_viewpoint_diversity"
+                    ),
+                    "severity": "low",
+                    "message": (
+                        "The retrieved sources present only "
+                        "moderate viewpoint diversity."
+                    ),
+                }
+            )
+
+            risk_score += 0.10
+
+        if agreement_warning:
+            indicators.append(
+                {
+                    "type": (
+                        "agreement_not_independent"
+                    ),
+                    "severity": "high",
+                    "message": (
+                        agreement_warning
+                    ),
+                }
+            )
+
+            risk_score += 0.30
+
+        source_count = len(
+            analyses
+        )
+
+        if (
+            source_count >= 3
+            and len(
+                meaningful_framings
+            ) == 1
+        ):
+            dominant_framing = next(
+                iter(
+                    meaningful_framings
+                ),
+                "unknown",
+            )
+
+            indicators.append(
+                {
+                    "type": (
+                        "single_dominant_framing"
+                    ),
+                    "severity": "medium",
+                    "message": (
+                        "All materially framed sources "
+                        "share the same apparent framing: "
+                        f"{dominant_framing}."
+                    ),
+                }
+            )
+
+            risk_score += 0.20
+
+        evidence_values = [
+            float(
+                analysis.get(
+                    "evidence_level",
+                    0.0,
+                )
+            )
+            for analysis in analyses
+            if isinstance(
+                analysis.get(
+                    "evidence_level"
+                ),
+                (int, float),
+            )
+        ]
+
+        ideological_values = [
+            float(
+                analysis.get(
+                    "ideological_pressure",
+                    0.0,
+                )
+            )
+            for analysis in analyses
+            if isinstance(
+                analysis.get(
+                    "ideological_pressure"
+                ),
+                (int, float),
+            )
+        ]
+
+        independence_values = [
+            float(
+                analysis.get(
+                    "independence",
+                    0.0,
+                )
+            )
+            for analysis in analyses
+            if isinstance(
+                analysis.get(
+                    "independence"
+                ),
+                (int, float),
+            )
+        ]
+
+        average_evidence = (
+            sum(
+                evidence_values
+            )
+            / len(
+                evidence_values
+            )
+            if evidence_values
+            else 0.0
+        )
+
+        average_ideological_pressure = (
+            sum(
+                ideological_values
+            )
+            / len(
+                ideological_values
+            )
+            if ideological_values
+            else 0.0
+        )
+
+        average_independence = (
+            sum(
+                independence_values
+            )
+            / len(
+                independence_values
+            )
+            if independence_values
+            else 0.0
+        )
+
+        if (
+            average_ideological_pressure
+            >= 0.60
+        ):
+            indicators.append(
+                {
+                    "type": (
+                        "high_ideological_pressure"
+                    ),
+                    "severity": "high",
+                    "message": (
+                        "The retrieved corpus has high "
+                        "average ideological pressure."
+                    ),
+                }
+            )
+
+            risk_score += 0.25
+
+        if (
+            average_evidence < 0.40
+            and source_count >= 2
+        ):
+            indicators.append(
+                {
+                    "type": (
+                        "repetition_without_evidence"
+                    ),
+                    "severity": "high",
+                    "message": (
+                        "Several sources are present, but "
+                        "the evidence visible in their "
+                        "snippets remains limited."
+                    ),
+                }
+            )
+
+            risk_score += 0.25
+
+        if (
+            average_independence < 0.45
+            and source_count >= 2
+        ):
+            indicators.append(
+                {
+                    "type": (
+                        "low_source_independence"
+                    ),
+                    "severity": "medium",
+                    "message": (
+                        "The retrieved sources may not "
+                        "constitute independent confirmation."
+                    ),
+                }
+            )
+
+            risk_score += 0.20
+
+        risk_score = max(
+            0.0,
+            min(
+                1.0,
+                risk_score,
+            ),
+        )
+
+        if risk_score >= 0.60:
+            risk = "high"
+
+        elif risk_score >= 0.30:
+            risk = "moderate"
+
+        else:
+            risk = "low"
+
+        requires_counterpoint = (
+            risk in {
+                "moderate",
+                "high",
+            }
+        )
+
+        return {
+            "status": "ready",
+            "risk": risk,
+            "risk_score": round(
+                risk_score,
+                3,
+            ),
+            "requires_counterpoint": (
+                requires_counterpoint
+            ),
+            "viewpoint_diversity": (
+                viewpoint_diversity
+            ),
+            "framing_counts": (
+                framing_counts
+            ),
+            "average_evidence": round(
+                average_evidence,
+                3,
+            ),
+            "average_independence": round(
+                average_independence,
+                3,
+            ),
+            "average_ideological_pressure": round(
+                average_ideological_pressure,
+                3,
+            ),
+            "indicators": indicators,
+            "summary": (
+                "A potential coherence loop was detected."
+                if requires_counterpoint
+                else (
+                    "No strong coherence-loop risk "
+                    "was detected."
+                )
+            ),
+        } 
+
     def _aggregate(
         self,
         enriched_sources: list[dict[str, Any]],
