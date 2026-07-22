@@ -1069,7 +1069,9 @@ class SourceAnalysisEngine:
 
         sources = []
 
-        for index, source in enumerate(search_results):
+        for index, source in enumerate(
+            search_results
+        ):
             sources.append(
                 {
                     "index": index,
@@ -1093,19 +1095,38 @@ class SourceAnalysisEngine:
                         "validation",
                         {},
                     ),
-                    "analysis": self._unknown_analysis(
-                        index
+                    "analysis": (
+                        self._unknown_analysis(
+                            index
+                        )
                     ),
                 }
             )
 
+        coherence_loop = (
+            self._build_coherence_loop_state(
+                sources=sources,
+                viewpoint_diversity="unknown",
+                agreement_warning="",
+            )
+        )
+
         return {
             "engine": self.name,
             "status": "unavailable",
-            "source_count": len(sources),
+            "source_count": len(
+                sources
+            ),
             "sources": sources,
             "aggregate": self._aggregate(
                 sources
+            ),
+            "viewpoint_diversity": (
+                "unknown"
+            ),
+            "agreement_warning": "",
+            "coherence_loop": (
+                coherence_loop
             ),
             "overall_summary": reason,
             "raw_response": raw_response,
@@ -1117,7 +1138,10 @@ class SourceAnalysisEngine:
         default: float = 0.5,
     ) -> float:
 
-        if not isinstance(value, (int, float)):
+        if not isinstance(
+            value,
+            (int, float),
+        ):
             return default
 
         return max(
