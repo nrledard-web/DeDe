@@ -73,6 +73,24 @@ class ResponseBuilder:
             {},
         )
 
+        source_analysis = report.get(
+            "source_analysis",
+            {},
+        )
+
+        coherence_loop = (
+            source_analysis.get(
+                "coherence_loop",
+                {},
+            )
+        )
+
+        if not isinstance(
+            coherence_loop,
+            dict,
+        ):
+            coherence_loop = {}
+
         dialogue = report.get(
             "dialogue",
             {},
