@@ -314,38 +314,133 @@ class ResponseBuilder:
         search_result: dict[str, Any],
         language: str,
     ) -> str | None:
+        """
+        Build a safe fallback list when no synthesized response exists.
 
-        results = search_result.get("results", [])
+        Only technically and topically admissible results are displayed.
+        Raw snippets are not reproduced as a substitute for synthesis.
+        """
 
-        if not results:
+        raw_results = search_result.get(
+            "results",
+            [],
+        )
+
+        if not isinstance(
+            raw_results,
+            list,
+        ):
             return None
 
-        lines = []
+        admissible_results = []
+
+        for item in raw_results:
+
+            if not isinstance(
+                item,
+                dict,
+            ):
+                continue
+
+            validation = item.get(
+                "validation",
+                {},
+            )
+
+            if not isinstance(
+                validation,
+                dict,
+            ):
+                validation = {}
+
+            admissible = validation.get(
+                "admissible",
+                True,
+            )
+
+            url_valid = validation.get(
+                "url_valid",
+                True,
+            )
+
+            if (
+                admissible
+                and url_valid
+            ):
+                admissible_results.append(
+                    item
+                )
+
+        if not admissible_results:
+            return None
 
         if language == "en":
-            lines.append("Here are some web results I found:")
+            heading = (
+                "The synthesis model was unavailable. "
+                "Here are the admissible search results:"
+            )
+
         elif language == "es":
-            lines.append("Aquí tienes algunos resultados encontrados en la web:")
+            heading = (
+                "El modelo de síntesis no estaba disponible. "
+                "Estos son los resultados de búsqueda admisibles:"
+            )
+
         elif language == "fil":
-            lines.append("Narito ang ilang resulta na nahanap sa web:")
+            heading = (
+                "Hindi available ang synthesis model. "
+                "Narito ang mga katanggap-tanggap na resulta:"
+            )
+
         else:
-            lines.append("Voici quelques résultats trouvés sur le web :")
+            heading = (
+                "Le modèle de synthèse n’était pas disponible. "
+                "Voici les résultats de recherche admissibles :"
+            )
 
-        lines.append("")
+        lines = [
+            heading,
+            "",
+        ]
 
-        for index, item in enumerate(results[:5], start=1):
-            title = item.get("title", "")
-            url = item.get("url", "")
-            snippet = item.get("snippet", "")
+        for index, item in enumerate(
+            admissible_results[:5],
+            start=1,
+        ):
 
-            lines.append(f"{index}. {title}")
-            if snippet:
-                lines.append(snippet)
+            title = str(
+                item.get(
+                    "title",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            url = str(
+                item.get(
+                    "url",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            if not title and not url:
+                continue
+
+            lines.append(
+                f"{index}. {title}"
+            )
+
             if url:
-                lines.append(url)
+                lines.append(
+                    url
+                )
+
             lines.append("")
 
-        return "\n".join(lines)
+        return "\n".join(
+            lines
+        ).strip()
 
     def _committee_texts(
         self,
@@ -353,21 +448,32 @@ class ResponseBuilder:
         confidence: float,
         provider_count: int = 1,
     ) -> dict[str, str]:
+        """
+        Build transparent synthesis labels.
+
+        A single model is never presented as a cognitive comparison.
+        Comparative language is used only when several providers
+        genuinely contributed.
+        """
+
+        multiple_models = (
+            provider_count > 1
+        )
 
         if language == "en":
             return {
                 "title": "DeDe synthesis:",
                 "analysis": (
-                    "Cognitive analysis: DeDe used the selected model "
-                    "as reasoning material."
-                    if provider_count <= 1
-                    else "Cognitive analysis: several models were consulted. "
-                    "DeDe compared their answers before producing a final response."
+                    "Comparative analysis: several reasoning models "
+                    "were consulted and their outputs were compared."
+                    if multiple_models
+                    else ""
                 ),
                 "confidence": (
-                    ""
-                    if provider_count <= 1
-                    else f"Comparative confidence: {round(confidence * 100)}%."
+                    f"Comparative confidence: "
+                    f"{round(confidence * 100)}%."
+                    if multiple_models
+                    else ""
                 ),
             }
 
@@ -375,16 +481,16 @@ class ResponseBuilder:
             return {
                 "title": "Síntesis DeDe:",
                 "analysis": (
-                    "Análisis cognitivo: DeDe utilizó el modelo seleccionado "
-                    "como material de razonamiento."
-                    if provider_count <= 1
-                    else "Análisis cognitivo: se consultaron varios modelos. "
-                    "DeDe comparó sus respuestas antes de producir una respuesta final."
+                    "Análisis comparativo: se consultaron varios "
+                    "modelos de razonamiento y se compararon sus resultados."
+                    if multiple_models
+                    else ""
                 ),
                 "confidence": (
-                    ""
-                    if provider_count <= 1
-                    else f"Confianza comparativa: {round(confidence * 100)}%."
+                    f"Confianza comparativa: "
+                    f"{round(confidence * 100)}%."
+                    if multiple_models
+                    else ""
                 ),
             }
 
@@ -392,32 +498,33 @@ class ResponseBuilder:
             return {
                 "title": "Sintesis ni DeDe:",
                 "analysis": (
-                    "Pagsusuring pangkognitibo: ginamit ni DeDe ang napiling modelo "
-                    "bilang batayan ng pangangatwiran."
-                    if provider_count <= 1
-                    else "Pagsusuring pangkognitibo: maraming modelo ang kinonsulta. "
-                    "Inihambing ni DeDe ang kanilang mga sagot bago bumuo ng huling tugon."
+                    "Paghahambing na pagsusuri: maraming reasoning "
+                    "model ang kinonsulta at inihambing ang kanilang tugon."
+                    if multiple_models
+                    else ""
                 ),
                 "confidence": (
-                    ""
-                    if provider_count <= 1
-                    else f"Tinatayang antas ng paghahambing: {round(confidence * 100)}%."
+                    f"Antas ng paghahambing: "
+                    f"{round(confidence * 100)}%."
+                    if multiple_models
+                    else ""
                 ),
             }
 
         return {
             "title": "Synthèse DeDe :",
             "analysis": (
-                "Analyse cognitive : DeDe a utilisé le modèle sélectionné "
-                "comme matière de raisonnement."
-                if provider_count <= 1
-                else "Analyse cognitive : plusieurs modèles ont été consultés. "
-                "DeDe a comparé leurs réponses avant de produire une réponse finale."
+                "Analyse comparative : plusieurs modèles de "
+                "raisonnement ont été consultés et leurs productions "
+                "ont été comparées."
+                if multiple_models
+                else ""
             ),
             "confidence": (
-                ""
-                if provider_count <= 1
-                else f"Confiance comparative : {round(confidence * 100)}%."
+                f"Confiance comparative : "
+                f"{round(confidence * 100)}%."
+                if multiple_models
+                else ""
             ),
         }
     
