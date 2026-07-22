@@ -255,12 +255,13 @@ class ResponseBuilder:
             if part
         )
 
-        if not final_answer:
+                if not final_answer:
             final_answer = (
                 "DeDe has analyzed the request, but no clear "
                 "user-facing answer could be generated."
             )
-                    coherence_loop_notice = (
+
+        coherence_loop_notice = (
             self._build_coherence_loop_notice(
                 coherence_loop=coherence_loop,
                 language=language,
@@ -307,7 +308,7 @@ class ResponseBuilder:
             ),
         }
 
-        # --------------------------------------------------
+    # --------------------------------------------------
     # Anti-Coherence Loop Notice
     # --------------------------------------------------
 
