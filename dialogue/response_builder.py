@@ -255,7 +255,7 @@ class ResponseBuilder:
             if part
         )
 
-                if not final_answer:
+        if not final_answer:
             final_answer = (
                 "DeDe has analyzed the request, but no clear "
                 "user-facing answer could be generated."
