@@ -1461,6 +1461,7 @@ class DoxaEnginePhase2:
             "dede_identity": identity_state,
             "search_result": search_result,
             "search_summary": search_summary,
+            "source_analysis": source_analysis,
             "committee_reasoning": committee_reasoning,
             "summary": self._build_summary(
                 workspace,
