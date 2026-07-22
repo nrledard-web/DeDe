@@ -260,6 +260,19 @@ class ResponseBuilder:
                 "DeDe has analyzed the request, but no clear "
                 "user-facing answer could be generated."
             )
+                    coherence_loop_notice = (
+            self._build_coherence_loop_notice(
+                coherence_loop=coherence_loop,
+                language=language,
+            )
+        )
+
+        if coherence_loop_notice:
+            final_answer = (
+                final_answer.rstrip()
+                + "\n\n"
+                + coherence_loop_notice
+            )
 
         return {
             "builder": self.name,
@@ -293,6 +306,221 @@ class ResponseBuilder:
                 "DeDe's governed report."
             ),
         }
+
+        # --------------------------------------------------
+    # Anti-Coherence Loop Notice
+    # --------------------------------------------------
+
+    def _build_coherence_loop_notice(
+        self,
+        coherence_loop: dict[str, Any],
+        language: str,
+    ) -> str:
+
+        if not coherence_loop:
+            return ""
+
+        if (
+            coherence_loop.get(
+                "status"
+            )
+            != "ready"
+        ):
+            return ""
+
+        risk = str(
+            coherence_loop.get(
+                "risk",
+                "low",
+            )
+            or "low"
+        ).lower().strip()
+
+        if risk not in {
+            "moderate",
+            "high",
+        }:
+            return ""
+
+        indicators = coherence_loop.get(
+            "indicators",
+            [],
+        )
+
+        if not isinstance(
+            indicators,
+            list,
+        ):
+            indicators = []
+
+        indicator_types = {
+            str(
+                indicator.get(
+                    "type",
+                    "",
+                )
+            ).strip()
+            for indicator in indicators
+            if isinstance(
+                indicator,
+                dict,
+            )
+        }
+
+        low_diversity = bool(
+            {
+                "low_viewpoint_diversity",
+                "single_dominant_framing",
+            }
+            & indicator_types
+        )
+
+        low_independence = bool(
+            {
+                "agreement_not_independent",
+                "low_source_independence",
+            }
+            & indicator_types
+        )
+
+        weak_evidence = (
+            "repetition_without_evidence"
+            in indicator_types
+        )
+
+        reasons = []
+
+        if low_diversity:
+            reasons.append(
+                "limited viewpoint diversity"
+            )
+
+        if low_independence:
+            reasons.append(
+                "uncertain source independence"
+            )
+
+        if weak_evidence:
+            reasons.append(
+                "repetition with limited visible evidence"
+            )
+
+        reason_text = ", ".join(
+            reasons
+        )
+
+        if language == "en":
+
+            if risk == "high":
+                prefix = (
+                    "**Anti-coherence-loop alert:** "
+                    "a probable coherence-loop risk was detected"
+                )
+            else:
+                prefix = (
+                    "**Anti-coherence-loop notice:** "
+                    "a possible coherence-loop risk was detected"
+                )
+
+            if reason_text:
+                return (
+                    f"{prefix} ({reason_text}). "
+                    "Repetition across results does not necessarily "
+                    "constitute independent confirmation."
+                )
+
+            return (
+                f"{prefix}. Repetition across results does not "
+                "necessarily constitute independent confirmation."
+            )
+
+        if language == "es":
+
+            if risk == "high":
+                prefix = (
+                    "**Alerta antibucle de coherencia:** "
+                    "se detectó un riesgo probable de bucle "
+                    "de coherencia"
+                )
+            else:
+                prefix = (
+                    "**Vigilancia antibucle de coherencia:** "
+                    "se detectó un posible riesgo de bucle "
+                    "de coherencia"
+                )
+
+            return (
+                f"{prefix}. La repetición entre resultados no "
+                "constituye necesariamente una confirmación "
+                "independiente."
+            )
+
+        if language == "fil":
+
+            if risk == "high":
+                prefix = (
+                    "**Babala laban sa coherence loop:** "
+                    "may natukoy na malamang na panganib "
+                    "ng coherence loop"
+                )
+            else:
+                prefix = (
+                    "**Pag-iingat laban sa coherence loop:** "
+                    "may natukoy na posibleng panganib "
+                    "ng coherence loop"
+                )
+
+            return (
+                f"{prefix}. Ang pag-uulit sa mga resulta ay "
+                "hindi kinakailangang independiyenteng pagpapatunay."
+            )
+
+        if risk == "high":
+            prefix = (
+                "**Alerte anti-boucle de cohérence :** "
+                "un risque probable de boucle de cohérence "
+                "a été détecté"
+            )
+        else:
+            prefix = (
+                "**Vigilance anti-boucle de cohérence :** "
+                "un risque possible de boucle de cohérence "
+                "a été détecté"
+            )
+
+        french_reasons = []
+
+        if low_diversity:
+            french_reasons.append(
+                "faible diversité des cadrages"
+            )
+
+        if low_independence:
+            french_reasons.append(
+                "indépendance incertaine des sources"
+            )
+
+        if weak_evidence:
+            french_reasons.append(
+                "répétition avec peu de preuves visibles"
+            )
+
+        french_reason_text = ", ".join(
+            french_reasons
+        )
+
+        if french_reason_text:
+            return (
+                f"{prefix} ({french_reason_text}). "
+                "La répétition des résultats ne constitue pas "
+                "nécessairement une confirmation indépendante."
+            )
+
+        return (
+            f"{prefix}. La répétition des résultats ne constitue "
+            "pas nécessairement une confirmation indépendante."
+        )
+    
     # --------------------------------------------------
     # LLM Cleaning
     # --------------------------------------------------
