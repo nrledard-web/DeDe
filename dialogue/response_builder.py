@@ -14,81 +14,95 @@ class ResponseBuilder:
 
     name = "response_builder"
 
-    def __init__(self):
-        self.language_pack = LanguagePack()
-
-    # --------------------------------------------------
-    # Main Builder
-    # --------------------------------------------------
-
     def build(
         self,
         report: dict[str, Any],
     ) -> dict[str, Any]:
 
-        llm_interpretation = report.get(
-            "llm_interpretation",
-            {},
-        )
-
         # --------------------------------------------------
         # Context extraction
         # --------------------------------------------------
 
-        knowledge = report.get("knowledge", {})
-        onboarding = report.get("onboarding", {})
-        dialogue_decision = report.get("dialogue_decision", {})
+        knowledge = report.get(
+            "knowledge",
+            {},
+        )
+
+        onboarding = report.get(
+            "onboarding",
+            {},
+        )
+
+        dialogue_decision = report.get(
+            "dialogue_decision",
+            {},
+        )
+
         conversation_reasoning = report.get(
             "conversation_reasoning",
             {},
         )
+
         dialogue_profile = report.get(
             "dialogue_profile",
             {},
         )
-        cognitive_feedback = report.get("cognitive_feedback", {})
-        llm_bridge_response = report.get("llm_bridge_response", {})
-        committee_reasoning = report.get("committee_reasoning", {})
-        summary = report.get("summary", {})
-        search_result = report.get("search_result", {})
 
-        dialogue = report.get("dialogue", {})
-        user_memory = report.get("user_memory", {})
-        dede_identity = report.get("dede_identity", {})
-
-        # --------------------------------------------------
-        # Build answer
-        # --------------------------------------------------
-
-        answer_parts = []
-
-        search_direct_response = self._build_search_response(
-            search_result=search_result,
-            language=dialogue_profile.get("language", "fr"),
+        llm_bridge_response = report.get(
+            "llm_bridge_response",
+            {},
         )
-        
-        if search_direct_response:
-            answer_parts.append(search_direct_response)
 
-        if onboarding.get("message"):
-            answer_parts.append(
-                onboarding["message"]
-            )
         llm_interpretation = report.get(
             "llm_interpretation",
             {},
         )
-        llm_direct_response = self._clean_llm_text(
-            llm_interpretation.get(
-                "user_facing_response",
-                "",
+
+        committee_reasoning = report.get(
+            "committee_reasoning",
+            {},
+        )
+
+        summary = report.get(
+            "summary",
+            {},
+        )
+
+        search_result = report.get(
+            "search_result",
+            {},
+        )
+
+        dialogue = report.get(
+            "dialogue",
+            {},
+        )
+
+        language = dialogue_profile.get(
+            "language",
+            "fr",
+        )
+
+        # --------------------------------------------------
+        # Extract the final LLM response
+        # --------------------------------------------------
+
+        llm_direct_response = (
+            self._clean_llm_text(
+                llm_interpretation.get(
+                    "user_facing_response",
+                    "",
+                )
             )
         )
-        
+
         if not llm_direct_response:
-        
+
             llm_direct_response = (
-                llm_bridge_response.get("response")
+                llm_bridge_response.get(
+                    "response",
+                    "",
+                )
                 or (
                     llm_bridge_response.get(
                         "llm_engine",
@@ -99,61 +113,123 @@ class ResponseBuilder:
                     )
                 )
             )
-        
-            llm_direct_response = self._clean_llm_text(
-                llm_direct_response
+
+            llm_direct_response = (
+                self._clean_llm_text(
+                    llm_direct_response
+                )
             )
-        
+
+        # --------------------------------------------------
+        # Build answer
+        # --------------------------------------------------
+
+        answer_parts = []
+
+        if onboarding.get(
+            "message"
+        ):
+            answer_parts.append(
+                onboarding["message"]
+            )
+
         if llm_direct_response:
-        
-            language = dialogue_profile.get(
-                "language",
-                "fr",
+
+            provider_count = (
+                committee_reasoning.get(
+                    "source_count",
+                    1,
+                )
             )
-        
-            provider_count = committee_reasoning.get(
-                "source_count",
-                1,
+
+            confidence = (
+                committee_reasoning.get(
+                    "confidence",
+                    0.0,
+                )
             )
-        
-            confidence = committee_reasoning.get(
-                "confidence",
-                0.0,
-            )
-        
+
             texts = self._committee_texts(
                 language=language,
                 confidence=confidence,
                 provider_count=provider_count,
             )
-        
+
+            synthesis_parts = [
+                texts.get(
+                    "title",
+                    "",
+                ),
+                llm_direct_response,
+            ]
+
+            # A comparative notice is shown only when
+            # several models were genuinely consulted.
+            if provider_count > 1:
+                synthesis_parts.extend(
+                    [
+                        texts.get(
+                            "analysis",
+                            "",
+                        ),
+                        texts.get(
+                            "confidence",
+                            "",
+                        ),
+                    ]
+                )
+
             answer_parts.append(
                 "\n\n".join(
                     part
-                    for part in [
-                        texts["title"],
-                        llm_direct_response,
-                        texts["analysis"],
-                        texts["confidence"],
-                    ]
+                    for part in synthesis_parts
                     if part
                 )
             )
 
-        elif dialogue.get("response"):
-            answer_parts.append(
-                dialogue["response"]
+        else:
+
+            # Search results are displayed directly only when
+            # no synthesized LLM response is available.
+            search_fallback_response = (
+                self._build_search_response(
+                    search_result=search_result,
+                    language=language,
+                )
             )
 
-        elif knowledge.get("found"):
-            answer_parts.append(
-                knowledge.get("answer", "")
-            )
+            if search_fallback_response:
+                answer_parts.append(
+                    search_fallback_response
+                )
+
+            elif dialogue.get(
+                "response"
+            ):
+                answer_parts.append(
+                    dialogue["response"]
+                )
+
+            elif knowledge.get(
+                "found"
+            ):
+                answer_parts.append(
+                    knowledge.get(
+                        "answer",
+                        "",
+                    )
+                )
 
         if not answer_parts:
-            answer_parts.append(
-                summary.get("diagnosis", "")
+            diagnosis = summary.get(
+                "diagnosis",
+                "",
             )
+
+            if diagnosis:
+                answer_parts.append(
+                    diagnosis
+                )
 
         final_answer = "\n\n".join(
             part
@@ -163,44 +239,42 @@ class ResponseBuilder:
 
         if not final_answer:
             final_answer = (
-                "DeDe has analyzed the input, but no clear "
-                "user-facing answer could be generated yet."
+                "DeDe has analyzed the request, but no clear "
+                "user-facing answer could be generated."
             )
-        # --------------------------------------------------
-        # Follow-up question
-        # --------------------------------------------------
-
-        # Cognitive autonomy:
-        # DeDe does not generate follow-up questions by default.
-        follow_up_question = None
-
-        # --------------------------------------------------
-        # Final response
-        # --------------------------------------------------
 
         return {
             "builder": self.name,
             "status": "ready",
-            "conversation_mode": dialogue_decision.get(
-                "strategy",
-                "direct_answer",
+            "conversation_mode": (
+                dialogue_decision.get(
+                    "strategy",
+                    "direct_answer",
+                )
             ),
             "final_answer": final_answer,
-            "follow_up_question": follow_up_question,
-            "used_llm": (
-                llm_bridge_response.get("status")
-                == "success"
+            "follow_up_question": None,
+            "used_llm": bool(
+                llm_direct_response
             ),
-            "used_local_knowledge": knowledge.get(
-                "found",
-                False,
+            "used_local_knowledge": (
+                knowledge.get(
+                    "found",
+                    False,
+                )
+            ),
+            "search_fallback_used": bool(
+                not llm_direct_response
+                and search_result.get(
+                    "results",
+                    [],
+                )
             ),
             "summary": (
                 "User-facing response built from "
-                "DeDe report."
+                "DeDe's governed report."
             ),
         }
-
     # --------------------------------------------------
     # LLM Cleaning
     # --------------------------------------------------
