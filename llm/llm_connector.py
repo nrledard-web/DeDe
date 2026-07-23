@@ -196,6 +196,56 @@ class LLMConnector:
                 "normally without forcing the PDF into the response.\n\n"
                 + user_prompt
             )
+                    # --------------------------------------------------
+        # Anti-Coherence Loop Final Gate
+        # --------------------------------------------------
+
+        coherence_loop = source_analysis.get(
+            "coherence_loop",
+            {},
+        )
+
+        if not isinstance(
+            coherence_loop,
+            dict,
+        ):
+            coherence_loop = {}
+
+        coherence_risk = str(
+            coherence_loop.get(
+                "risk",
+                "low",
+            )
+            or "low"
+        ).lower().strip()
+
+        if coherence_risk in {
+            "moderate",
+            "high",
+        }:
+            user_prompt = (
+                user_prompt
+                + "\n\n"
+                + "MANDATORY ANTI-COHERENCE-LOOP GATE:\n"
+                + "The retrieved corpus presents a moderate or high "
+                + "risk of shared framing or non-independent agreement.\n"
+                + "Your final response must obey all of these rules:\n"
+                + "1. Attribute contested political, moral or categorical "
+                + "qualifications to the sources that use them.\n"
+                + "2. Do not transform 'the sources describe X as Y' "
+                + "into the unsupported conclusion 'X is Y'.\n"
+                + "3. Do not use words equivalent to 'debunked', "
+                + "'proven false', 'conspiracy', 'racist' or "
+                + "'scientifically established' in DeDe's own voice "
+                + "unless the supplied snippets contain direct evidence "
+                + "supporting that exact conclusion.\n"
+                + "4. Distinguish observable phenomena, interpretation, "
+                + "causal attribution and attribution of intention.\n"
+                + "5. State briefly that repetition across search results "
+                + "does not necessarily constitute independent confirmation.\n"
+                + "6. Prefer a short, cautious synthesis. Do not repeat "
+                + "the dominant qualification several times.\n"
+            )
 
         full_prompt = (
             "SYSTEM:\n\n"
