@@ -770,13 +770,13 @@ class SourceAnalysisEngine:
             source_count >= 3
             and len(
                 meaningful_framings
-            ) == 1
+            ) <= 1
         ):
             dominant_framing = next(
                 iter(
                     meaningful_framings
                 ),
-                "unknown",
+                "unresolved",
             )
 
             indicators.append(
@@ -784,16 +784,17 @@ class SourceAnalysisEngine:
                     "type": (
                         "single_dominant_framing"
                     ),
-                    "severity": "medium",
+                    "severity": "high",
                     "message": (
-                        "All materially framed sources "
-                        "share the same apparent framing: "
-                        f"{dominant_framing}."
+                        "The retrieved corpus does not "
+                        "establish sufficient diversity of "
+                        "independent framings. Apparent dominant "
+                        f"framing: {dominant_framing}."
                     ),
                 }
             )
 
-            risk_score += 0.20
+            risk_score += 0.35
 
         evidence_values = [
             float(
