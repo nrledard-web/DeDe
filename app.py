@@ -190,7 +190,10 @@ st.markdown(
         font-weight:400;
         margin-top:0;
         margin-bottom:0.3rem;">
-        The First Agentic, Human-Like Cognitive AI Governor — Powered by Combinable AI Models and Tools, with a Built-In Anti-Coherence Loop to Prevent Self-Reinforcing Reasoning and Cognitive Closure. 
+        The First Agentic, Human-Like Cognitive AI Governor<br>
+        Powered by Combinable AI Models and Tools<br>
+        With a Built-In Anti-Coherence Loop<br>
+        To Prevent Self-Reinforcing Reasoning and Cognitive Closure.
     </h4>
 
     <p style="
