@@ -72,6 +72,11 @@ if "POLLINATIONS_API_KEY" in st.secrets:
         "POLLINATIONS_API_KEY"
     ]
 
+if "HF_TOKEN" in st.secrets:
+    os.environ["HF_TOKEN"] = st.secrets[
+        "HF_TOKEN"
+    ]
+
 # --------------------------------------------------
 # DeDe Tool Layer
 # --------------------------------------------------
