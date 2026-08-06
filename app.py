@@ -521,6 +521,10 @@ render_video_studio_panel(
     tool_manager=st.session_state.tool_manager,
 )
 
+render_free_video_maker_panel(
+    tool_manager=st.session_state.tool_manager,
+)
+
 render_document_studio_panel(
     tool_manager=st.session_state.tool_manager,
 )
