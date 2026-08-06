@@ -10,12 +10,25 @@ from __future__ import annotations
 
 import os
 
-from tools.media.image_generator import ImageGenerator
+from tools.media.image_generator import (
+    ImageGenerator,
+)
+
 from tools.media.cloudflare_image_generator import (
     CloudflareImageGenerator,
 )
-from tools.documents.pdf_reader import PDFReader
-from tools.tool_manager import ToolManager
+
+from tools.media.pollinations_video_generator import (
+    PollinationsVideoGenerator,
+)
+
+from tools.documents.pdf_reader import (
+    PDFReader,
+)
+
+from tools.tool_manager import (
+    ToolManager,
+)
 
 
 def build_tool_manager() -> ToolManager:
@@ -37,6 +50,10 @@ def build_tool_manager() -> ToolManager:
         "CLOUDFLARE_API_TOKEN"
     )
 
+    pollinations_api_key = os.environ.get(
+        "POLLINATIONS_API_KEY"
+    )
+
     if openai_api_key:
         tool_manager.register(
             ImageGenerator(
@@ -50,8 +67,21 @@ def build_tool_manager() -> ToolManager:
     ):
         tool_manager.register(
             CloudflareImageGenerator(
-                account_id=cloudflare_account_id,
-                api_token=cloudflare_api_token,
+                account_id=(
+                    cloudflare_account_id
+                ),
+                api_token=(
+                    cloudflare_api_token
+                ),
+            )
+        )
+
+    if pollinations_api_key:
+        tool_manager.register(
+            PollinationsVideoGenerator(
+                api_key=(
+                    pollinations_api_key
+                ),
             )
         )
 
