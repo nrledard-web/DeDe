@@ -1269,6 +1269,7 @@ class DoxaEnginePhase2:
             user_memory=user_memory,
             persistent_memory=self.persistent_memory.get_memory(),
             retrieved_memory=retrieved_memory,
+            conversation_context=conversation_context,
             autobiographical_reasoning=autobiographical_reasoning,
             philosophical_context=philosophical_context,
             historical_counterpoint_context=(
