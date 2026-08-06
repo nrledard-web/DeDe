@@ -51,6 +51,7 @@ class LLMConnector:
         user_memory = user_memory or {}
         persistent_memory = persistent_memory or {}
         retrieved_memory = retrieved_memory or {}
+        conversation_context = conversation_context or {}
         autobiographical_reasoning = autobiographical_reasoning or {}
         philosophical_context = philosophical_context or {}
         historical_counterpoint_context = (
@@ -82,6 +83,7 @@ class LLMConnector:
             user_memory=user_memory,
             persistent_memory=persistent_memory,
             retrieved_memory=retrieved_memory,
+            conversation_context=conversation_context,
             autobiographical_reasoning=autobiographical_reasoning,
             philosophical_context=philosophical_context,
             historical_counterpoint_context=(
@@ -197,7 +199,7 @@ class LLMConnector:
                 "normally without forcing the PDF into the response.\n\n"
                 + user_prompt
             )
-                    # --------------------------------------------------
+        # --------------------------------------------------
         # Anti-Coherence Loop Final Gate
         # --------------------------------------------------
 
@@ -651,6 +653,7 @@ class LLMConnector:
         user_memory: dict[str, Any],
         persistent_memory: dict[str, Any],
         retrieved_memory: dict[str, Any],
+        conversation_context: dict[str, Any],
         autobiographical_reasoning: dict[str, Any],
         philosophical_context: dict[str, Any],
         historical_counterpoint_context: dict[str, Any],
