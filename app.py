@@ -209,9 +209,9 @@ st.markdown(
         margin-top:0;
         margin-bottom:0.3rem;">
         The First Agentic, Human-Like Cognitive AI Governor<br>
-        With User-Owned, Private, and Portable Memory Storage<br>
+        Designed for User-Owned, Private, and Portable Memory Storage<br>
         Powered by Combinable AI Models and Evolving Tools<br>
-        The only Agent AI with a Built-In Anti-Coherence Loop<br>
+        With a Built-In Epistemic Anti-Coherence Loop<br>
         To Prevent Self-Reinforcing Reasoning and Cognitive Closure.
     </h4>
 
