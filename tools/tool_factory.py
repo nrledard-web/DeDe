@@ -26,6 +26,10 @@ from tools.media.huggingface_video_generator import (
     HuggingFaceVideoGenerator,
 )
 
+from tools.media.free_video_maker import (
+    FreeVideoMaker,
+)
+
 from tools.documents.pdf_reader import (
     PDFReader,
 )
@@ -101,6 +105,10 @@ def build_tool_manager() -> ToolManager:
                 ),
             )
         )
+
+    tool_manager.register(
+        FreeVideoMaker()
+    )
 
     tool_manager.register(
         PDFReader()
