@@ -1,7 +1,8 @@
 """
 DeDe - Video Studio Panel
 
-Streamlit sidebar interface for video generation.
+Streamlit sidebar interface for interchangeable
+video-generation providers.
 """
 
 from __future__ import annotations
@@ -24,9 +25,31 @@ def render_video_studio_panel(
             expanded=False,
         ):
             st.caption(
-                "Generate short MP4 videos "
-                "through Pollinations."
+                "Generate short AI videos with "
+                "interchangeable providers."
             )
+
+            provider_labels = {
+                "Hugging Face — Free monthly credits": (
+                    "huggingface"
+                ),
+                "Pollinations — Paid credits": (
+                    "pollinations"
+                ),
+            }
+
+            selected_provider_label = st.selectbox(
+                "Video provider",
+                list(
+                    provider_labels.keys()
+                ),
+                index=0,
+                key="video_generator_provider",
+            )
+
+            selected_provider = provider_labels[
+                selected_provider_label
+            ]
 
             video_prompt = st.text_area(
                 "Describe the video",
@@ -39,105 +62,135 @@ def render_video_studio_panel(
                 height=120,
             )
 
-            model_labels = {
-                "WAN Fast — Faster": "wan-fast",
-                "Seedance 2.0 — Balanced": (
-                    "seedance-2.0"
-                ),
-                "Veo — High Quality": "veo",
+            tool_name = ""
+            tool_arguments: dict[str, Any] = {
+                "prompt": video_prompt,
             }
 
-            selected_model_label = st.selectbox(
-                "Video model",
-                list(
-                    model_labels.keys()
-                ),
-                index=0,
-                key="video_generator_model",
-            )
+            if selected_provider == "huggingface":
+                tool_name = (
+                    "huggingface_video_generator"
+                )
 
-            selected_model = model_labels[
-                selected_model_label
-            ]
+                st.caption(
+                    "Hugging Face provides approximately "
+                    "$0.10 of free inference credits "
+                    "per month. Video availability and "
+                    "duration depend on the provider."
+                )
 
-            format_labels = {
-                "Vertical — 9:16": "9:16",
-                "Horizontal — 16:9": "16:9",
-            }
+            else:
+                tool_name = (
+                    "pollinations_video_generator"
+                )
 
-            selected_format = st.selectbox(
-                "Video format",
-                list(
-                    format_labels.keys()
-                ),
-                index=0,
-                key="video_generator_format",
-            )
+                model_labels = {
+                    "WAN Fast — Faster": (
+                        "wan-fast"
+                    ),
+                    "Seedance 2.0 — Balanced": (
+                        "seedance-2.0"
+                    ),
+                    "Veo — High Quality": (
+                        "veo"
+                    ),
+                }
 
-            aspect_ratio = format_labels[
-                selected_format
-            ]
+                selected_model_label = st.selectbox(
+                    "Video model",
+                    list(
+                        model_labels.keys()
+                    ),
+                    index=0,
+                    key="pollinations_video_model",
+                )
 
-            duration_options = {
-                "wan-fast": [
-                    5,
-                    10,
-                ],
-                "seedance-2.0": [
-                    4,
-                    5,
-                    8,
-                    10,
-                    15,
-                ],
-                "veo": [
-                    4,
-                    6,
-                    8,
-                ],
-            }
+                selected_model = model_labels[
+                    selected_model_label
+                ]
 
-            duration = st.selectbox(
-                "Duration (seconds)",
-                duration_options[
-                    selected_model
-                ],
-                index=0,
-                key=(
-                    "video_generator_duration_"
-                    f"{selected_model}"
-                ),
-            )
+                format_labels = {
+                    "Vertical — 9:16": "9:16",
+                    "Horizontal — 16:9": "16:9",
+                }
 
-            generate_audio = st.checkbox(
-                "Generate audio when supported",
-                value=False,
-                key="video_generator_audio",
-            )
+                selected_format = st.selectbox(
+                    "Video format",
+                    list(
+                        format_labels.keys()
+                    ),
+                    index=0,
+                    key="pollinations_video_format",
+                )
 
-            st.caption(
-                "Generation can take several "
-                "minutes and consumes "
-                "Pollinations credits."
-            )
+                aspect_ratio = format_labels[
+                    selected_format
+                ]
 
-            if st.button(
-                "Generate video",
-                key="generate_video_button",
-                type="primary",
-                use_container_width=True,
-            ):
-                _generate_video(
-                    tool_manager=tool_manager,
-                    arguments={
-                        "prompt": video_prompt,
+                duration_options = {
+                    "wan-fast": [
+                        5,
+                        10,
+                    ],
+                    "seedance-2.0": [
+                        4,
+                        5,
+                        8,
+                        10,
+                        15,
+                    ],
+                    "veo": [
+                        4,
+                        6,
+                        8,
+                    ],
+                }
+
+                duration = st.selectbox(
+                    "Duration (seconds)",
+                    duration_options[
+                        selected_model
+                    ],
+                    index=0,
+                    key=(
+                        "pollinations_video_duration_"
+                        f"{selected_model}"
+                    ),
+                )
+
+                generate_audio = st.checkbox(
+                    "Generate audio when supported",
+                    value=False,
+                    key="pollinations_video_audio",
+                )
+
+                tool_arguments.update(
+                    {
                         "model": selected_model,
                         "duration": duration,
                         "aspect_ratio": (
                             aspect_ratio
                         ),
                         "audio": generate_audio,
-                    },
+                    }
+                )
+
+                st.caption(
+                    "Pollinations charges for each "
+                    "generated video."
+                )
+
+            if st.button(
+                "Generate AI video",
+                key="generate_ai_video_button",
+                type="primary",
+                use_container_width=True,
+            ):
+                _generate_video(
+                    tool_manager=tool_manager,
+                    provider=selected_provider,
+                    tool_name=tool_name,
+                    arguments=tool_arguments,
                 )
 
             _show_generated_video()
@@ -145,6 +198,8 @@ def render_video_studio_panel(
 
 def _generate_video(
     tool_manager: Any,
+    provider: str,
+    tool_name: str,
     arguments: dict[str, Any],
 ) -> None:
     """
@@ -166,7 +221,18 @@ def _generate_video(
         return
 
     if (
-        "POLLINATIONS_API_KEY"
+        provider == "huggingface"
+        and "HF_TOKEN" not in st.secrets
+    ):
+        st.error(
+            "HF_TOKEN is missing from "
+            "Streamlit secrets."
+        )
+        return
+
+    if (
+        provider == "pollinations"
+        and "POLLINATIONS_API_KEY"
         not in st.secrets
     ):
         st.error(
@@ -175,21 +241,32 @@ def _generate_video(
         )
         return
 
+    if provider == "huggingface":
+        spinner_message = (
+            "DeDe is generating the video "
+            "through Hugging Face. "
+            "This can take several minutes..."
+        )
+
+    else:
+        spinner_message = (
+            "DeDe is generating the video "
+            "through Pollinations. "
+            "This can take several minutes..."
+        )
+
     with st.spinner(
-        "DeDe is generating the video. "
-        "This can take several minutes..."
+        spinner_message
     ):
         tool_result = tool_manager.run(
-            tool_name=(
-                "pollinations_video_generator"
-            ),
+            tool_name=tool_name,
             arguments=arguments,
         )
 
     normalized_result = {
         "tool": tool_result.get(
             "tool",
-            "pollinations_video_generator",
+            tool_name,
         ),
         "status": tool_result.get(
             "status",
@@ -264,7 +341,7 @@ def _show_generated_video() -> None:
 
         provider = generated_video.get(
             "provider",
-            "pollinations",
+            "AI",
         )
 
         model = generated_video.get(
@@ -272,15 +349,9 @@ def _show_generated_video() -> None:
             "unknown",
         )
 
-        duration = generated_video.get(
-            "duration",
-            "?",
-        )
-
         st.caption(
             f"Provider: {provider} | "
-            f"Model: {model} | "
-            f"Duration: {duration}s"
+            f"Model: {model}"
         )
 
     elif status:
