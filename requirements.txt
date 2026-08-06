@@ -11,3 +11,8 @@ mistralai>=1.0.0
 beautifulsoup4
 pypdf
 starlette==0.52.1
+huggingface_hub>=0.34.0
+moviepy>=2.2.1
+pillow>=11.0.0
+numpy>=2.0.0
+imageio-ffmpeg>=0.6.0
