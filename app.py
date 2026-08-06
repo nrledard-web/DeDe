@@ -501,22 +501,14 @@ with st.sidebar:
     )
 
 # --------------------------------------------------
-# DeDe Image Generators Panel
+# DeDe Tools Panels
 # --------------------------------------------------
 
 render_image_generators_panel(
     tool_manager=st.session_state.tool_manager,
 )
 
-render_image_generators_panel(
-    tool_manager=st.session_state.tool_manager,
-)
-
 render_video_studio_panel(
-    tool_manager=st.session_state.tool_manager,
-)
-
-render_document_studio_panel(
     tool_manager=st.session_state.tool_manager,
 )
 
