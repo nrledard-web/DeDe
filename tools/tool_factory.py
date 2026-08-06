@@ -22,6 +22,10 @@ from tools.media.pollinations_video_generator import (
     PollinationsVideoGenerator,
 )
 
+from tools.media.huggingface_video_generator import (
+    HuggingFaceVideoGenerator,
+)
+
 from tools.documents.pdf_reader import (
     PDFReader,
 )
@@ -54,6 +58,10 @@ def build_tool_manager() -> ToolManager:
         "POLLINATIONS_API_KEY"
     )
 
+    huggingface_api_key = os.environ.get(
+        "HF_TOKEN"
+    )
+
     if openai_api_key:
         tool_manager.register(
             ImageGenerator(
@@ -81,6 +89,15 @@ def build_tool_manager() -> ToolManager:
             PollinationsVideoGenerator(
                 api_key=(
                     pollinations_api_key
+                ),
+            )
+        )
+
+    if huggingface_api_key:
+        tool_manager.register(
+            HuggingFaceVideoGenerator(
+                api_key=(
+                    huggingface_api_key
                 ),
             )
         )
