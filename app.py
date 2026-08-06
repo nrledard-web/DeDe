@@ -795,6 +795,11 @@ if text:
             "cloudflare_image_generator",
         }
 
+        video_tool_names = {
+            "huggingface_video_generator",
+            "pollinations_video_generator",
+        }
+
         if selected_tool in image_tool_names:
             selected_tool = st.session_state.get(
                 "selected_image_tool",
