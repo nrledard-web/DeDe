@@ -16,6 +16,10 @@ from ui.video_studio_panel import (
     render_video_studio_panel,
 )
 
+from ui.free_video_maker_panel import (
+    render_free_video_maker_panel,
+)
+
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
 from core.real_world_anchor import RealWorldAnchor
 
