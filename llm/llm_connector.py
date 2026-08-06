@@ -33,6 +33,7 @@ class LLMConnector:
         user_memory: dict[str, Any] | None = None,
         persistent_memory: dict[str, Any] | None = None,
         retrieved_memory: dict[str, Any] | None = None,
+        conversation_context: dict[str, Any] | None = None,
         autobiographical_reasoning: dict[str, Any] | None = None,
         philosophical_context: dict[str, Any] | None = None,
         historical_counterpoint_context: dict[str, Any] | None = None,
