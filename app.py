@@ -852,6 +852,44 @@ if text:
         with st.chat_message("user"):
             st.write(text)
 
+        if selected_tool in video_tool_names:
+            video_prompt = str(
+                selected_arguments.get(
+                    "prompt",
+                    text,
+                )
+            ).strip()
+
+            if "pollinations" in text.lower():
+                selected_tool = (
+                    "pollinations_video_generator"
+                )
+
+                selected_arguments = {
+                    "prompt": video_prompt,
+                    "model": "wan-fast",
+                    "duration": 5,
+                    "aspect_ratio": "9:16",
+                    "audio": False,
+                }
+
+            else:
+                selected_tool = (
+                    "huggingface_video_generator"
+                )
+
+                selected_arguments = {
+                    "prompt": video_prompt,
+                }
+
+            tool_decision[
+                "tool_name"
+            ] = selected_tool
+
+            tool_decision[
+                "arguments"
+            ] = selected_arguments
+
         with st.chat_message("assistant"):
             with st.spinner(
                 "DeDe is using the requested tool..."
