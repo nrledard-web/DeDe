@@ -1024,6 +1024,10 @@ if text:
                     )
                 )
 
+        tool_history_index = len(
+            st.session_state.tool_history
+        )
+
         st.session_state.tool_history.append(
             {
                 "user_input": text,
@@ -1031,6 +1035,26 @@ if text:
                 "tool_decision": tool_decision,
                 "tool_result": tool_result,
             }
+        )
+
+        st.session_state.conversation_history = (
+            st.session_state.engine
+            .conversation_manager
+            .add_tool_turn(
+                history=(
+                    st.session_state
+                    .conversation_history
+                ),
+                user_input=text,
+                tool_name=selected_tool,
+                tool_arguments=(
+                    selected_arguments
+                ),
+                tool_result=tool_result,
+                tool_history_index=(
+                    tool_history_index
+                ),
+            )
         )
 
         st.stop()
