@@ -12,6 +12,10 @@ from ui.document_studio_panel import (
     render_document_studio_panel,
 )
 
+from ui.video_studio_panel import (
+    render_video_studio_panel,
+)
+
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
 from core.real_world_anchor import RealWorldAnchor
 
@@ -61,6 +65,11 @@ if "CLOUDFLARE_ACCOUNT_ID" in st.secrets:
 if "CLOUDFLARE_API_TOKEN" in st.secrets:
     os.environ["CLOUDFLARE_API_TOKEN"] = st.secrets[
         "CLOUDFLARE_API_TOKEN"
+    ]
+
+if "POLLINATIONS_API_KEY" in st.secrets:
+    os.environ["POLLINATIONS_API_KEY"] = st.secrets[
+        "POLLINATIONS_API_KEY"
     ]
 
 # --------------------------------------------------
