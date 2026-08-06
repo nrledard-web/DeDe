@@ -1509,6 +1509,248 @@ class LLMConnector:
             "materially different interpretation."
         )
 
+                # --------------------------------------------------
+        # Unified Working Memory
+        # --------------------------------------------------
+
+        recent_turns = conversation_context.get(
+            "recent_turns",
+            [],
+        )
+
+        if recent_turns:
+            lines.append("")
+            lines.append(
+                "UNIFIED WORKING MEMORY"
+            )
+
+            lines.append(
+                "The following turns are ordered "
+                "from oldest to newest."
+            )
+
+            for index, turn in enumerate(
+                recent_turns,
+                start=1,
+            ):
+                if not isinstance(
+                    turn,
+                    dict,
+                ):
+                    continue
+
+                turn_type = str(
+                    turn.get(
+                        "turn_type",
+                        "dialogue",
+                    )
+                )
+
+                turn_user_input = str(
+                    turn.get(
+                        "user_input",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                turn_answer = str(
+                    turn.get(
+                        "answer",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                lines.append("")
+                lines.append(
+                    f"Turn {index}:"
+                )
+
+                lines.append(
+                    f"- type: {turn_type}"
+                )
+
+                if turn_user_input:
+                    lines.append(
+                        "- user message: "
+                        f"{turn_user_input}"
+                    )
+
+                if turn_answer:
+                    lines.append(
+                        "- DeDe response or "
+                        "action result: "
+                        f"{turn_answer}"
+                    )
+
+                tool_name = turn.get(
+                    "tool_name"
+                )
+
+                tool_status = turn.get(
+                    "tool_status"
+                )
+
+                if tool_name:
+                    lines.append(
+                        "- tool used: "
+                        f"{tool_name}"
+                    )
+
+                if tool_status:
+                    lines.append(
+                        "- tool status: "
+                        f"{tool_status}"
+                    )
+
+                tool_arguments = turn.get(
+                    "tool_arguments",
+                    {},
+                )
+
+                if (
+                    isinstance(
+                        tool_arguments,
+                        dict,
+                    )
+                    and tool_arguments
+                ):
+                    lines.append(
+                        "- tool arguments:"
+                    )
+
+                    for key, value in (
+                        tool_arguments.items()
+                    ):
+                        lines.append(
+                            f"  - {key}: {value}"
+                        )
+
+                artifacts = turn.get(
+                    "artifacts",
+                    [],
+                )
+
+                if (
+                    isinstance(
+                        artifacts,
+                        list,
+                    )
+                    and artifacts
+                ):
+                    lines.append(
+                        "- produced artifacts:"
+                    )
+
+                    for artifact in artifacts:
+                        if not isinstance(
+                            artifact,
+                            dict,
+                        ):
+                            continue
+
+                        artifact_type = (
+                            artifact.get(
+                                "type",
+                                "unknown",
+                            )
+                        )
+
+                        artifact_reference = (
+                            artifact.get(
+                                "reference",
+                                "unavailable",
+                            )
+                        )
+
+                        lines.append(
+                            "  - type: "
+                            f"{artifact_type} | "
+                            "reference: "
+                            f"{artifact_reference}"
+                        )
+
+                        artifact_prompt = (
+                            artifact.get(
+                                "prompt"
+                            )
+                        )
+
+                        if artifact_prompt:
+                            lines.append(
+                                "    prompt: "
+                                f"{artifact_prompt}"
+                            )
+
+                        artifact_provider = (
+                            artifact.get(
+                                "provider"
+                            )
+                        )
+
+                        artifact_model = (
+                            artifact.get(
+                                "model"
+                            )
+                        )
+
+                        if artifact_provider:
+                            lines.append(
+                                "    provider: "
+                                f"{artifact_provider}"
+                            )
+
+                        if artifact_model:
+                            lines.append(
+                                "    model: "
+                                f"{artifact_model}"
+                            )
+
+        active_task = conversation_context.get(
+            "active_task"
+        )
+
+        if isinstance(
+            active_task,
+            dict,
+        ):
+            lines.append("")
+            lines.append(
+                "Active task:"
+            )
+
+            for key, value in (
+                active_task.items()
+            ):
+                if value is not None:
+                    lines.append(
+                        f"- {key}: {value}"
+                    )
+
+        recent_artifacts = (
+            conversation_context.get(
+                "recent_artifacts",
+                [],
+            )
+        )
+
+        if recent_artifacts:
+            lines.append("")
+            lines.append(
+                "Working-memory instruction: "
+                "When the current request refers to "
+                "'it', 'them', 'the previous one', "
+                "'those images', 'that document' or "
+                "an equivalent expression, resolve "
+                "the reference against the recent "
+                "turns and artifacts above. "
+                "Do not invent an artifact that is "
+                "not listed. Preserve the existing "
+                "task and tool result when the "
+                "reference is unambiguous."
+            )
+
         # --------------------------------------------------
         # Autobiographical continuity
         # --------------------------------------------------
