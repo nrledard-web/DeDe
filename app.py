@@ -226,7 +226,6 @@ st.markdown(
         color:#b8b8b8;
         font-style:italic;
         margin-top:0;">
-        To Prevent Self-Reinforcing Reasoning and Cognitive Closure.
         A little more time to think leads to more accurate answers.
     </p>
     """,
