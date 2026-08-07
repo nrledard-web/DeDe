@@ -2614,3 +2614,8 @@ if text:
         st.subheader("Complete Cognitive Report")
         
         st.json(report)
+
+    if st.session_state.get(
+        "pending_memory_candidate"
+    ):
+        st.rerun()
