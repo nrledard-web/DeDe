@@ -127,6 +127,33 @@ or when working memory is insufficient or ambiguous.
 Do not choose a route merely because a word resembles a tool
 name. Decide from the full semantic intention.
 
+Independently of the selected route, identify at most one
+durable-memory candidate from the current user message.
+
+A durable-memory candidate must be explicitly supported by
+the user's message and useful beyond the current exchange.
+
+Possible memory types:
+identity, preference, personal_fact, project, decision,
+relationship, autobiographical, temporary_task, unknown.
+
+Possible proposed scopes:
+session, project, personal, persistent.
+
+Possible sensitivity levels:
+low, medium, high.
+
+Do not propose ordinary questions, temporary commands,
+generated content, assumptions, inferred private facts,
+passwords, access tokens, payment information or secrets
+as durable memories.
+
+If no durable memory is clearly present, return an empty
+memory_candidate object.
+
+The memory decision is semantic and must remain independent
+of the language used.
+
 For use_tool, select only an exact registered tool name and
 construct arguments that respect its supplied input schema.
 
@@ -139,6 +166,15 @@ Return only valid JSON with this exact structure:
   "arguments": {},
   "direct_answer": "",
   "memory_reference": "",
+  "memory_candidate": {
+    "content": "",
+    "memory_type": "unknown",
+    "proposed_scope": "session",
+    "sensitivity": "medium",
+    "confidence": 0.0,
+    "source": "conversation",
+    "project": null
+  },
   "reason": "short internal explanation"
 }
 """.strip()
