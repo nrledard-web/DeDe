@@ -1,288 +1,352 @@
 """
-DeDe - Memory Retriever
+DeDe - Memory Governor
 
-Retrieves relevant durable memory before reasoning.
+Decides what may enter persistent memory.
 
-Principles:
-- structural and multilingual retrieval;
-- no language-specific marker lists;
-- identity and preferences remain available as core memory;
-- other memories are selected by semantic-form similarity;
-- legacy facts and notes remain supported.
+The governor receives structured memory candidates.
+It does not search raw text for language-specific markers.
 """
 
 from __future__ import annotations
 
 from typing import Any
-import re
 
 
-class MemoryRetriever:
+class MemoryGovernor:
 
-    name = "memory_retriever"
+    name = "memory_governor"
 
-    CORE_MEMORY_TYPES = {
-        "identity",
-        "preference",
+    STORAGE_MODES = {
+        "off",
+        "session",
+        "selective",
+        "continuous",
     }
 
-    def retrieve(
+    MEMORY_TYPES = {
+        "identity",
+        "preference",
+        "personal_fact",
+        "project",
+        "decision",
+        "relationship",
+        "interaction_note",
+        "autobiographical",
+        "temporary_task",
+        "unknown",
+    }
+
+    STORAGE_SCOPES = {
+        "none",
+        "working",
+        "session",
+        "project",
+        "personal",
+        "persistent",
+    }
+
+    SENSITIVITY_LEVELS = {
+        "low",
+        "medium",
+        "high",
+    }
+
+    DURABLE_MEMORY_TYPES = {
+        "identity",
+        "preference",
+        "personal_fact",
+        "project",
+        "decision",
+        "relationship",
+        "autobiographical",
+    }
+
+    MINIMUM_CONFIDENCE = 0.75
+
+    def evaluate(
         self,
         text: str,
-        persistent_memory: dict[str, Any] | None = None,
+        storage_mode: str = "selective",
+        candidate: dict[str, Any] | None = None,
+        user_approved: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Decide the retention scope of a structured candidate.
+
+        The raw text is accepted only for compatibility and
+        provenance. It is not searched for linguistic markers.
+        """
+
+        resolved_mode = str(
+            storage_mode or "selective"
+        ).strip().lower()
+
+        if (
+            resolved_mode
+            not in self.STORAGE_MODES
+        ):
+            resolved_mode = "selective"
+
+        normalized_candidate = (
+            self._normalize_candidate(
+                candidate
+            )
+        )
+
+        if resolved_mode == "off":
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope="none",
+                candidate=normalized_candidate,
+                allow_persistent_storage=False,
+                allow_autobiographical_storage=False,
+                requires_confirmation=False,
+                reason=(
+                    "Persistent and session memory "
+                    "are disabled by user policy."
+                ),
+            )
+
+        if resolved_mode == "session":
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope="session",
+                candidate=normalized_candidate,
+                allow_persistent_storage=False,
+                allow_autobiographical_storage=False,
+                requires_confirmation=False,
+                reason=(
+                    "The information may remain in "
+                    "the current session only."
+                ),
+            )
+
+        if not normalized_candidate:
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope="session",
+                candidate={},
+                allow_persistent_storage=False,
+                allow_autobiographical_storage=False,
+                requires_confirmation=False,
+                reason=(
+                    "No structured durable-memory "
+                    "candidate was supplied."
+                ),
+            )
+
+        sensitivity = normalized_candidate[
+            "sensitivity"
+        ]
+
+        confidence = normalized_candidate[
+            "confidence"
+        ]
+
+        memory_type = normalized_candidate[
+            "memory_type"
+        ]
+
+        proposed_scope = normalized_candidate[
+            "proposed_scope"
+        ]
+
+        if sensitivity == "high":
+            if not user_approved:
+                return self._decision(
+                    storage_mode=resolved_mode,
+                    storage_scope="session",
+                    candidate=normalized_candidate,
+                    allow_persistent_storage=False,
+                    allow_autobiographical_storage=False,
+                    requires_confirmation=True,
+                    reason=(
+                        "Sensitive information requires "
+                        "explicit user approval before "
+                        "durable storage."
+                    ),
+                )
+
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope=proposed_scope,
+                candidate=normalized_candidate,
+                allow_persistent_storage=True,
+                allow_autobiographical_storage=(
+                    memory_type
+                    == "autobiographical"
+                ),
+                requires_confirmation=False,
+                reason=(
+                    "The user explicitly approved "
+                    "durable storage of this sensitive "
+                    "memory candidate."
+                ),
+            )
+
+        if confidence < self.MINIMUM_CONFIDENCE:
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope="session",
+                candidate=normalized_candidate,
+                allow_persistent_storage=False,
+                allow_autobiographical_storage=False,
+                requires_confirmation=False,
+                reason=(
+                    "Candidate confidence is too low "
+                    "for durable memory."
+                ),
+            )
+
+        if (
+            memory_type
+            not in self.DURABLE_MEMORY_TYPES
+        ):
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope="session",
+                candidate=normalized_candidate,
+                allow_persistent_storage=False,
+                allow_autobiographical_storage=False,
+                requires_confirmation=False,
+                reason=(
+                    "The candidate describes temporary "
+                    "or non-durable information."
+                ),
+            )
+
+        if proposed_scope not in {
+            "project",
+            "personal",
+            "persistent",
+        }:
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope="session",
+                candidate=normalized_candidate,
+                allow_persistent_storage=False,
+                allow_autobiographical_storage=False,
+                requires_confirmation=False,
+                reason=(
+                    "The proposed scope is not durable."
+                ),
+            )
+
+        if resolved_mode == "selective":
+            if not user_approved:
+                return self._decision(
+                    storage_mode=resolved_mode,
+                    storage_scope="session",
+                    candidate=normalized_candidate,
+                    allow_persistent_storage=False,
+                    allow_autobiographical_storage=False,
+                    requires_confirmation=True,
+                    reason=(
+                        "Selective memory requires user "
+                        "confirmation before durable storage."
+                    ),
+                )
+
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope=proposed_scope,
+                candidate=normalized_candidate,
+                allow_persistent_storage=True,
+                allow_autobiographical_storage=(
+                    memory_type
+                    == "autobiographical"
+                ),
+                requires_confirmation=False,
+                reason=(
+                    "The user approved this selective "
+                    "memory candidate."
+                ),
+            )
+
+        if resolved_mode == "continuous":
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope=proposed_scope,
+                candidate=normalized_candidate,
+                allow_persistent_storage=True,
+                allow_autobiographical_storage=(
+                    memory_type
+                    == "autobiographical"
+                ),
+                requires_confirmation=False,
+                reason=(
+                    "Continuous memory accepted a "
+                    "high-confidence, non-sensitive, "
+                    "durable candidate."
+                ),
+            )
+
+        return self._decision(
+            storage_mode=resolved_mode,
+            storage_scope="session",
+            candidate=normalized_candidate,
+            allow_persistent_storage=False,
+            allow_autobiographical_storage=False,
+            requires_confirmation=False,
+            reason=(
+                "No durable storage rule applied."
+            ),
+        )
+
+    def _normalize_candidate(
+        self,
+        candidate: dict[str, Any] | None,
     ) -> dict[str, Any]:
 
-        persistent_memory = persistent_memory or {}
-
-        memory_items = persistent_memory.get(
-            "memory_items",
-            [],
-        )
-
         if not isinstance(
-            memory_items,
-            list,
+            candidate,
+            dict,
         ):
-            memory_items = []
-
-        core_memories = self._select_core_memories(
-            memory_items
-        )
-
-        relevant_memories = (
-            self._select_relevant_memories(
-                text=text,
-                memory_items=memory_items,
-                excluded_ids={
-                    item.get("memory_id")
-                    for item in core_memories
-                },
-            )
-        )
-
-        relevant_notes = self._select_legacy_items(
-            text=text,
-            items=persistent_memory.get(
-                "interaction_notes",
-                [],
-            ),
-        )
-
-        relevant_facts = self._select_legacy_items(
-            text=text,
-            items=persistent_memory.get(
-                "known_facts",
-                [],
-            ),
-        )
-
-        return {
-            "retriever": self.name,
-            "status": "ready",
-            "owner": {
-                "preferred_name": (
-                    persistent_memory.get(
-                        "preferred_name"
-                    )
-                ),
-                "preferred_language": (
-                    persistent_memory.get(
-                        "preferred_language"
-                    )
-                ),
-                "conversation_count": (
-                    persistent_memory.get(
-                        "conversation_count"
-                    )
-                ),
-                "last_seen": (
-                    persistent_memory.get(
-                        "last_seen"
-                    )
-                ),
-            },
-            "core_memories": core_memories,
-            "relevant_memories": relevant_memories,
-            "relevant_facts": relevant_facts,
-            "relevant_notes": relevant_notes,
-            "summary": (
-                "Structured durable memory retrieved "
-                "for current reasoning."
-            ),
-        }
-
-    def _select_core_memories(
-        self,
-        memory_items: list[Any],
-        limit: int = 12,
-    ) -> list[dict[str, Any]]:
-
-        selected = []
-
-        for item in memory_items:
-            if not isinstance(
-                item,
-                dict,
-            ):
-                continue
-
-            memory_type = str(
-                item.get(
-                    "memory_type",
-                    "",
-                )
-            ).strip().lower()
-
-            content = str(
-                item.get(
-                    "content",
-                    "",
-                )
-            ).strip()
-
-            if (
-                memory_type
-                in self.CORE_MEMORY_TYPES
-                and content
-            ):
-                selected.append(item)
-
-        selected.sort(
-            key=lambda item: float(
-                item.get(
-                    "confidence",
-                    0.0,
-                )
-                or 0.0
-            ),
-            reverse=True,
-        )
-
-        return selected[:limit]
-
-    def _select_relevant_memories(
-        self,
-        text: str,
-        memory_items: list[Any],
-        excluded_ids: set[Any] | None = None,
-        limit: int = 8,
-    ) -> list[dict[str, Any]]:
-
-        excluded_ids = excluded_ids or set()
-        scored_items = []
-
-        for item in memory_items:
-            if not isinstance(
-                item,
-                dict,
-            ):
-                continue
-
-            if item.get(
-                "memory_id"
-            ) in excluded_ids:
-                continue
-
-            content = str(
-                item.get(
-                    "content",
-                    "",
-                )
-            ).strip()
-
-            if not content:
-                continue
-
-            score = self._score_memory(
-                text=text,
-                item=item,
-            )
-
-            if score < 0.12:
-                continue
-
-            enriched_item = {
-                **item,
-                "retrieval_score": round(
-                    score,
-                    3,
-                ),
-            }
-
-            scored_items.append(
-                enriched_item
-            )
-
-        scored_items.sort(
-            key=lambda item: item.get(
-                "retrieval_score",
-                0.0,
-            ),
-            reverse=True,
-        )
-
-        return scored_items[:limit]
-
-    def _score_memory(
-        self,
-        text: str,
-        item: dict[str, Any],
-    ) -> float:
+            return {}
 
         content = str(
-            item.get(
+            candidate.get(
                 "content",
                 "",
             )
-        )
+        ).strip()
 
-        project = str(
-            item.get(
-                "project",
-                "",
+        if not content:
+            return {}
+
+        memory_type = str(
+            candidate.get(
+                "memory_type",
+                "unknown",
             )
-            or ""
-        )
+        ).strip().lower()
 
-        query_terms = self._terms(
-            text
-        )
+        if memory_type not in self.MEMORY_TYPES:
+            memory_type = "unknown"
 
-        content_terms = self._terms(
-            content
-        )
-
-        if query_terms:
-            token_overlap = (
-                len(
-                    query_terms
-                    & content_terms
-                )
-                / len(query_terms)
+        proposed_scope = str(
+            candidate.get(
+                "proposed_scope",
+                "session",
             )
-        else:
-            token_overlap = 0.0
+        ).strip().lower()
 
-        character_similarity = (
-            self._character_similarity(
-                text,
-                content,
+        if proposed_scope not in self.STORAGE_SCOPES:
+            proposed_scope = "session"
+
+        sensitivity = str(
+            candidate.get(
+                "sensitivity",
+                "medium",
             )
-        )
+        ).strip().lower()
 
-        project_similarity = 0.0
-
-        if project:
-            project_similarity = (
-                self._character_similarity(
-                    text,
-                    project,
-                )
-            )
+        if sensitivity not in self.SENSITIVITY_LEVELS:
+            sensitivity = "medium"
 
         try:
             confidence = float(
-                item.get(
+                candidate.get(
                     "confidence",
                     0.0,
                 )
@@ -295,152 +359,57 @@ class MemoryRetriever:
             min(confidence, 1.0),
         )
 
-        score = (
-            token_overlap * 0.50
-            + character_similarity * 0.25
-            + project_similarity * 0.15
-            + confidence * 0.10
-        )
-
-        return min(
-            score,
-            1.0,
-        )
-
-    def _select_legacy_items(
-        self,
-        text: str,
-        items: list[Any],
-        limit: int = 8,
-    ) -> list[Any]:
-
-        if not isinstance(
-            items,
-            list,
-        ):
-            return []
-
-        scored_items = []
-
-        for item in items:
-            item_text = str(
-                item
-            ).strip()
-
-            if not item_text:
-                continue
-
-            score = (
-                self._character_similarity(
-                    text,
-                    item_text,
-                )
+        source = str(
+            candidate.get(
+                "source",
+                "conversation",
             )
+        ).strip()
 
-            if score >= 0.12:
-                scored_items.append(
-                    {
-                        "item": item,
-                        "score": score,
-                    }
-                )
-
-        scored_items.sort(
-            key=lambda entry: entry[
-                "score"
-            ],
-            reverse=True,
+        project = candidate.get(
+            "project"
         )
 
-        return [
-            entry["item"]
-            for entry in scored_items[:limit]
-        ]
-
-    def _terms(
-        self,
-        value: Any,
-    ) -> set[str]:
-
-        normalized = self._normalize(
-            value
-        )
+        if project is not None:
+            project = str(
+                project
+            ).strip() or None
 
         return {
-            term
-            for term in normalized.split()
-            if len(term) >= 3
+            "content": content,
+            "memory_type": memory_type,
+            "proposed_scope": proposed_scope,
+            "sensitivity": sensitivity,
+            "confidence": confidence,
+            "source": source,
+            "project": project,
         }
 
-    def _character_similarity(
+    def _decision(
         self,
-        first_value: Any,
-        second_value: Any,
-    ) -> float:
-
-        first_grams = self._trigrams(
-            first_value
-        )
-
-        second_grams = self._trigrams(
-            second_value
-        )
-
-        if not first_grams or not second_grams:
-            return 0.0
-
-        intersection = len(
-            first_grams & second_grams
-        )
-
-        union = len(
-            first_grams | second_grams
-        )
-
-        if not union:
-            return 0.0
-
-        return intersection / union
-
-    def _trigrams(
-        self,
-        value: Any,
-    ) -> set[str]:
-
-        normalized = self._normalize(
-            value
-        ).replace(
-            " ",
-            "_",
-        )
-
-        if len(normalized) < 3:
-            return {
-                normalized
-            } if normalized else set()
+        storage_mode: str,
+        storage_scope: str,
+        candidate: dict[str, Any],
+        allow_persistent_storage: bool,
+        allow_autobiographical_storage: bool,
+        requires_confirmation: bool,
+        reason: str,
+    ) -> dict[str, Any]:
 
         return {
-            normalized[index:index + 3]
-            for index in range(
-                len(normalized) - 2
-            )
+            "governor": self.name,
+            "status": "ready",
+            "storage_mode": storage_mode,
+            "storage_scope": storage_scope,
+            "candidate": candidate,
+            "allow_persistent_storage": (
+                allow_persistent_storage
+            ),
+            "allow_autobiographical_storage": (
+                allow_autobiographical_storage
+            ),
+            "requires_confirmation": (
+                requires_confirmation
+            ),
+            "reason": reason,
         }
-
-    def _normalize(
-        self,
-        value: Any,
-    ) -> str:
-
-        lowered = str(
-            value or ""
-        ).lower()
-
-        words = re.findall(
-            r"\w+",
-            lowered,
-            flags=re.UNICODE,
-        )
-
-        return " ".join(
-            words
-        )
