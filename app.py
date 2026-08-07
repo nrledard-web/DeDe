@@ -840,6 +840,30 @@ if text:
         "memory_governance"
     ] = memory_governance
 
+    if memory_governance.get(
+    "requires_confirmation",
+    False,
+):
+    st.session_state[
+        "pending_memory_candidate"
+    ] = {
+        "text": text,
+        "candidate": memory_governance.get(
+            "candidate",
+            {},
+        ),
+        "storage_mode": memory_storage_mode,
+        "storage_scope": (
+            memory_governance.get(
+                "candidate",
+                {},
+            ).get(
+                "proposed_scope",
+                "persistent",
+            )
+        ),
+    }
+
     memory_saved = False
 
     if memory_governance.get(
