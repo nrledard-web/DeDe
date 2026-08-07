@@ -753,6 +753,16 @@ if text:
             ),
         )
     )
+    memory_candidate = tool_decision.get(
+        "memory_candidate",
+        {},
+    )
+    
+    if not isinstance(
+        memory_candidate,
+        dict,
+    ):
+        memory_candidate = {}
     
     # --------------------------------------------------
     # Working Memory Fast Route
