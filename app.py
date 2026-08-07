@@ -212,7 +212,6 @@ st.markdown(
         Designed for User-Owned, Private, and Portable Memory Storage<br>
         Powered by Combinable AI Models and Evolving Tools<br>
         With a Built-In Epistemic Anti-Coherence Loop<br>
-        To Prevent Self-Reinforcing Reasoning and Cognitive Closure.
     </h4>
 
     <p style="
@@ -220,6 +219,7 @@ st.markdown(
         color:#b8b8b8;
         font-style:italic;
         margin-top:0;">
+        To Prevent Self-Reinforcing Reasoning and Cognitive Closure.
         A little more time to think leads to more accurate answers.
     </p>
     """,
