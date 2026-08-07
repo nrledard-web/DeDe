@@ -1100,7 +1100,13 @@ if text:
                 )
             )
 
+            if st.session_state.get(
+                "pending_memory_candidate"
+            ):
+                st.rerun()
+            
             st.stop()
+            
             
     # --------------------------------------------------
     # Active Document Routing
