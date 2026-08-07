@@ -1,26 +1,31 @@
 """
 DeDe - Tool Governor
 
-Selects whether a user request requires a registered tool.
+Governs three possible routes:
+- use a registered tool;
+- answer directly from working memory;
+- continue through the normal cognitive pipeline.
 
 The decision is semantic and multilingual.
-It does not depend on fixed lists of language-specific keywords.
+It does not depend on language-specific marker lists.
 """
 
 from __future__ import annotations
 
 import json
 from typing import Any
+
 from llm.llm_engine import LLMEngine
 
 
 class ToolGovernor:
     """
-    Decide whether DeDe should use a registered tool
-    before sending the request to the normal reasoning pipeline.
+    Select the lightest valid route for the request.
     """
 
     name = "tool_governor"
+
+    MINIMUM_CONFIDENCE = 0.70
 
     def __init__(
         self,
@@ -33,12 +38,12 @@ class ToolGovernor:
         text: str,
         available_tools: list[dict[str, Any]],
         provider: str,
+        conversation_context: (
+            dict[str, Any] | None
+        ) = None,
     ) -> dict[str, Any]:
         """
-        Return a normalized tool decision.
-
-        The Governor must understand the user's intention
-        independently of the language used.
+        Return a normalized semantic routing decision.
         """
 
         cleaned_text = str(
@@ -50,11 +55,6 @@ class ToolGovernor:
                 reason="Empty user message.",
             )
 
-        if not available_tools:
-            return self._normal_decision(
-                reason="No tool is currently registered.",
-            )
-            
         cleaned_provider = str(
             provider or ""
         ).strip()
@@ -63,72 +63,83 @@ class ToolGovernor:
             return self._normal_decision(
                 reason=(
                     "No active reasoning provider "
-                    "is available for tool selection."
+                    "is available for routing."
                 ),
             )
 
-        tool_descriptions = []
+        conversation_context = (
+            conversation_context or {}
+        )
 
-        for tool in available_tools:
-            tool_descriptions.append(
-                {
-                    "name": tool.get(
-                        "name",
-                        "",
-                    ),
-                    "description": tool.get(
-                        "description",
-                        "",
-                    ),
-                    "input_schema": tool.get(
-                        "input_schema",
-                        {},
-                    ),
-                }
+        tool_descriptions = (
+            self._prepare_tool_descriptions(
+                available_tools
             )
+        )
+
+        working_memory = (
+            self._prepare_working_memory(
+                conversation_context
+            )
+        )
 
         system_instruction = """
-You are DeDe's multilingual Tool Governor.
+You are DeDe's multilingual routing governor.
 
-Your only role is to decide whether the user's request should
-invoke one of the registered tools.
+Your role is not to provide ordinary knowledge or reasoning.
+Your role is to select the lightest valid route for the
+current user request.
 
-Understand the intention semantically, regardless of language,
-spelling mistakes, grammar, accent marks or informal phrasing.
+Understand intention semantically, independently of language,
+spelling, grammar, accents, informal phrasing or writing quality.
 
-Do not answer the user's request.
+You receive:
+1. registered tools and their schemas;
+2. recent structured working memory;
+3. the current user message.
 
-Use a tool only when the user is clearly asking for an action
-that the tool actually performs.
+Choose exactly one action:
 
-For image generation:
-- Select image_generator when the user asks to create, generate,
-  draw, design, visualize or produce a new image.
-- The request may be written in any language.
-- Preserve the user's requested subject and visual constraints.
-- Build a clean image prompt in the same language as the user.
-- Do not select image_generator when the user merely discusses,
-  analyzes or asks a question about images.
+1. use_tool
+Choose this only when the user clearly requests an action
+performed by a registered tool.
 
-When no registered tool clearly applies, choose respond_normally.
+2. use_working_memory
+Choose this only when the request can be answered completely
+and safely from the supplied structured working memory.
+Typical cases include asking what DeDe just did, which tool
+was used, what artifact was produced, or what the immediately
+preceding action concerned.
+
+When choosing use_working_memory:
+- use only facts explicitly present in working memory;
+- do not invent unavailable content;
+- do not claim that an artifact exists unless it is listed;
+- write a brief direct_answer in the language of the user;
+- preserve exact technical tool names when relevant;
+- do not expose internal reasoning.
+
+3. respond_normally
+Choose this when the request requires ordinary explanation,
+knowledge, interpretation, verification or cognitive reasoning,
+or when working memory is insufficient or ambiguous.
+
+Do not choose a route merely because a word resembles a tool
+name. Decide from the full semantic intention.
+
+For use_tool, select only an exact registered tool name and
+construct arguments that respect its supplied input schema.
 
 Return only valid JSON with this exact structure:
 
 {
-  "action": "use_tool" or "respond_normally",
-  "tool_name": "registered tool name or empty string",
-  "confidence": number from 0 to 1,
+  "action": "use_tool" or "use_working_memory" or "respond_normally",
+  "tool_name": "exact registered tool name or empty string",
+  "confidence": 0.0,
   "arguments": {},
+  "direct_answer": "",
+  "memory_reference": "",
   "reason": "short internal explanation"
-}
-
-For image_generator, arguments must have this form:
-
-{
-  "prompt": "clean visual description",
-  "size": "1024x1024",
-  "quality": "medium",
-  "transparent_background": false
 }
 """.strip()
 
@@ -139,7 +150,13 @@ For image_generator, arguments must have this form:
                 ensure_ascii=False,
                 indent=2,
             )
-            + "\n\nUSER MESSAGE:\n"
+            + "\n\nSTRUCTURED WORKING MEMORY:\n"
+            + json.dumps(
+                working_memory,
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n\nCURRENT USER MESSAGE:\n"
             + cleaned_text
         )
 
@@ -150,13 +167,15 @@ For image_generator, arguments must have this form:
         )
 
         try:
-            engine_response = self.llm_engine.ask(
-                prompt=governor_prompt,
-                profile="fast",
-                providers=[
-                    cleaned_provider,
-                ],
-                enabled=True,
+            engine_response = (
+                self.llm_engine.ask(
+                    prompt=governor_prompt,
+                    profile="fast",
+                    providers=[
+                        cleaned_provider,
+                    ],
+                    enabled=True,
+                )
             )
 
             raw_output = str(
@@ -170,7 +189,7 @@ For image_generator, arguments must have this form:
             if not raw_output:
                 raise ValueError(
                     "The active reasoning provider "
-                    "returned no tool decision."
+                    "returned no routing decision."
                 )
 
             parsed = self._parse_json(
@@ -179,7 +198,12 @@ For image_generator, arguments must have this form:
 
             return self._validate_decision(
                 decision=parsed,
-                available_tools=available_tools,
+                available_tools=(
+                    available_tools
+                ),
+                working_memory=(
+                    working_memory
+                ),
             )
 
         except Exception as error:
@@ -190,25 +214,237 @@ For image_generator, arguments must have this form:
                 "tool_name": "",
                 "confidence": 0.0,
                 "arguments": {},
+                "direct_answer": "",
+                "memory_reference": "",
                 "reason": (
-                    "Tool selection failed; normal DeDe "
+                    "Routing failed; normal DeDe "
                     "reasoning will continue."
                 ),
                 "error": str(error),
             }
+
+    def _prepare_tool_descriptions(
+        self,
+        available_tools: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """
+        Keep only prompt-safe tool metadata.
+        """
+
+        prepared = []
+
+        for tool in available_tools or []:
+            if not isinstance(
+                tool,
+                dict,
+            ):
+                continue
+
+            name = str(
+                tool.get(
+                    "name",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            if not name:
+                continue
+
+            prepared.append(
+                {
+                    "name": name,
+                    "description": str(
+                        tool.get(
+                            "description",
+                            "",
+                        )
+                        or ""
+                    ),
+                    "input_schema": (
+                        tool.get(
+                            "input_schema",
+                            {},
+                        )
+                        if isinstance(
+                            tool.get(
+                                "input_schema",
+                                {},
+                            ),
+                            dict,
+                        )
+                        else {}
+                    ),
+                }
+            )
+
+        return prepared
+
+    def _prepare_working_memory(
+        self,
+        conversation_context: dict[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Prepare compact structured memory without binary data.
+        """
+
+        recent_turns = (
+            conversation_context.get(
+                "recent_turns",
+                [],
+            )
+        )
+
+        if not isinstance(
+            recent_turns,
+            list,
+        ):
+            recent_turns = []
+
+        prepared_turns = []
+
+        for turn in recent_turns[-5:]:
+            if not isinstance(
+                turn,
+                dict,
+            ):
+                continue
+
+            prepared_turns.append(
+                {
+                    "turn_type": turn.get(
+                        "turn_type"
+                    ),
+                    "user_input": self._limit_text(
+                        turn.get(
+                            "user_input"
+                        ),
+                        1200,
+                    ),
+                    "answer": self._limit_text(
+                        turn.get(
+                            "answer"
+                        ),
+                        1600,
+                    ),
+                    "focus_concept": turn.get(
+                        "focus_concept"
+                    ),
+                    "tool_name": turn.get(
+                        "tool_name"
+                    ),
+                    "tool_status": turn.get(
+                        "tool_status"
+                    ),
+                    "tool_arguments": (
+                        turn.get(
+                            "tool_arguments",
+                            {},
+                        )
+                        if isinstance(
+                            turn.get(
+                                "tool_arguments",
+                                {},
+                            ),
+                            dict,
+                        )
+                        else {}
+                    ),
+                    "artifacts": (
+                        turn.get(
+                            "artifacts",
+                            [],
+                        )
+                        if isinstance(
+                            turn.get(
+                                "artifacts",
+                                [],
+                            ),
+                            list,
+                        )
+                        else []
+                    ),
+                    "active_task": (
+                        turn.get(
+                            "active_task"
+                        )
+                    ),
+                }
+            )
+
+        recent_artifacts = (
+            conversation_context.get(
+                "recent_artifacts",
+                [],
+            )
+        )
+
+        if not isinstance(
+            recent_artifacts,
+            list,
+        ):
+            recent_artifacts = []
+
+        active_task = (
+            conversation_context.get(
+                "active_task"
+            )
+        )
+
+        if not isinstance(
+            active_task,
+            dict,
+        ):
+            active_task = None
+
+        return {
+            "status": (
+                conversation_context.get(
+                    "status",
+                    "empty",
+                )
+            ),
+            "turn_count": (
+                conversation_context.get(
+                    "turn_count",
+                    0,
+                )
+            ),
+            "last_turn_type": (
+                conversation_context.get(
+                    "last_turn_type"
+                )
+            ),
+            "last_tool_name": (
+                conversation_context.get(
+                    "last_tool_name"
+                )
+            ),
+            "last_tool_status": (
+                conversation_context.get(
+                    "last_tool_status"
+                )
+            ),
+            "recent_turns": prepared_turns,
+            "recent_artifacts": (
+                recent_artifacts[-12:]
+            ),
+            "active_task": active_task,
+        }
 
     def _parse_json(
         self,
         raw_output: str,
     ) -> dict[str, Any]:
         """
-        Parse a JSON object, including responses accidentally
-        wrapped in Markdown code fences.
+        Parse JSON, including accidental Markdown fences.
         """
 
         cleaned = raw_output.strip()
 
-        if cleaned.startswith("```"):
+        if cleaned.startswith(
+            "```"
+        ):
             cleaned = cleaned.removeprefix(
                 "```json"
             )
@@ -232,7 +468,8 @@ For image_generator, arguments must have this form:
             dict,
         ):
             raise ValueError(
-                "Tool Governor response is not a JSON object."
+                "Routing response is not "
+                "a JSON object."
             )
 
         return parsed
@@ -241,9 +478,10 @@ For image_generator, arguments must have this form:
         self,
         decision: dict[str, Any],
         available_tools: list[dict[str, Any]],
+        working_memory: dict[str, Any],
     ) -> dict[str, Any]:
         """
-        Validate tool name, confidence and arguments.
+        Validate the route and prevent unsupported actions.
         """
 
         registered_names = {
@@ -253,8 +491,14 @@ For image_generator, arguments must have this form:
                     "",
                 )
             ).strip()
-            for tool in available_tools
-            if tool.get("name")
+            for tool in available_tools or []
+            if isinstance(
+                tool,
+                dict,
+            )
+            and tool.get(
+                "name"
+            )
         }
 
         action = str(
@@ -262,6 +506,7 @@ For image_generator, arguments must have this form:
                 "action",
                 "respond_normally",
             )
+            or "respond_normally"
         ).strip()
 
         tool_name = str(
@@ -269,6 +514,7 @@ For image_generator, arguments must have this form:
                 "tool_name",
                 "",
             )
+            or ""
         ).strip()
 
         arguments = decision.get(
@@ -282,6 +528,22 @@ For image_generator, arguments must have this form:
         ):
             arguments = {}
 
+        direct_answer = str(
+            decision.get(
+                "direct_answer",
+                "",
+            )
+            or ""
+        ).strip()
+
+        memory_reference = str(
+            decision.get(
+                "memory_reference",
+                "",
+            )
+            or ""
+        ).strip()
+
         try:
             confidence = float(
                 decision.get(
@@ -289,6 +551,7 @@ For image_generator, arguments must have this form:
                     0.0,
                 )
             )
+
         except (
             TypeError,
             ValueError,
@@ -303,80 +566,115 @@ For image_generator, arguments must have this form:
             ),
         )
 
+        reason = str(
+            decision.get(
+                "reason",
+                "",
+            )
+            or ""
+        )
+
         if (
-            action != "use_tool"
-            or tool_name not in registered_names
-            or confidence < 0.70
+            confidence
+            < self.MINIMUM_CONFIDENCE
         ):
             return self._normal_decision(
-                reason=str(
-                    decision.get(
-                        "reason",
-                        "No registered tool clearly applies.",
-                    )
+                reason=(
+                    reason
+                    or "Routing confidence is insufficient."
                 ),
                 confidence=confidence,
             )
 
-        if tool_name == "image_generator":
-            prompt = str(
-                arguments.get(
-                    "prompt",
-                    "",
+        if action == "use_working_memory":
+            has_memory = bool(
+                working_memory.get(
+                    "recent_turns"
                 )
-            ).strip()
+                or working_memory.get(
+                    "recent_artifacts"
+                )
+            )
 
-            if not prompt:
+            if (
+                not has_memory
+                or not direct_answer
+            ):
                 return self._normal_decision(
                     reason=(
-                        "Image generation was selected, "
-                        "but no usable image prompt was produced."
+                        "Working-memory routing was "
+                        "selected without sufficient "
+                        "memory or a usable answer."
                     ),
                     confidence=confidence,
                 )
 
-            arguments = {
-                "prompt": prompt,
-                "size": str(
-                    arguments.get(
-                        "size",
-                        "1024x1024",
-                    )
+            return {
+                "governor": self.name,
+                "status": "ready",
+                "action": (
+                    "use_working_memory"
                 ),
-                "quality": str(
-                    arguments.get(
-                        "quality",
-                        "medium",
-                    )
+                "tool_name": "",
+                "confidence": confidence,
+                "arguments": {},
+                "direct_answer": (
+                    direct_answer
                 ),
-                "transparent_background": bool(
-                    arguments.get(
-                        "transparent_background",
-                        False,
-                    )
+                "memory_reference": (
+                    memory_reference
+                ),
+                "reason": (
+                    reason
+                    or "The answer is fully supported "
+                    "by recent working memory."
                 ),
             }
 
-        return {
-            "governor": self.name,
-            "status": "ready",
-            "action": "use_tool",
-            "tool_name": tool_name,
-            "confidence": confidence,
-            "arguments": arguments,
-            "reason": str(
-                decision.get(
-                    "reason",
-                    "A registered tool matches the request.",
+        if action == "use_tool":
+            if (
+                tool_name
+                not in registered_names
+            ):
+                return self._normal_decision(
+                    reason=(
+                        "The selected tool is not "
+                        "registered."
+                    ),
+                    confidence=confidence,
                 )
+
+            return {
+                "governor": self.name,
+                "status": "ready",
+                "action": "use_tool",
+                "tool_name": tool_name,
+                "confidence": confidence,
+                "arguments": arguments,
+                "direct_answer": "",
+                "memory_reference": "",
+                "reason": (
+                    reason
+                    or "A registered tool matches "
+                    "the requested action."
+                ),
+            }
+
+        return self._normal_decision(
+            reason=(
+                reason
+                or "The normal cognitive pipeline "
+                "is required."
             ),
-        }
+            confidence=confidence,
+        )
 
     def _normal_decision(
         self,
         reason: str,
         confidence: float = 1.0,
     ) -> dict[str, Any]:
+
         return {
             "governor": self.name,
             "status": "ready",
@@ -384,5 +682,25 @@ For image_generator, arguments must have this form:
             "tool_name": "",
             "confidence": confidence,
             "arguments": {},
+            "direct_answer": "",
+            "memory_reference": "",
             "reason": reason,
         }
+
+    def _limit_text(
+        self,
+        value: Any,
+        limit: int,
+    ) -> str:
+
+        text = str(
+            value or ""
+        ).strip()
+
+        if len(text) <= limit:
+            return text
+
+        return (
+            text[:limit].rstrip()
+            + "..."
+        )
