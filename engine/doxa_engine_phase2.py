@@ -294,6 +294,7 @@ class DoxaEnginePhase2:
         knowledge_mode: str = "best",
         conversation_history: list[dict[str, Any]] | None = None,
         explicit_search_request: bool = False,
+        memory_governance: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Run the complete DeDe Phase 2 cognitive pipeline.
