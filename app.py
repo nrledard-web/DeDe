@@ -727,7 +727,7 @@ if text:
         else ""
     )
 
-        working_memory_context = (
+    working_memory_context = (
         st.session_state.engine
         .conversation_manager
         .build_context(
