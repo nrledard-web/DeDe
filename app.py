@@ -763,6 +763,26 @@ if text:
         dict,
     ):
         memory_candidate = {}
+
+    memory_storage_mode = st.session_state.get(
+    "memory_storage_mode",
+    "selective",
+    )
+    
+    memory_governance = (
+        st.session_state.engine
+        .memory_governor
+        .evaluate(
+            text=text,
+            storage_mode=memory_storage_mode,
+            candidate=memory_candidate,
+            user_approved=False,
+        )
+    )
+    
+    tool_decision[
+        "memory_governance"
+    ] = memory_governance
     
     # --------------------------------------------------
     # Working Memory Fast Route
