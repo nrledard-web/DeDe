@@ -362,22 +362,22 @@ class DoxaEnginePhase2:
         user_memory["owner"]["id"] = owner_profile.get("id")
         user_memory["owner"]["preferred_name"] = owner_profile.get("preferred_name")
 
-        memory_governance = self.memory_governor.evaluate(text)
+        if not isinstance(
+            memory_governance,
+            dict,
+        ):
+            memory_governance = (
+                self.memory_governor.evaluate(
+                    text=text,
+                    storage_mode="session",
+                    candidate={},
+                    user_approved=False,
+                )
+            )
         
-        if memory_governance.get("allow_persistent_storage", True):
-            persistent_memory = self.persistent_memory.merge_user_memory(
-                user_memory,
-            )
-        else:
-            persistent_memory = self.persistent_memory.get_memory()
-
-        if memory_governance.get("allow_persistent_storage", True):
-            persistent_memory = self.autobiographical_memory.update(
-                text=text,
-                persistent_memory=persistent_memory,
-            )
-            self.persistent_memory.data = persistent_memory
-            self.persistent_memory.save()
+        persistent_memory = (
+            self.persistent_memory.get_memory()
+        )
 
         retrieved_memory = self.memory_retriever.retrieve(
             text=text,
