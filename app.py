@@ -1457,6 +1457,7 @@ if text:
         knowledge_providers=knowledge_providers,
         knowledge_mode=knowledge_mode,
         conversation_history=st.session_state.conversation_history,
+        memory_governance=memory_governance,
     )
 
     # --------------------------------------------------
