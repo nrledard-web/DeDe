@@ -48,6 +48,7 @@ class PersistentMemory:
             "known_people": [],
             "known_facts": [],
             "interaction_notes": [],
+            "memory_items": [],
             "conversation_count": 0,
             "last_seen": None,
             "created_at": self._now(),
