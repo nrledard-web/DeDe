@@ -214,20 +214,6 @@ st.markdown(
         With a Built-In Epistemic Anti-Coherence Loop<br>
     </h4>
 
-    <p style="
-        text-align:center;
-        color:#b8b8b8;
-        font-style:italic;
-        margin-top:0;">
-        To Prevent Self-Reinforcing Reasoning and Cognitive Closure.
-
-    <p style="
-        text-align:center;
-        color:#b8b8b8;
-        font-style:italic;
-        margin-top:0;">
-        A little more time to think leads to more accurate answers.
-    </p>
     """,
     unsafe_allow_html=True,
 )
