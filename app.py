@@ -839,6 +839,33 @@ if text:
     tool_decision[
         "memory_governance"
     ] = memory_governance
+
+    memory_saved = False
+
+    if memory_governance.get(
+        "allow_persistent_storage",
+        False,
+    ):
+        approved_candidate = memory_governance.get(
+            "candidate",
+            {},
+        )
+    
+        storage_scope = memory_governance.get(
+            "storage_scope",
+            "persistent",
+        )
+    
+        st.session_state.engine.persistent_memory.store_candidate(
+            candidate=approved_candidate,
+            storage_scope=storage_scope,
+        )
+    
+        memory_saved = True
+    
+    tool_decision[
+        "memory_saved"
+    ] = memory_saved
     
     # --------------------------------------------------
     # Working Memory Fast Route
