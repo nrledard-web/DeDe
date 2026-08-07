@@ -111,6 +111,137 @@ class PersistentMemory:
 
         return self.data
 
+    def store_candidate(
+        self,
+        candidate: dict[str, Any],
+        storage_scope: str,
+    ) -> dict[str, Any]:
+        """
+        Store one structured durable-memory candidate.
+        """
+    
+        if not isinstance(candidate, dict):
+            return self.data
+    
+        content = str(
+            candidate.get(
+                "content",
+                "",
+            )
+        ).strip()
+    
+        if not content:
+            return self.data
+    
+        memory_type = str(
+            candidate.get(
+                "memory_type",
+                "unknown",
+            )
+        ).strip().lower()
+    
+        sensitivity = str(
+            candidate.get(
+                "sensitivity",
+                "medium",
+            )
+        ).strip().lower()
+    
+        source = str(
+            candidate.get(
+                "source",
+                "conversation",
+            )
+        ).strip().lower()
+    
+        project = candidate.get(
+            "project"
+        )
+    
+        try:
+            confidence = float(
+                candidate.get(
+                    "confidence",
+                    0.0,
+                )
+            )
+        except (TypeError, ValueError):
+            confidence = 0.0
+    
+        confidence = max(
+            0.0,
+            min(confidence, 1.0),
+        )
+    
+        normalized_content = (
+            content.lower().strip()
+        )
+    
+        memory_items = self.data.setdefault(
+            "memory_items",
+            [],
+        )
+    
+        for memory_item in memory_items:
+            existing_content = str(
+                memory_item.get(
+                    "content",
+                    "",
+                )
+            ).lower().strip()
+    
+            existing_type = str(
+                memory_item.get(
+                    "memory_type",
+                    "",
+                )
+            ).lower().strip()
+    
+            if (
+                existing_content == normalized_content
+                and existing_type == memory_type
+            ):
+                memory_item.update(
+                    {
+                        "content": content,
+                        "storage_scope": storage_scope,
+                        "sensitivity": sensitivity,
+                        "confidence": confidence,
+                        "source": source,
+                        "project": project,
+                        "updated_at": self._now(),
+                    }
+                )
+    
+                self.data["last_seen"] = self._now()
+                self.save()
+    
+                return self.data
+    
+        created_at = self._now()
+    
+        memory_items.append(
+            {
+                "memory_id": (
+                    f"memory_{len(memory_items) + 1}"
+                ),
+                "content": content,
+                "memory_type": memory_type,
+                "storage_scope": storage_scope,
+                "sensitivity": sensitivity,
+                "confidence": confidence,
+                "source": source,
+                "project": project,
+                "created_at": created_at,
+                "updated_at": created_at,
+            }
+        )
+    
+        self.data["last_seen"] = created_at
+        self.save()
+    
+        return self.data
+
     def increment_conversation_count(self) -> dict[str, Any]:
 
         self.data["conversation_count"] = (
