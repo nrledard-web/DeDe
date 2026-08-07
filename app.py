@@ -762,6 +762,164 @@ if audio_value:
         st.write(voice_text)
 
 # --------------------------------------------------
+# Pending Memory Confirmation
+# --------------------------------------------------
+
+pending_memory = st.session_state.get(
+    "pending_memory_candidate"
+)
+
+if isinstance(
+    pending_memory,
+    dict,
+):
+    pending_candidate = pending_memory.get(
+        "candidate",
+        {},
+    )
+
+    pending_content = str(
+        pending_candidate.get(
+            "content",
+            "",
+        )
+    ).strip()
+
+    if pending_content:
+        with st.container(
+            border=True,
+        ):
+            st.markdown(
+                "#### 🧠 Memory permission"
+            )
+
+            st.write(
+                "DeDe proposes remembering:"
+            )
+
+            st.info(
+                pending_content
+            )
+
+            memory_type = pending_candidate.get(
+                "memory_type",
+                "unknown",
+            )
+
+            sensitivity = pending_candidate.get(
+                "sensitivity",
+                "medium",
+            )
+
+            proposed_scope = pending_candidate.get(
+                "proposed_scope",
+                "persistent",
+            )
+
+            st.caption(
+                f"Type: {memory_type} | "
+                f"Scope: {proposed_scope} | "
+                f"Sensitivity: {sensitivity}"
+            )
+
+            save_memory_column, reject_memory_column = (
+                st.columns(2)
+            )
+
+            with save_memory_column:
+                save_memory = st.button(
+                    "Save memory",
+                    type="primary",
+                    use_container_width=True,
+                    key="approve_pending_memory",
+                )
+
+            with reject_memory_column:
+                reject_memory = st.button(
+                    "Do not save",
+                    use_container_width=True,
+                    key="reject_pending_memory",
+                )
+
+            if save_memory:
+                current_storage_mode = (
+                    st.session_state.get(
+                        "memory_storage_mode",
+                        "selective",
+                    )
+                )
+
+                approved_governance = (
+                    st.session_state.engine
+                    .memory_governor
+                    .evaluate(
+                        text=pending_memory.get(
+                            "text",
+                            "",
+                        ),
+                        storage_mode=(
+                            current_storage_mode
+                        ),
+                        candidate=(
+                            pending_candidate
+                        ),
+                        user_approved=True,
+                    )
+                )
+
+                if approved_governance.get(
+                    "allow_persistent_storage",
+                    False,
+                ):
+                    st.session_state.engine.persistent_memory.store_candidate(
+                        candidate=(
+                            approved_governance.get(
+                                "candidate",
+                                {},
+                            )
+                        ),
+                        storage_scope=(
+                            approved_governance.get(
+                                "storage_scope",
+                                "persistent",
+                            )
+                        ),
+                    )
+
+                    del st.session_state[
+                        "pending_memory_candidate"
+                    ]
+
+                    st.success(
+                        "Memory saved."
+                    )
+
+                    st.rerun()
+
+                else:
+                    del st.session_state[
+                        "pending_memory_candidate"
+                    ]
+
+                    st.warning(
+                        approved_governance.get(
+                            "reason",
+                            "Memory was not saved.",
+                        )
+                    )
+
+            if reject_memory:
+                del st.session_state[
+                    "pending_memory_candidate"
+                ]
+
+                st.info(
+                    "Memory was not saved."
+                )
+
+                st.rerun()
+
+# --------------------------------------------------
 # Chat Input
 # --------------------------------------------------
 
