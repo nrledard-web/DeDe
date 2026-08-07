@@ -282,6 +282,62 @@ with st.sidebar:
         st.stop()
 
     # --------------------------------------------------
+    # Memory Privacy
+    # --------------------------------------------------
+    
+    st.markdown("### Memory Privacy")
+    
+    memory_mode_labels = {
+        "off": "Off — No memory",
+        "session": "Session Only — Temporary",
+        "selective": "Selective — Ask before saving",
+        "continuous": "Continuous — Automatic",
+    }
+    
+    current_memory_mode = st.session_state.get(
+        "memory_storage_mode",
+        "selective",
+    )
+    
+    if current_memory_mode not in memory_mode_labels:
+        current_memory_mode = "selective"
+    
+    memory_storage_mode = st.selectbox(
+        "Memory Storage",
+        options=list(memory_mode_labels.keys()),
+        index=list(
+            memory_mode_labels.keys()
+        ).index(current_memory_mode),
+        format_func=lambda mode: (
+            memory_mode_labels[mode]
+        ),
+        key="memory_storage_mode",
+    )
+    
+    if memory_storage_mode == "off":
+        st.caption(
+            "No session or persistent memory is authorized."
+        )
+    
+    elif memory_storage_mode == "session":
+        st.caption(
+            "Memory remains available only during "
+            "the current session."
+        )
+    
+    elif memory_storage_mode == "selective":
+        st.caption(
+            "DeDe asks for confirmation before "
+            "saving durable information."
+        )
+    
+    else:
+        st.caption(
+            "DeDe may save relevant durable information "
+            "automatically according to its privacy policy."
+        )
+
+    # --------------------------------------------------
     # Conversation Session
     # --------------------------------------------------
 
