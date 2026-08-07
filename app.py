@@ -727,8 +727,20 @@ if text:
         else ""
     )
 
+        working_memory_context = (
+        st.session_state.engine
+        .conversation_manager
+        .build_context(
+            st.session_state.conversation_history
+        )
+    )
+
     tool_governor = ToolGovernor(
-        llm_engine=st.session_state.engine.llm_engine,
+        llm_engine=(
+            st.session_state
+            .engine
+            .llm_engine
+        ),
     )
 
     tool_decision = (
@@ -736,9 +748,73 @@ if text:
             text=text,
             available_tools=available_tools,
             provider=active_tool_provider,
+            conversation_context=(
+                working_memory_context
+            ),
         )
     )
     
+    # --------------------------------------------------
+    # Working Memory Fast Route
+    # --------------------------------------------------
+
+    if (
+        tool_decision.get(
+            "action"
+        )
+        == "use_working_memory"
+    ):
+        direct_answer = str(
+            tool_decision.get(
+                "direct_answer",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if direct_answer:
+            with st.chat_message(
+                "user"
+            ):
+                st.write(
+                    text
+                )
+
+            with st.chat_message(
+                "assistant"
+            ):
+                st.write(
+                    direct_answer
+                )
+
+            fast_user_response = {
+                "final_answer": (
+                    direct_answer
+                ),
+                "follow_up_question": None,
+                "conversation_mode": (
+                    "working_memory_fast_route"
+                ),
+            }
+
+            st.session_state.conversation_history = (
+                st.session_state.engine
+                .conversation_manager
+                .add_turn(
+                    history=(
+                        st.session_state
+                        .conversation_history
+                    ),
+                    user_input=text,
+                    user_response=(
+                        fast_user_response
+                    ),
+                    report={},
+                )
+            )
+
+            st.stop()
+            
     # --------------------------------------------------
     # Active Document Routing
     # --------------------------------------------------
