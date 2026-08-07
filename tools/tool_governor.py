@@ -517,7 +517,7 @@ Return only valid JSON with this exact structure:
         working_memory: dict[str, Any],
     ) -> dict[str, Any]:
         """
-        Validate the route and prevent unsupported actions.
+        Validate the route, tool and memory candidate.
         """
 
         registered_names = {
@@ -580,6 +580,17 @@ Return only valid JSON with this exact structure:
             or ""
         ).strip()
 
+        memory_candidate = decision.get(
+            "memory_candidate",
+            {},
+        )
+
+        if not isinstance(
+            memory_candidate,
+            dict,
+        ):
+            memory_candidate = {}
+
         try:
             confidence = float(
                 decision.get(
@@ -617,12 +628,19 @@ Return only valid JSON with this exact structure:
             return self._normal_decision(
                 reason=(
                     reason
-                    or "Routing confidence is insufficient."
+                    or "Routing confidence is "
+                    "insufficient."
                 ),
                 confidence=confidence,
+                memory_candidate=(
+                    memory_candidate
+                ),
             )
 
-        if action == "use_working_memory":
+        if (
+            action
+            == "use_working_memory"
+        ):
             has_memory = bool(
                 working_memory.get(
                     "recent_turns"
@@ -638,11 +656,15 @@ Return only valid JSON with this exact structure:
             ):
                 return self._normal_decision(
                     reason=(
-                        "Working-memory routing was "
-                        "selected without sufficient "
-                        "memory or a usable answer."
+                        "Working-memory routing "
+                        "was selected without "
+                        "sufficient memory or "
+                        "a usable answer."
                     ),
                     confidence=confidence,
+                    memory_candidate=(
+                        memory_candidate
+                    ),
                 )
 
             return {
@@ -660,10 +682,14 @@ Return only valid JSON with this exact structure:
                 "memory_reference": (
                     memory_reference
                 ),
+                "memory_candidate": (
+                    memory_candidate
+                ),
                 "reason": (
                     reason
-                    or "The answer is fully supported "
-                    "by recent working memory."
+                    or "The answer is fully "
+                    "supported by recent "
+                    "working memory."
                 ),
             }
 
@@ -674,10 +700,13 @@ Return only valid JSON with this exact structure:
             ):
                 return self._normal_decision(
                     reason=(
-                        "The selected tool is not "
-                        "registered."
+                        "The selected tool "
+                        "is not registered."
                     ),
                     confidence=confidence,
+                    memory_candidate=(
+                        memory_candidate
+                    ),
                 )
 
             return {
@@ -689,27 +718,43 @@ Return only valid JSON with this exact structure:
                 "arguments": arguments,
                 "direct_answer": "",
                 "memory_reference": "",
+                "memory_candidate": (
+                    memory_candidate
+                ),
                 "reason": (
                     reason
-                    or "A registered tool matches "
-                    "the requested action."
+                    or "A registered tool "
+                    "matches the requested "
+                    "action."
                 ),
             }
 
         return self._normal_decision(
             reason=(
                 reason
-                or "The normal cognitive pipeline "
-                "is required."
+                or "The normal cognitive "
+                "pipeline is required."
             ),
             confidence=confidence,
+            memory_candidate=(
+                memory_candidate
+            ),
         )
 
     def _normal_decision(
         self,
         reason: str,
         confidence: float = 1.0,
+        memory_candidate: (
+            dict[str, Any] | None
+        ) = None,
     ) -> dict[str, Any]:
+
+        if not isinstance(
+            memory_candidate,
+            dict,
+        ):
+            memory_candidate = {}
 
         return {
             "governor": self.name,
@@ -720,9 +765,12 @@ Return only valid JSON with this exact structure:
             "arguments": {},
             "direct_answer": "",
             "memory_reference": "",
+            "memory_candidate": (
+                memory_candidate
+            ),
             "reason": reason,
         }
-
+        
     def _limit_text(
         self,
         value: Any,
