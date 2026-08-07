@@ -252,6 +252,7 @@ Return only valid JSON with this exact structure:
                 "arguments": {},
                 "direct_answer": "",
                 "memory_reference": "",
+                "memory_candidate": {},
                 "reason": (
                     "Routing failed; normal DeDe "
                     "reasoning will continue."
