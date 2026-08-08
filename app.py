@@ -21,6 +21,7 @@ from ui.free_video_maker_panel import (
 )
 
 from engine.doxa_engine_phase2 import DoxaEnginePhase2
+from memory.memory_portability import MemoryPortability
 from core.real_world_anchor import RealWorldAnchor
 
 from tools.tool_governor import ToolGovernor
@@ -91,6 +92,11 @@ if "tool_manager" not in st.session_state:
 
 if "tool_history" not in st.session_state:
     st.session_state.tool_history = []
+
+if "memory_portability" not in st.session_state:
+    st.session_state.memory_portability = (
+        MemoryPortability()
+    )
 
 # --------------------------------------------------
 # Force light theme / mobile readability
