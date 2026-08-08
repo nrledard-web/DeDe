@@ -242,7 +242,7 @@ class PersistentMemory:
     
         return self.data
 
-        def restore_memory(
+    def restore_memory(
         self,
         memory_data: dict[str, Any],
     ) -> dict[str, Any]:
