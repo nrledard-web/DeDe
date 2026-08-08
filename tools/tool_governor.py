@@ -747,12 +747,29 @@ Return only valid JSON with this exact structure:
             action
             == "use_working_memory"
         ):
+            durable_memory = working_memory.get(
+                "durable_memory",
+                {},
+            )
+
+            if not isinstance(
+                durable_memory,
+                dict,
+            ):
+                durable_memory = {}
+
             has_memory = bool(
                 working_memory.get(
                     "recent_turns"
                 )
                 or working_memory.get(
                     "recent_artifacts"
+                )
+                or durable_memory.get(
+                    "core_memories"
+                )
+                or durable_memory.get(
+                    "relevant_memories"
                 )
             )
 
