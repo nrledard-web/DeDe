@@ -453,7 +453,32 @@ class DoxaEnginePhase2:
         # Phase 5.6
         # Onboarding
         # --------------------------------------------------
-        is_first_contact = conversation_context.get("turn_count", 0) == 0
+        persistent_continuity = bool(
+            persistent_memory.get(
+                "memory_items",
+                [],
+            )
+            or persistent_memory.get(
+                "known_facts",
+                [],
+            )
+            or persistent_memory.get(
+                "interaction_notes",
+                [],
+            )
+            or persistent_memory.get(
+                "last_seen"
+            )
+        )
+
+        is_first_contact = (
+            conversation_context.get(
+                "turn_count",
+                0,
+            )
+            == 0
+            and not persistent_continuity
+        )
 
         onboarding = {}
 
