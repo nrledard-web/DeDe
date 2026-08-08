@@ -336,6 +336,127 @@ with st.sidebar:
         )
 
     # --------------------------------------------------
+    # Portable Memory
+    # --------------------------------------------------
+
+    with st.expander(
+        "🔐 Portable Memory",
+        expanded=False,
+    ):
+        current_memory_data = (
+            st.session_state.engine
+            .persistent_memory
+            .get_memory()
+        )
+
+        memory_item_count = len(
+            current_memory_data.get(
+                "memory_items",
+                [],
+            )
+        )
+
+        st.caption(
+            f"Durable memories: {memory_item_count}"
+        )
+
+        export_password = st.text_input(
+            "Export password",
+            type="password",
+            key="memory_export_password",
+            help=(
+                "Use at least 8 characters. "
+                "DeDe does not store this password."
+            ),
+        )
+
+        confirm_export_password = st.text_input(
+            "Confirm export password",
+            type="password",
+            key="memory_export_password_confirm",
+        )
+
+        if st.button(
+            "Prepare encrypted memory",
+            key="prepare_encrypted_memory",
+            use_container_width=True,
+        ):
+            if (
+                export_password
+                != confirm_export_password
+            ):
+                st.error(
+                    "The two passwords do not match."
+                )
+
+            elif len(
+                export_password
+            ) < 8:
+                st.error(
+                    "Use a password containing "
+                    "at least 8 characters."
+                )
+
+            else:
+                try:
+                    encrypted_memory = (
+                        st.session_state
+                        .memory_portability
+                        .export_encrypted(
+                            memory_data=(
+                                current_memory_data
+                            ),
+                            user_id=(
+                                st.session_state.owner_id
+                            ),
+                            password=export_password,
+                        )
+                    )
+
+                    st.session_state[
+                        "prepared_memory_export"
+                    ] = encrypted_memory
+
+                    st.success(
+                        "Encrypted memory prepared."
+                    )
+
+                except ValueError as error:
+                    st.error(
+                        str(error)
+                    )
+
+        prepared_memory_export = (
+            st.session_state.get(
+                "prepared_memory_export"
+            )
+        )
+
+        if isinstance(
+            prepared_memory_export,
+            bytes,
+        ):
+            st.download_button(
+                label="Download private memory",
+                data=prepared_memory_export,
+                file_name=(
+                    f"{st.session_state.owner_id}"
+                    ".dede-memory"
+                ),
+                mime=(
+                    "application/octet-stream"
+                ),
+                key="download_private_memory",
+                use_container_width=True,
+            )
+
+            st.caption(
+                "Keep this file and its password "
+                "separately. Without the password, "
+                "the memory cannot be recovered."
+            )
+
+    # --------------------------------------------------
     # Conversation Session
     # --------------------------------------------------
 
