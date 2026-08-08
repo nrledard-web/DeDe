@@ -456,6 +456,126 @@ with st.sidebar:
                 "the memory cannot be recovered."
             )
 
+            st.markdown(
+                "#### Restore private memory"
+            )
+    
+            imported_memory_file = st.file_uploader(
+                "Select a .dede-memory file",
+                type=[
+                    "dede-memory",
+                ],
+                key="import_private_memory_file",
+            )
+    
+            import_password = st.text_input(
+                "Import password",
+                type="password",
+                key="memory_import_password",
+            )
+    
+            confirm_memory_replacement = st.checkbox(
+                "Replace the current durable memory",
+                value=False,
+                key="confirm_memory_replacement",
+                help=(
+                    "Conversation history is cleared, "
+                    "but the imported memory becomes "
+                    "the active durable memory."
+                ),
+            )
+    
+            if st.button(
+                "Restore encrypted memory",
+                key="restore_encrypted_memory",
+                use_container_width=True,
+            ):
+                if imported_memory_file is None:
+                    st.error(
+                        "Select a .dede-memory file."
+                    )
+    
+                elif not import_password:
+                    st.error(
+                        "Enter the memory password."
+                    )
+    
+                elif not confirm_memory_replacement:
+                    st.error(
+                        "Confirm replacement of the "
+                        "current durable memory."
+                    )
+    
+                else:
+                    try:
+                        imported_result = (
+                            st.session_state
+                            .memory_portability
+                            .import_encrypted(
+                                encrypted_file=(
+                                    imported_memory_file
+                                    .getvalue()
+                                ),
+                                password=import_password,
+                            )
+                        )
+    
+                        imported_memory_data = (
+                            imported_result.get(
+                                "memory",
+                                {},
+                            )
+                        )
+    
+                        st.session_state.engine.persistent_memory.restore_memory(
+                            imported_memory_data
+                        )
+    
+                        st.session_state.conversation_history = []
+                        st.session_state.tool_history = []
+    
+                        st.session_state.pop(
+                            "pending_memory_candidate",
+                            None,
+                        )
+    
+                        st.session_state.pop(
+                            "prepared_memory_export",
+                            None,
+                        )
+    
+                        st.session_state.engine = (
+                            DoxaEnginePhase2(
+                                user_id=(
+                                    st.session_state
+                                    .owner_id
+                                ),
+                            )
+                        )
+    
+                        source_owner = (
+                            imported_result.get(
+                                "owner_id",
+                                "unknown",
+                            )
+                        )
+    
+                        st.success(
+                            "Private memory restored "
+                            f"from owner: {source_owner}"
+                        )
+    
+                    except ValueError as error:
+                        st.error(
+                            str(error)
+                        )
+    
+                    except Exception:
+                        st.error(
+                            "Memory restoration failed. "
+                            "The current memory was not changed."
+                        )    
+
     # --------------------------------------------------
     # Conversation Session
     # --------------------------------------------------
