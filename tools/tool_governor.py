@@ -105,15 +105,24 @@ Choose this only when the user clearly requests an action
 performed by a registered tool.
 
 2. use_working_memory
-Choose this only when the request can be answered completely
-and safely from the supplied structured working memory.
-Typical cases include asking what DeDe just did, which tool
-was used, what artifact was produced, or what the immediately
-preceding action concerned.
+Choose this when the request can be answered completely and
+safely from either recent working memory or retrieved durable
+memory.
+
+Typical cases include:
+- asking what DeDe just did;
+- asking which tool or artifact was used;
+- asking DeDe to recall a stored preference, identity element,
+  project, decision, relationship or personal fact;
+- asking a question whose complete answer is explicitly present
+  in supplied memory.
 
 When choosing use_working_memory:
-- use only facts explicitly present in working memory;
+- use only facts explicitly present in supplied memory;
+- treat core_memories as durable identity and preferences;
+- treat relevant_memories as contextually retrieved memories;
 - do not invent unavailable content;
+- do not transform an inference into a remembered fact;
 - do not claim that an artifact exists unless it is listed;
 - write a brief direct_answer in the language of the user;
 - preserve exact technical tool names when relevant;
