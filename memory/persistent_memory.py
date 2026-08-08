@@ -242,99 +242,99 @@ class PersistentMemory:
     
         return self.data
 
-    def restore_memory(
-    self,
-    memory_data: dict[str, Any],
-) -> dict[str, Any]:
-    """
-    Restore validated portable memory for the current owner.
-
-    The technical owner ID remains controlled by the
-    current DeDe installation.
-    """
-
-    if not isinstance(
-        memory_data,
-        dict,
-    ):
-        raise ValueError(
-            "Imported memory data is invalid."
+        def restore_memory(
+        self,
+        memory_data: dict[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Restore validated portable memory for the current owner.
+    
+        The technical owner ID remains controlled by the
+        current DeDe installation.
+        """
+    
+        if not isinstance(
+            memory_data,
+            dict,
+        ):
+            raise ValueError(
+                "Imported memory data is invalid."
+            )
+    
+        restored_memory = (
+            self._default_memory()
         )
-
-    restored_memory = (
-        self._default_memory()
-    )
-
-    allowed_keys = set(
-        restored_memory.keys()
-    )
-
-    allowed_keys.add(
-        "owner"
-    )
-
-    for key, value in memory_data.items():
-        if key in allowed_keys:
-            restored_memory[key] = value
-
-    for list_key in [
-        "known_people",
-        "known_facts",
-        "interaction_notes",
-        "memory_items",
-    ]:
+    
+        allowed_keys = set(
+            restored_memory.keys()
+        )
+    
+        allowed_keys.add(
+            "owner"
+        )
+    
+        for key, value in memory_data.items():
+            if key in allowed_keys:
+                restored_memory[key] = value
+    
+        for list_key in [
+            "known_people",
+            "known_facts",
+            "interaction_notes",
+            "memory_items",
+        ]:
+            if not isinstance(
+                restored_memory.get(
+                    list_key
+                ),
+                list,
+            ):
+                restored_memory[list_key] = []
+    
         if not isinstance(
             restored_memory.get(
-                list_key
+                "autobiography"
             ),
-            list,
+            dict,
         ):
-            restored_memory[list_key] = []
-
-    if not isinstance(
-        restored_memory.get(
-            "autobiography"
-        ),
-        dict,
-    ):
-        restored_memory[
-            "autobiography"
-        ] = {}
-
-    owner = restored_memory.get(
-        "owner",
-        {},
-    )
-
-    if not isinstance(
-        owner,
-        dict,
-    ):
-        owner = {}
-
-    owner["id"] = self.user_id
-
-    if not owner.get(
-        "preferred_name"
-    ):
-        owner["preferred_name"] = (
-            restored_memory.get(
-                "preferred_name"
-            )
+            restored_memory[
+                "autobiography"
+            ] = {}
+    
+        owner = restored_memory.get(
+            "owner",
+            {},
         )
-
-    restored_memory[
-        "owner"
-    ] = owner
-
-    restored_memory[
-        "last_seen"
-    ] = self._now()
-
-    self.data = restored_memory
-    self.save()
-
-    return self.data
+    
+        if not isinstance(
+            owner,
+            dict,
+        ):
+            owner = {}
+    
+        owner["id"] = self.user_id
+    
+        if not owner.get(
+            "preferred_name"
+        ):
+            owner["preferred_name"] = (
+                restored_memory.get(
+                    "preferred_name"
+                )
+            )
+    
+        restored_memory[
+            "owner"
+        ] = owner
+    
+        restored_memory[
+            "last_seen"
+        ] = self._now()
+    
+        self.data = restored_memory
+        self.save()
+    
+        return self.data
 
     def increment_conversation_count(self) -> dict[str, Any]:
 
