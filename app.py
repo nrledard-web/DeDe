@@ -220,8 +220,6 @@ st.markdown(
         With a Built-In Epistemic Anti-Coherence Loop<br>
     </h4>
 
-   st.markdown(
-    """
     <p style="
         text-align: center;
         font-size: 0.85rem;
