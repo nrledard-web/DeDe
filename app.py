@@ -220,7 +220,20 @@ st.markdown(
         With a Built-In Epistemic Anti-Coherence Loop<br>
     </h4>
 
-    A little more time to respond—for greater accuracy, privacy, and security.
+   st.markdown(
+    """
+    <p style="
+        text-align: center;
+        font-size: 0.85rem;
+        color: #888888;
+        margin-top: 0.25rem;
+        margin-bottom: 1rem;
+    ">
+        A little more time to respond—for greater accuracy, privacy, and security.
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
 
     """,
     unsafe_allow_html=True,
