@@ -551,8 +551,20 @@ Return only valid JSON with this exact structure:
                 recent_artifacts[-12:]
             ),
             "active_task": active_task,
-        }
-
+            "durable_memory": {
+                "owner": durable_memory.get(
+                    "owner",
+                    {},
+                ),
+                "core_memories": (
+                    prepared_core_memories
+                ),
+                "relevant_memories": (
+                    prepared_relevant_memories
+                ),
+            },
+        }    
+        
     def _parse_json(
         self,
         raw_output: str,
