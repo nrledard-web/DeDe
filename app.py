@@ -360,6 +360,42 @@ with st.sidebar:
             f"Durable memories: {memory_item_count}"
         )
 
+        simple_memory_export = (
+            st.session_state
+            .memory_portability
+            .export_simple(
+                memory_data=(
+                    current_memory_data
+                ),
+                user_id=(
+                    st.session_state.owner_id
+                ),
+            )
+        )
+
+        st.download_button(
+            label="Download Memory",
+            data=simple_memory_export,
+            file_name=(
+                f"{st.session_state.owner_id}"
+                ".dede-memory.json"
+            ),
+            mime="application/json",
+            key="download_simple_memory",
+            use_container_width=True,
+        )
+
+        st.caption(
+            "Simple portable backup without a password. "
+            "Anyone with access to this file can read it."
+        )
+
+        st.divider()
+
+        st.markdown(
+            "#### 🔐 Private encrypted backup"
+        )
+
         export_password = st.text_input(
             "Export password",
             type="password",
