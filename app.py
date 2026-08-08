@@ -221,9 +221,9 @@ st.markdown(
     </h4>
 
     st.caption(
-    "A little more time to respond—for greater accuracy, "
-    "privacy, and security."
-)
+        "A little more time to respond—for greater accuracy, "
+        "privacy, and security."
+    )
 
     """,
     unsafe_allow_html=True,
