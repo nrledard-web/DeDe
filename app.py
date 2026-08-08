@@ -340,7 +340,7 @@ with st.sidebar:
     # --------------------------------------------------
 
     with st.expander(
-        "🔐 Portable Memory",
+        "🧠 Memory Backup",
         expanded=False,
     ):
         current_memory_data = (
@@ -358,6 +358,42 @@ with st.sidebar:
 
         st.caption(
             f"Durable memories: {memory_item_count}"
+        )
+
+        def activate_restored_memory(
+            memory_data: dict,
+        ) -> None:
+            st.session_state.engine.persistent_memory.restore_memory(
+                memory_data
+            )
+
+            st.session_state.conversation_history = []
+            st.session_state.tool_history = []
+
+            st.session_state.pop(
+                "pending_memory_candidate",
+                None,
+            )
+
+            st.session_state.pop(
+                "prepared_memory_export",
+                None,
+            )
+
+            st.session_state.engine = (
+                DoxaEnginePhase2(
+                    user_id=(
+                        st.session_state.owner_id
+                    ),
+                )
+            )
+
+        # ----------------------------------------------
+        # Simple backup
+        # ----------------------------------------------
+
+        st.markdown(
+            "#### Simple backup"
         )
 
         simple_memory_export = (
@@ -386,14 +422,80 @@ with st.sidebar:
         )
 
         st.caption(
-            "Simple portable backup without a password. "
-            "Anyone with access to this file can read it."
+            "No password required. Anyone with access "
+            "to this file can read its contents."
+        )
+
+        simple_memory_file = st.file_uploader(
+            "Select a simple memory backup",
+            type=[
+                "json",
+            ],
+            key="restore_simple_memory_file",
+        )
+
+        if st.button(
+            "Restore Memory",
+            key="restore_simple_memory",
+            use_container_width=True,
+        ):
+            if simple_memory_file is None:
+                st.error(
+                    "Select a DeDe memory backup."
+                )
+
+            else:
+                try:
+                    simple_result = (
+                        st.session_state
+                        .memory_portability
+                        .import_simple(
+                            memory_file=(
+                                simple_memory_file
+                                .getvalue()
+                            ),
+                        )
+                    )
+
+                    activate_restored_memory(
+                        simple_result.get(
+                            "memory",
+                            {},
+                        )
+                    )
+
+                    st.success(
+                        "Memory restored successfully."
+                    )
+
+                except ValueError as error:
+                    st.error(
+                        str(error)
+                    )
+
+                except Exception:
+                    st.error(
+                        "Memory restoration failed."
+                    )
+
+        st.caption(
+            "Restoring replaces the current durable "
+            "memory and clears the temporary conversation."
         )
 
         st.divider()
 
+        # ----------------------------------------------
+        # Private encrypted backup
+        # ----------------------------------------------
+
         st.markdown(
             "#### 🔐 Private encrypted backup"
+        )
+
+        st.caption(
+            "Optional protection for personal or "
+            "sensitive memory."
         )
 
         export_password = st.text_input(
@@ -443,7 +545,8 @@ with st.sidebar:
                                 current_memory_data
                             ),
                             user_id=(
-                                st.session_state.owner_id
+                                st.session_state
+                                .owner_id
                             ),
                             password=export_password,
                         )
@@ -473,144 +576,103 @@ with st.sidebar:
             bytes,
         ):
             st.download_button(
-                label="Download private memory",
+                label="Download Private Memory",
                 data=prepared_memory_export,
                 file_name=(
                     f"{st.session_state.owner_id}"
                     ".dede-memory"
                 ),
-                mime=(
-                    "application/octet-stream"
-                ),
+                mime="application/octet-stream",
                 key="download_private_memory",
                 use_container_width=True,
             )
 
             st.caption(
-                "Keep this file and its password "
-                "separately. Without the password, "
-                "the memory cannot be recovered."
+                "Keep the file and password separately. "
+                "A forgotten password cannot be recovered."
             )
 
-            st.markdown(
-                "#### Restore private memory"
-            )
-    
-            imported_memory_file = st.file_uploader(
-                "Select a .dede-memory file",
-                type=[
-                    "dede-memory",
-                ],
-                key="import_private_memory_file",
-            )
-    
-            import_password = st.text_input(
-                "Import password",
-                type="password",
-                key="memory_import_password",
-            )
-    
-            confirm_memory_replacement = st.checkbox(
-                "Replace the current durable memory",
-                value=False,
-                key="confirm_memory_replacement",
-                help=(
-                    "Conversation history is cleared, "
-                    "but the imported memory becomes "
-                    "the active durable memory."
-                ),
-            )
-    
-            if st.button(
-                "Restore encrypted memory",
-                key="restore_encrypted_memory",
-                use_container_width=True,
-            ):
-                if imported_memory_file is None:
-                    st.error(
-                        "Select a .dede-memory file."
+        st.markdown(
+            "##### Restore private memory"
+        )
+
+        imported_private_file = st.file_uploader(
+            "Select a .dede-memory file",
+            type=[
+                "dede-memory",
+            ],
+            key="import_private_memory_file",
+        )
+
+        import_password = st.text_input(
+            "Import password",
+            type="password",
+            key="memory_import_password",
+        )
+
+        confirm_private_replacement = st.checkbox(
+            "Replace current memory with this private backup",
+            value=False,
+            key="confirm_private_memory_replacement",
+        )
+
+        if st.button(
+            "Restore Private Memory",
+            key="restore_encrypted_memory",
+            use_container_width=True,
+        ):
+            if imported_private_file is None:
+                st.error(
+                    "Select a .dede-memory file."
+                )
+
+            elif not import_password:
+                st.error(
+                    "Enter the memory password."
+                )
+
+            elif not confirm_private_replacement:
+                st.error(
+                    "Confirm replacement of the "
+                    "current durable memory."
+                )
+
+            else:
+                try:
+                    private_result = (
+                        st.session_state
+                        .memory_portability
+                        .import_encrypted(
+                            encrypted_file=(
+                                imported_private_file
+                                .getvalue()
+                            ),
+                            password=import_password,
+                        )
                     )
-    
-                elif not import_password:
-                    st.error(
-                        "Enter the memory password."
+
+                    activate_restored_memory(
+                        private_result.get(
+                            "memory",
+                            {},
+                        )
                     )
-    
-                elif not confirm_memory_replacement:
-                    st.error(
-                        "Confirm replacement of the "
-                        "current durable memory."
+
+                    st.success(
+                        "Private memory restored "
+                        "successfully."
                     )
-    
-                else:
-                    try:
-                        imported_result = (
-                            st.session_state
-                            .memory_portability
-                            .import_encrypted(
-                                encrypted_file=(
-                                    imported_memory_file
-                                    .getvalue()
-                                ),
-                                password=import_password,
-                            )
-                        )
-    
-                        imported_memory_data = (
-                            imported_result.get(
-                                "memory",
-                                {},
-                            )
-                        )
-    
-                        st.session_state.engine.persistent_memory.restore_memory(
-                            imported_memory_data
-                        )
-    
-                        st.session_state.conversation_history = []
-                        st.session_state.tool_history = []
-    
-                        st.session_state.pop(
-                            "pending_memory_candidate",
-                            None,
-                        )
-    
-                        st.session_state.pop(
-                            "prepared_memory_export",
-                            None,
-                        )
-    
-                        st.session_state.engine = (
-                            DoxaEnginePhase2(
-                                user_id=(
-                                    st.session_state
-                                    .owner_id
-                                ),
-                            )
-                        )
-    
-                        source_owner = (
-                            imported_result.get(
-                                "owner_id",
-                                "unknown",
-                            )
-                        )
-    
-                        st.success(
-                            "Private memory restored "
-                            f"from owner: {source_owner}"
-                        )
-    
-                    except ValueError as error:
-                        st.error(
-                            str(error)
-                        )
-    
-                    except Exception:
-                        st.error(
-                            "Memory restoration failed. "
-                            "The current memory was not changed."
-                        )    
+
+                except ValueError as error:
+                    st.error(
+                        str(error)
+                    )
+
+                except Exception:
+                    st.error(
+                        "Private memory restoration failed."
+                    )
+
 
     # --------------------------------------------------
     # Conversation Session
