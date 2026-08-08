@@ -33,9 +33,129 @@ class MemoryPortability:
     name = "memory_portability"
 
     FILE_FORMAT = "dede-memory"
+    SIMPLE_FILE_FORMAT = "dede-memory-simple"
     FILE_VERSION = 1
     KDF_ITERATIONS = 600_000
     MAX_FILE_SIZE = 25 * 1024 * 1024
+
+        def export_simple(
+        self,
+        memory_data: dict[str, Any],
+        user_id: str,
+    ) -> bytes:
+        """
+        Export portable memory without encryption.
+        """
+
+        if not isinstance(
+            memory_data,
+            dict,
+        ):
+            raise ValueError(
+                "Memory data must be a dictionary."
+            )
+
+        portable_memory = {
+            "format": self.SIMPLE_FILE_FORMAT,
+            "version": self.FILE_VERSION,
+            "owner_id": str(
+                user_id or "default_user"
+            ),
+            "exported_at": self._now(),
+            "privacy": "unencrypted",
+            "memory": memory_data,
+        }
+
+        return json.dumps(
+            portable_memory,
+            ensure_ascii=False,
+            indent=2,
+        ).encode(
+            "utf-8"
+        )
+
+    def import_simple(
+        self,
+        memory_file: bytes,
+    ) -> dict[str, Any]:
+        """
+        Validate and read unencrypted portable memory.
+        """
+
+        if not isinstance(
+            memory_file,
+            bytes,
+        ):
+            raise ValueError(
+                "The memory file is invalid."
+            )
+
+        if len(memory_file) > self.MAX_FILE_SIZE:
+            raise ValueError(
+                "The memory file is too large."
+            )
+
+        try:
+            portable_memory = json.loads(
+                memory_file.decode(
+                    "utf-8"
+                )
+            )
+        except (
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+        ) as error:
+            raise ValueError(
+                "This is not a valid simple "
+                "DeDe memory file."
+            ) from error
+
+        if not isinstance(
+            portable_memory,
+            dict,
+        ):
+            raise ValueError(
+                "The portable memory is invalid."
+            )
+
+        if portable_memory.get(
+            "format"
+        ) != self.SIMPLE_FILE_FORMAT:
+            raise ValueError(
+                "Unsupported simple memory format."
+            )
+
+        if portable_memory.get(
+            "version"
+        ) != self.FILE_VERSION:
+            raise ValueError(
+                "Unsupported memory file version."
+            )
+
+        memory_data = portable_memory.get(
+            "memory"
+        )
+
+        if not isinstance(
+            memory_data,
+            dict,
+        ):
+            raise ValueError(
+                "The portable file contains no "
+                "valid memory data."
+            )
+
+        return {
+            "status": "success",
+            "owner_id": portable_memory.get(
+                "owner_id"
+            ),
+            "exported_at": portable_memory.get(
+                "exported_at"
+            ),
+            "privacy": "unencrypted",
+            "memory": memory_data,
+        }
 
     def export_encrypted(
         self,
