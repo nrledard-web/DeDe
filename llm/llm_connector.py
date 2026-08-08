@@ -1367,32 +1367,34 @@ class LLMConnector:
         # --------------------------------------------------
         # Retrieved Memory
         # --------------------------------------------------
-    
+
         lines.append("")
         lines.append("Retrieved durable memory:")
-    
+
         lines.append(
-            f'- owner preferred name: '
+            "- owner preferred name: "
             f'{owner.get("preferred_name")}'
         )
-    
+
         lines.append(
-            f'- owner preferred language: '
+            "- owner preferred language: "
             f'{owner.get("preferred_language")}'
         )
-    
+
         lines.append(
-            f'- owner conversation count: '
+            "- owner conversation count: "
             f'{owner.get("conversation_count")}'
         )
-    
-        lines.append("- core identity and preferences:")
-    
+
+        lines.append(
+            "- core identity and preferences:"
+        )
+
         core_memories = retrieved_memory.get(
             "core_memories",
             [],
         )
-    
+
         if core_memories:
             for item in core_memories:
                 if not isinstance(
@@ -1400,38 +1402,40 @@ class LLMConnector:
                     dict,
                 ):
                     continue
-    
+
                 content = str(
                     item.get(
                         "content",
                         "",
                     )
                 ).strip()
-    
+
                 memory_type = str(
                     item.get(
                         "memory_type",
                         "unknown",
                     )
                 ).strip()
-    
+
                 if content:
                     lines.append(
-                        f"  - [{memory_type}] {content}"
+                        f"  - [{memory_type}] "
+                        f"{content}"
                     )
-    
         else:
             lines.append(
                 "  - none"
             )
-    
-        lines.append("- contextually relevant memories:")
-    
+
+        lines.append(
+            "- contextually relevant memories:"
+        )
+
         relevant_memories = retrieved_memory.get(
             "relevant_memories",
             [],
         )
-    
+
         if relevant_memories:
             for item in relevant_memories:
                 if not isinstance(
@@ -1439,41 +1443,35 @@ class LLMConnector:
                     dict,
                 ):
                     continue
-    
+
                 content = str(
                     item.get(
                         "content",
                         "",
                     )
                 ).strip()
-    
+
                 memory_type = str(
                     item.get(
                         "memory_type",
                         "unknown",
                     )
                 ).strip()
-    
-                storage_scope = str(
-                    item.get(
-                        "storage_scope",
-                        "persistent",
-                    )
-                ).strip()
-    
+
                 if content:
                     lines.append(
-                        f"  - [{memory_type} | "
-                        f"{storage_scope}] {content}"
+                        f"  - [{memory_type}] "
+                        f"{content}"
                     )
-    
         else:
             lines.append(
                 "  - none"
             )
-    
-        lines.append("- legacy relevant facts:")
-    
+
+        lines.append(
+            "- legacy relevant facts:"
+        )
+
         for item in retrieved_memory.get(
             "relevant_facts",
             [],
@@ -1481,9 +1479,11 @@ class LLMConnector:
             lines.append(
                 f"  - {item}"
             )
-    
-        lines.append("- legacy relevant notes:")
-    
+
+        lines.append(
+            "- legacy relevant notes:"
+        )
+
         for item in retrieved_memory.get(
             "relevant_notes",
             [],
@@ -1491,15 +1491,15 @@ class LLMConnector:
             lines.append(
                 f"  - {item}"
             )
-    
+
         lines.append("")
         lines.append(
             "Use core preferences to adapt the response. "
-            "Use other memories only when relevant to the "
-            "current request. Never invent missing memory, "
-            "and do not present inferred details as stored facts."
+            "Use other memories only when relevant. "
+            "Never invent missing memory or present an "
+            "inference as a stored fact."
         )
-        
+
         # --------------------------------------------------
         # Behaviour
         # --------------------------------------------------
