@@ -434,6 +434,90 @@ Return only valid JSON with this exact structure:
         ):
             active_task = None
 
+        durable_memory = (
+            conversation_context.get(
+                "durable_memory",
+                {},
+            )
+        )
+
+        if not isinstance(
+            durable_memory,
+            dict,
+        ):
+            durable_memory = {}
+
+        core_memories = durable_memory.get(
+            "core_memories",
+            [],
+        )
+
+        if not isinstance(
+            core_memories,
+            list,
+        ):
+            core_memories = []
+
+        relevant_memories = durable_memory.get(
+            "relevant_memories",
+            [],
+        )
+
+        if not isinstance(
+            relevant_memories,
+            list,
+        ):
+            relevant_memories = []
+
+        prepared_core_memories = []
+
+        for item in core_memories[:12]:
+            if not isinstance(
+                item,
+                dict,
+            ):
+                continue
+
+            prepared_core_memories.append(
+                {
+                    "memory_type": item.get(
+                        "memory_type"
+                    ),
+                    "content": self._limit_text(
+                        item.get(
+                            "content"
+                        ),
+                        800,
+                    ),
+                }
+            )
+
+        prepared_relevant_memories = []
+
+        for item in relevant_memories[:8]:
+            if not isinstance(
+                item,
+                dict,
+            ):
+                continue
+
+            prepared_relevant_memories.append(
+                {
+                    "memory_type": item.get(
+                        "memory_type"
+                    ),
+                    "content": self._limit_text(
+                        item.get(
+                            "content"
+                        ),
+                        800,
+                    ),
+                    "retrieval_score": item.get(
+                        "retrieval_score"
+                    ),
+                }
+            )
+
         return {
             "status": (
                 conversation_context.get(
