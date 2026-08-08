@@ -1364,40 +1364,141 @@ class LLMConnector:
             f'- last seen: {persistent_memory.get("last_seen")}'
         )
 
-        # --------------------------------------------------
-        # Retrieved memory
-        # --------------------------------------------------
+    # --------------------------------------------------
+    # Retrieved Memory
+    # --------------------------------------------------
 
-        lines.append("")
-        lines.append("Retrieved relevant memory:")
+    lines.append("")
+    lines.append("Retrieved durable memory:")
 
+    lines.append(
+        f'- owner preferred name: '
+        f'{owner.get("preferred_name")}'
+    )
+
+    lines.append(
+        f'- owner preferred language: '
+        f'{owner.get("preferred_language")}'
+    )
+
+    lines.append(
+        f'- owner conversation count: '
+        f'{owner.get("conversation_count")}'
+    )
+
+    lines.append("- core identity and preferences:")
+
+    core_memories = retrieved_memory.get(
+        "core_memories",
+        [],
+    )
+
+    if core_memories:
+        for item in core_memories:
+            if not isinstance(
+                item,
+                dict,
+            ):
+                continue
+
+            content = str(
+                item.get(
+                    "content",
+                    "",
+                )
+            ).strip()
+
+            memory_type = str(
+                item.get(
+                    "memory_type",
+                    "unknown",
+                )
+            ).strip()
+
+            if content:
+                lines.append(
+                    f"  - [{memory_type}] {content}"
+                )
+
+    else:
         lines.append(
-            f'- owner preferred name: {owner.get("preferred_name")}'
+            "  - none"
         )
 
+    lines.append("- contextually relevant memories:")
+
+    relevant_memories = retrieved_memory.get(
+        "relevant_memories",
+        [],
+    )
+
+    if relevant_memories:
+        for item in relevant_memories:
+            if not isinstance(
+                item,
+                dict,
+            ):
+                continue
+
+            content = str(
+                item.get(
+                    "content",
+                    "",
+                )
+            ).strip()
+
+            memory_type = str(
+                item.get(
+                    "memory_type",
+                    "unknown",
+                )
+            ).strip()
+
+            storage_scope = str(
+                item.get(
+                    "storage_scope",
+                    "persistent",
+                )
+            ).strip()
+
+            if content:
+                lines.append(
+                    f"  - [{memory_type} | "
+                    f"{storage_scope}] {content}"
+                )
+
+    else:
         lines.append(
-            f'- owner preferred language: {owner.get("preferred_language")}'
+            "  - none"
         )
 
+    lines.append("- legacy relevant facts:")
+
+    for item in retrieved_memory.get(
+        "relevant_facts",
+        [],
+    ):
         lines.append(
-            f'- owner conversation count: {owner.get("conversation_count")}'
+            f"  - {item}"
         )
 
-        lines.append("- relevant facts:")
+    lines.append("- legacy relevant notes:")
 
-        for item in retrieved_memory.get(
-            "relevant_facts",
-            [],
-        ):
-            lines.append(f"  - {item}")
+    for item in retrieved_memory.get(
+        "relevant_notes",
+        [],
+    ):
+        lines.append(
+            f"  - {item}"
+        )
 
-        lines.append("- relevant notes:")
-    
-        for item in retrieved_memory.get(
-            "relevant_notes",
-            [],
-        ):
-            lines.append(f"  - {item}")
+    lines.append("")
+    lines.append(
+        "Use core preferences to adapt the response. "
+        "Use other memories only when relevant to the "
+        "current request. Never invent missing memory, "
+        "and do not present inferred details as stored facts."
+    )
     
         # --------------------------------------------------
         # Behaviour
