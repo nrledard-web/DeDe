@@ -970,6 +970,44 @@ if text:
         )
     )
 
+    persistent_memory_context = (
+        st.session_state.engine
+        .persistent_memory
+        .get_memory()
+    )
+
+    retrieved_durable_memory = (
+        st.session_state.engine
+        .memory_retriever
+        .retrieve(
+            text=text,
+            persistent_memory=(
+                persistent_memory_context
+            ),
+        )
+    )
+
+    working_memory_context[
+        "durable_memory"
+    ] = {
+        "owner": retrieved_durable_memory.get(
+            "owner",
+            {},
+        ),
+        "core_memories": (
+            retrieved_durable_memory.get(
+                "core_memories",
+                [],
+            )
+        ),
+        "relevant_memories": (
+            retrieved_durable_memory.get(
+                "relevant_memories",
+                [],
+            )
+        ),
+    }
+
     tool_governor = ToolGovernor(
         llm_engine=(
             st.session_state
