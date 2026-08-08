@@ -139,8 +139,19 @@ name. Decide from the full semantic intention.
 Independently of the selected route, identify at most one
 durable-memory candidate from the current user message.
 
-A durable-memory candidate must be explicitly supported by
-the user's message and useful beyond the current exchange.
+A durable-memory candidate must be explicitly asserted by the
+user's current message and useful beyond the current exchange.
+
+A request to recall, retrieve, verify, explain or question an
+existing memory must not create a new memory candidate.
+
+Never derive a candidate solely from the answer found in
+working memory or durable memory.
+
+The candidate content must be a complete, standalone statement
+with an explicit subject and the actual information to retain.
+Do not return vague labels such as "user preference", "preference
+regarding responses", "project information" or "personal fact".
 
 Possible memory types:
 identity, preference, personal_fact, project, decision,
