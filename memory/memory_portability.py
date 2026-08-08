@@ -1,13 +1,9 @@
 """
-DeDe - Memory Portability
+DeDe portable memory.
 
-Creates and reads encrypted user-owned memory files.
-
-Portable format:
-- encrypted with AES-256-GCM;
-- password-derived key with PBKDF2-HMAC-SHA256;
-- no password is stored;
-- no unencrypted memory content is exposed.
+Supports:
+- simple readable JSON backups;
+- private password-encrypted AES-GCM backups.
 """
 
 from __future__ import annotations
@@ -38,24 +34,17 @@ class MemoryPortability:
     KDF_ITERATIONS = 600_000
     MAX_FILE_SIZE = 25 * 1024 * 1024
 
-        def export_simple(
+    def export_simple(
         self,
         memory_data: dict[str, Any],
         user_id: str,
     ) -> bytes:
-        """
-        Export portable memory without encryption.
-        """
 
-        if not isinstance(
-            memory_data,
-            dict,
-        ):
-            raise ValueError(
-                "Memory data must be a dictionary."
-            )
+        self._validate_memory(
+            memory_data
+        )
 
-        portable_memory = {
+        payload = {
             "format": self.SIMPLE_FILE_FORMAT,
             "version": self.FILE_VERSION,
             "owner_id": str(
@@ -67,7 +56,7 @@ class MemoryPortability:
         }
 
         return json.dumps(
-            portable_memory,
+            payload,
             ensure_ascii=False,
             indent=2,
         ).encode(
@@ -78,79 +67,30 @@ class MemoryPortability:
         self,
         memory_file: bytes,
     ) -> dict[str, Any]:
-        """
-        Validate and read unencrypted portable memory.
-        """
 
-        if not isinstance(
-            memory_file,
-            bytes,
-        ):
-            raise ValueError(
-                "The memory file is invalid."
-            )
+        payload = self._read_json_file(
+            memory_file
+        )
 
-        if len(memory_file) > self.MAX_FILE_SIZE:
-            raise ValueError(
-                "The memory file is too large."
-            )
+        self._validate_envelope(
+            payload,
+            self.SIMPLE_FILE_FORMAT,
+        )
 
-        try:
-            portable_memory = json.loads(
-                memory_file.decode(
-                    "utf-8"
-                )
-            )
-        except (
-            UnicodeDecodeError,
-            json.JSONDecodeError,
-        ) as error:
-            raise ValueError(
-                "This is not a valid simple "
-                "DeDe memory file."
-            ) from error
-
-        if not isinstance(
-            portable_memory,
-            dict,
-        ):
-            raise ValueError(
-                "The portable memory is invalid."
-            )
-
-        if portable_memory.get(
-            "format"
-        ) != self.SIMPLE_FILE_FORMAT:
-            raise ValueError(
-                "Unsupported simple memory format."
-            )
-
-        if portable_memory.get(
-            "version"
-        ) != self.FILE_VERSION:
-            raise ValueError(
-                "Unsupported memory file version."
-            )
-
-        memory_data = portable_memory.get(
+        memory_data = payload.get(
             "memory"
         )
 
-        if not isinstance(
-            memory_data,
-            dict,
-        ):
-            raise ValueError(
-                "The portable file contains no "
-                "valid memory data."
-            )
+        self._validate_memory(
+            memory_data
+        )
 
         return {
             "status": "success",
-            "owner_id": portable_memory.get(
+            "owner_id": payload.get(
                 "owner_id"
             ),
-            "exported_at": portable_memory.get(
+            "exported_at": payload.get(
                 "exported_at"
             ),
             "privacy": "unencrypted",
@@ -163,9 +103,10 @@ class MemoryPortability:
         user_id: str,
         password: str,
     ) -> bytes:
-        """
-        Export memory as an encrypted portable file.
-        """
+
+        self._validate_memory(
+            memory_data
+        )
 
         cleaned_password = str(
             password or ""
@@ -175,14 +116,6 @@ class MemoryPortability:
             raise ValueError(
                 "The memory password must contain "
                 "at least 8 characters."
-            )
-
-        if not isinstance(
-            memory_data,
-            dict,
-        ):
-            raise ValueError(
-                "Memory data must be a dictionary."
             )
 
         private_payload = {
@@ -210,16 +143,14 @@ class MemoryPortability:
         nonce = os.urandom(12)
 
         key = self._derive_key(
-            password=cleaned_password,
-            salt=salt,
-            iterations=self.KDF_ITERATIONS,
+            cleaned_password,
+            salt,
+            self.KDF_ITERATIONS,
         )
 
-        cipher = AESGCM(
+        ciphertext = AESGCM(
             key
-        )
-
-        ciphertext = cipher.encrypt(
+        ).encrypt(
             nonce,
             plaintext,
             self.FILE_FORMAT.encode(
@@ -227,7 +158,7 @@ class MemoryPortability:
             ),
         )
 
-        public_envelope = {
+        envelope = {
             "format": self.FILE_FORMAT,
             "version": self.FILE_VERSION,
             "encryption": "AES-256-GCM",
@@ -245,7 +176,7 @@ class MemoryPortability:
         }
 
         return json.dumps(
-            public_envelope,
+            envelope,
             ensure_ascii=False,
             indent=2,
         ).encode(
@@ -257,9 +188,6 @@ class MemoryPortability:
         encrypted_file: bytes,
         password: str,
     ) -> dict[str, Any]:
-        """
-        Decrypt and validate a portable memory file.
-        """
 
         cleaned_password = str(
             password or ""
@@ -270,54 +198,14 @@ class MemoryPortability:
                 "A memory password is required."
             )
 
-        if not isinstance(
-            encrypted_file,
-            bytes,
-        ):
-            raise ValueError(
-                "The encrypted memory file is invalid."
-            )
+        envelope = self._read_json_file(
+            encrypted_file
+        )
 
-        if len(encrypted_file) > self.MAX_FILE_SIZE:
-            raise ValueError(
-                "The memory file is too large."
-            )
-
-        try:
-            envelope = json.loads(
-                encrypted_file.decode(
-                    "utf-8"
-                )
-            )
-        except (
-            UnicodeDecodeError,
-            json.JSONDecodeError,
-        ) as error:
-            raise ValueError(
-                "This is not a valid DeDe memory file."
-            ) from error
-
-        if not isinstance(
+        self._validate_envelope(
             envelope,
-            dict,
-        ):
-            raise ValueError(
-                "The DeDe memory envelope is invalid."
-            )
-
-        if envelope.get(
-            "format"
-        ) != self.FILE_FORMAT:
-            raise ValueError(
-                "Unsupported memory file format."
-            )
-
-        if envelope.get(
-            "version"
-        ) != self.FILE_VERSION:
-            raise ValueError(
-                "Unsupported memory file version."
-            )
+            self.FILE_FORMAT,
+        )
 
         try:
             iterations = int(
@@ -350,23 +238,22 @@ class MemoryPortability:
             ) from error
 
         key = self._derive_key(
-            password=cleaned_password,
-            salt=salt,
-            iterations=iterations,
-        )
-
-        cipher = AESGCM(
-            key
+            cleaned_password,
+            salt,
+            iterations,
         )
 
         try:
-            plaintext = cipher.decrypt(
+            plaintext = AESGCM(
+                key
+            ).decrypt(
                 nonce,
                 ciphertext,
                 self.FILE_FORMAT.encode(
                     "utf-8"
                 ),
             )
+
         except InvalidTag as error:
             raise ValueError(
                 "Incorrect password or corrupted "
@@ -379,6 +266,7 @@ class MemoryPortability:
                     "utf-8"
                 )
             )
+
         except (
             UnicodeDecodeError,
             json.JSONDecodeError,
@@ -392,29 +280,21 @@ class MemoryPortability:
             dict,
         ):
             raise ValueError(
-                "The decrypted payload is invalid."
+                "The decrypted memory is invalid."
             )
 
-        if private_payload.get(
-            "format"
-        ) != self.FILE_FORMAT:
-            raise ValueError(
-                "The decrypted memory format "
-                "is invalid."
-            )
+        self._validate_envelope(
+            private_payload,
+            self.FILE_FORMAT,
+        )
 
         memory_data = private_payload.get(
             "memory"
         )
 
-        if not isinstance(
-            memory_data,
-            dict,
-        ):
-            raise ValueError(
-                "The portable file contains no "
-                "valid memory data."
-            )
+        self._validate_memory(
+            memory_data
+        )
 
         return {
             "status": "success",
@@ -424,8 +304,88 @@ class MemoryPortability:
             "exported_at": private_payload.get(
                 "exported_at"
             ),
+            "privacy": "encrypted",
             "memory": memory_data,
         }
+
+    def _read_json_file(
+        self,
+        file_data: bytes,
+    ) -> dict[str, Any]:
+
+        if not isinstance(
+            file_data,
+            bytes,
+        ):
+            raise ValueError(
+                "The memory file is invalid."
+            )
+
+        if len(
+            file_data
+        ) > self.MAX_FILE_SIZE:
+            raise ValueError(
+                "The memory file is too large."
+            )
+
+        try:
+            payload = json.loads(
+                file_data.decode(
+                    "utf-8"
+                )
+            )
+
+        except (
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+        ) as error:
+            raise ValueError(
+                "This is not a valid DeDe "
+                "memory file."
+            ) from error
+
+        if not isinstance(
+            payload,
+            dict,
+        ):
+            raise ValueError(
+                "The portable memory is invalid."
+            )
+
+        return payload
+
+    def _validate_envelope(
+        self,
+        payload: dict[str, Any],
+        expected_format: str,
+    ) -> None:
+
+        if payload.get(
+            "format"
+        ) != expected_format:
+            raise ValueError(
+                "Unsupported memory file format."
+            )
+
+        if payload.get(
+            "version"
+        ) != self.FILE_VERSION:
+            raise ValueError(
+                "Unsupported memory file version."
+            )
+
+    def _validate_memory(
+        self,
+        memory_data: Any,
+    ) -> None:
+
+        if not isinstance(
+            memory_data,
+            dict,
+        ):
+            raise ValueError(
+                "Memory data must be a dictionary."
+            )
 
     def _derive_key(
         self,
@@ -436,8 +396,7 @@ class MemoryPortability:
 
         if iterations < 100_000:
             raise ValueError(
-                "The memory file uses an unsafe "
-                "key derivation configuration."
+                "Unsafe key derivation configuration."
             )
 
         kdf = PBKDF2HMAC(
