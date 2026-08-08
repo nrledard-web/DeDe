@@ -202,22 +202,27 @@ if BANNER_PATH.exists():
 else:
     st.warning("Banner01.png not found in assets/")
 
+
 st.markdown(
     """
-    <h1 style="text-align:center; margin-bottom:0.2rem;">
+    <h2 style="
+        text-align: center;
+        margin-bottom: 0.5rem;
+    ">
         DeDe — Cognitive Daimon
-    </h1>
+    </h2>
 
     <h4 style="
-        text-align:center;
-        color:#9aa0a6;
-        font-weight:400;
-        margin-top:0;
-        margin-bottom:0.3rem;">
+        text-align: center;
+        color: #9aa0a6;
+        font-weight: 400;
+        margin-top: 0;
+        margin-bottom: 0.3rem;
+    ">
         The First Agentic, Human-Like Cognitive AI Governor<br>
         Designed for User-Owned, Private, and Portable Memory Storage<br>
         Powered by Combinable AI Models and Evolving Tools<br>
-        With a Built-In Epistemic Anti-Coherence Loop<br>
+        With a Built-In Epistemic Anti-Coherence Loop
     </h4>
 
     <p style="
@@ -227,14 +232,13 @@ st.markdown(
         margin-top: 0.25rem;
         margin-bottom: 1rem;
     ">
-        A little more time to respond—for greater accuracy, privacy, and security.
+        A little more time to respond—for greater accuracy,
+        privacy, and security.
     </p>
-    unsafe_allow_html=True,
-)
-
     """,
     unsafe_allow_html=True,
 )
+
 
 st.caption("Phase 3 — Cognitive Mechanics")
 
