@@ -229,7 +229,6 @@ st.markdown(
     ">
         A little more time to respond—for greater accuracy, privacy, and security.
     </p>
-    """,
     unsafe_allow_html=True,
 )
 
