@@ -341,6 +341,35 @@ with st.sidebar:
             user_id=st.session_state.owner_id,
         )
 
+    if st.button(
+        "Reset Conversation",
+        key="reset_current_conversation",
+        use_container_width=True,
+    ):
+        st.session_state.conversation_history = []
+        st.session_state.tool_history = []
+    
+        st.session_state.pop(
+            "pending_memory_candidate",
+            None,
+        )
+    
+        st.session_state.pop(
+            "voice_text",
+            None,
+        )
+    
+        st.session_state.engine = DoxaEnginePhase2(
+            user_id=st.session_state.owner_id,
+        )
+    
+        st.success(
+            "Current conversation reset. "
+            "Durable memory was preserved."
+        )
+    
+        st.rerun()
+
     # --------------------------------------------------
     # Reasoning Models
     # --------------------------------------------------
