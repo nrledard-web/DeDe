@@ -45,6 +45,7 @@ class PersistentMemory:
         return {
             "preferred_name": None,
             "preferred_language": None,
+            "assistant_identity": {
             "known_people": [],
             "known_facts": [],
             "interaction_notes": [],
