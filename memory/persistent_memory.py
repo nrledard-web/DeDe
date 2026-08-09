@@ -333,10 +333,27 @@ class PersistentMemory:
     
         self.data = restored_memory
         self.save()
-    
+
         return self.data
 
-    def increment_conversation_count(self) -> dict[str, Any]:
+    def clear_memory(
+        self,
+    ) -> dict[str, Any]:
+        """
+        Permanently clear durable memory for this owner.
+        """
+
+        self.data = self._default_memory()
+
+        self.data["last_seen"] = self._now()
+
+        self.save()
+
+        return self.data
+
+    def increment_conversation_count(
+        self,
+    ) -> dict[str, Any]:
 
         self.data["conversation_count"] = (
             self.data.get("conversation_count", 0) + 1
