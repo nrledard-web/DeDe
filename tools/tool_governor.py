@@ -230,24 +230,25 @@ Return only valid JSON with this exact structure:
         )
 
         try:
-            engine_response = (
-                self.fast_routing_provider
-                .route(
-                    governor_prompt
+            try:
+                engine_response = (
+                    self.fast_routing_provider
+                    .route(
+                        governor_prompt
+                    )
                 )
-            )
 
-        except Exception:
-            engine_response = (
-                self.llm_engine.ask(
-                    prompt=governor_prompt,
-                    profile="fast",
-                    providers=[
-                        cleaned_provider,
-                    ],
-                    enabled=True,
+            except Exception:
+                engine_response = (
+                    self.llm_engine.ask(
+                        prompt=governor_prompt,
+                        profile="fast",
+                        providers=[
+                            cleaned_provider,
+                        ],
+                        enabled=True,
+                    )
                 )
-            )
 
             raw_output = str(
                 engine_response.get(
