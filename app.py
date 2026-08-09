@@ -352,6 +352,70 @@ with st.sidebar:
         )
 
     # --------------------------------------------------
+    # Delete Persistent Memory
+    # --------------------------------------------------
+
+    with st.expander(
+        "🗑️ Delete Persistent Memory",
+        expanded=False,
+    ):
+        st.warning(
+            "This permanently deletes the active "
+            "durable memory stored by DeDe. "
+            "Downloaded backups are not deleted."
+        )
+
+        confirm_memory_deletion = st.checkbox(
+            "I understand that this cannot be undone",
+            value=False,
+            key="confirm_persistent_memory_deletion",
+        )
+
+        if st.button(
+            "Delete Persistent Memory",
+            key="delete_persistent_memory",
+            use_container_width=True,
+        ):
+            if not confirm_memory_deletion:
+                st.error(
+                    "Confirm permanent deletion first."
+                )
+
+            else:
+                st.session_state.engine.persistent_memory.clear_memory()
+
+                st.session_state.conversation_history = []
+                st.session_state.tool_history = []
+
+                st.session_state.pop(
+                    "pending_memory_candidate",
+                    None,
+                )
+
+                st.session_state.pop(
+                    "prepared_memory_export",
+                    None,
+                )
+
+                st.session_state.pop(
+                    "voice_text",
+                    None,
+                )
+
+                st.session_state.engine = (
+                    DoxaEnginePhase2(
+                        user_id=(
+                            st.session_state.owner_id
+                        ),
+                    )
+                )
+
+                st.success(
+                    "Persistent memory deleted. "
+                    "DeDe now has a fresh memory."
+                )
+
+    # --------------------------------------------------
     # Portable Memory
     # --------------------------------------------------
 
