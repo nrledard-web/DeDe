@@ -35,6 +35,10 @@ class ToolGovernor:
         llm_engine: LLMEngine,
     ) -> None:
         self.llm_engine = llm_engine
+        
+        self.fast_routing_provider = (
+            CloudflareRoutingProvider()
+        )
 
     def decide(
         self,
