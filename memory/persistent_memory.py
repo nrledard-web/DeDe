@@ -46,6 +46,12 @@ class PersistentMemory:
             "preferred_name": None,
             "preferred_language": None,
             "assistant_identity": {
+                "preferred_name": None,
+                "selection_origin": None,
+                "selection_reason": None,
+                "confirmed_by_user": False,
+                "updated_at": None,
+            },
             "known_people": [],
             "known_facts": [],
             "interaction_notes": [],
