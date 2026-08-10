@@ -346,7 +346,7 @@ class PersistentMemory:
 
         return self.data
 
-        def create_memory_folder(
+    def create_memory_folder(
         self,
         folder_name: str,
     ) -> dict[str, Any]:
