@@ -663,8 +663,8 @@ Return only valid JSON with this exact structure:
         raw_output: str,
     ) -> dict[str, Any]:
         """
-        Extract the first valid JSON object returned
-        by a routing provider.
+        Extract a valid routing decision from
+        the provider response.
         """
 
         cleaned = str(
@@ -702,9 +702,12 @@ Return only valid JSON with this exact structure:
                 cleaned
             )
 
-            if isinstance(
-                parsed,
-                dict,
+            if (
+                isinstance(
+                    parsed,
+                    dict,
+                )
+                and "action" in parsed
             ):
                 return parsed
 
@@ -727,14 +730,17 @@ Return only valid JSON with this exact structure:
             except json.JSONDecodeError:
                 continue
 
-            if isinstance(
-                parsed,
-                dict,
+            if (
+                isinstance(
+                    parsed,
+                    dict,
+                )
+                and "action" in parsed
             ):
                 return parsed
 
         raise ValueError(
-            "No valid JSON routing decision "
+            "No valid routing decision "
             "was found in the provider response."
         )
 
