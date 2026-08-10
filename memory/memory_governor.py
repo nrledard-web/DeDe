@@ -341,6 +341,22 @@ class MemoryGovernor:
         if proposed_scope not in self.STORAGE_SCOPES:
             proposed_scope = "session"
 
+        if (
+            memory_type
+            in self.DURABLE_MEMORY_TYPES
+            and proposed_scope
+            not in {
+                "project",
+                "personal",
+                "persistent",
+            }
+        ):
+            proposed_scope = (
+                "project"
+                if memory_type == "project"
+                else "personal"
+            )
+
         sensitivity = str(
             candidate.get(
                 "sensitivity",
