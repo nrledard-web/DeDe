@@ -143,8 +143,31 @@ or when working memory is insufficient or ambiguous.
 Do not choose a route merely because a word resembles a tool
 name. Decide from the full semantic intention.
 
-Independently of the selected route, identify at most one
-durable-memory candidate from the current user message.
+Before selecting the routing action, perform a mandatory
+durable-memory check on the current user message.
+
+Identify at most one durable-memory candidate independently
+of the selected routing action.
+
+A direct statement describing:
+- the user's identity;
+- a stable personal fact;
+- a lasting preference;
+- an ongoing project;
+- an established decision;
+- a relationship;
+- or the assistant's chosen identity
+
+must produce a structured memory_candidate when it may remain
+useful in a later conversation.
+
+A statement describing how the user wants the assistant to
+answer, communicate or behave is a durable preference, not a
+temporary instruction, unless the user explicitly limits it
+to the current exchange.
+
+This decision must be based on meaning rather than matching
+specific words, phrases or languages.
 
 A durable-memory candidate must be explicitly asserted by the
 user's current message and useful beyond the current exchange.
