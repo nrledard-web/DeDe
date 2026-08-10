@@ -353,6 +353,7 @@ Return only valid JSON with this exact structure:
                     "reasoning will continue."
                 ),
                 "error": str(error),
+                "raw_routing_output": raw_output,
             }
 
     def _prepare_tool_descriptions(
