@@ -269,18 +269,33 @@ Return only valid JSON with this exact structure:
                     )
                 )
 
-            raw_output = str(
-                engine_response.get(
-                    "response",
-                    "",
-                )
-                or ""
-            ).strip()
+            if isinstance(
+                engine_response,
+                dict,
+            ):
+                raw_output = str(
+                    engine_response.get(
+                        "response",
+                        engine_response.get(
+                            "output",
+                            engine_response.get(
+                                "text",
+                                "",
+                            ),
+                        ),
+                    )
+                    or ""
+                ).strip()
+
+            else:
+                raw_output = str(
+                    engine_response or ""
+                ).strip()
 
             if not raw_output:
                 raise ValueError(
-                    "The active reasoning provider "
-                    "returned no routing decision."
+                    "The routing provider returned "
+                    "no routing decision."
                 )
 
             parsed = self._parse_json(
