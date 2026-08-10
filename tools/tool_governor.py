@@ -271,6 +271,8 @@ Return only valid JSON with this exact structure:
             + user_instruction
         )
 
+        raw_output = ""
+        
         try:
             try:
                 engine_response = (
