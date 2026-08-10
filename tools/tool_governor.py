@@ -276,14 +276,6 @@ Return only valid JSON with this exact structure:
         try:
             try:
                 engine_response = (
-                    self.fast_routing_provider
-                    .route(
-                        governor_prompt
-                    )
-                )
-
-            except Exception:
-                engine_response = (
                     self.llm_engine.ask(
                         prompt=governor_prompt,
                         profile="fast",
