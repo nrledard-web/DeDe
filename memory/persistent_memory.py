@@ -290,7 +290,9 @@ class PersistentMemory:
             "known_facts",
             "interaction_notes",
             "memory_items",
+            "memory_folders",
         ]:
+            
             if not isinstance(
                 restored_memory.get(
                     list_key
