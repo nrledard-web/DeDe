@@ -272,19 +272,18 @@ Return only valid JSON with this exact structure:
         )
 
         raw_output = ""
-        
+
         try:
-            try:
-                engine_response = (
-                    self.llm_engine.ask(
-                        prompt=governor_prompt,
-                        profile="fast",
-                        providers=[
-                            cleaned_provider,
-                        ],
-                        enabled=True,
-                    )
+            engine_response = (
+                self.llm_engine.ask(
+                    prompt=governor_prompt,
+                    profile="fast",
+                    providers=[
+                        cleaned_provider,
+                    ],
+                    enabled=True,
                 )
+            )
 
             if isinstance(
                 engine_response,
