@@ -169,22 +169,22 @@ class MemoryGovernor:
                     ),
                 )
 
-        return self._decision(
-            storage_mode=resolved_mode,
-            storage_scope=proposed_scope,
-            candidate=normalized_candidate,
-            allow_persistent_storage=True,
-            allow_autobiographical_storage=(
-                memory_type
-                == "autobiographical"
-            ),
-            requires_confirmation=False,
-            reason=(
-                "The user explicitly approved "
-                "durable storage of this sensitive "
-                "memory candidate."
-            ),
-        )
+            return self._decision(
+                storage_mode=resolved_mode,
+                storage_scope=proposed_scope,
+                candidate=normalized_candidate,
+                allow_persistent_storage=True,
+                allow_autobiographical_storage=(
+                    memory_type
+                    == "autobiographical"
+                ),
+                requires_confirmation=False,
+                reason=(
+                    "The user explicitly approved "
+                    "durable storage of this sensitive "
+                    "memory candidate."
+                ),
+            )
 
         if (
             confidence
