@@ -663,16 +663,28 @@ Return only valid JSON with this exact structure:
         raw_output: str,
     ) -> dict[str, Any]:
         """
-        Parse JSON, including accidental Markdown fences.
+        Extract the first valid JSON object returned
+        by a routing provider.
         """
 
-        cleaned = raw_output.strip()
+        cleaned = str(
+            raw_output or ""
+        ).strip()
+
+        if not cleaned:
+            raise ValueError(
+                "The routing response is empty."
+            )
 
         if cleaned.startswith(
             "```"
         ):
             cleaned = cleaned.removeprefix(
                 "```json"
+            )
+
+            cleaned = cleaned.removeprefix(
+                "```JSON"
             )
 
             cleaned = cleaned.removeprefix(
@@ -685,20 +697,46 @@ Return only valid JSON with this exact structure:
 
             cleaned = cleaned.strip()
 
-        parsed = json.loads(
-            cleaned
-        )
-
-        if not isinstance(
-            parsed,
-            dict,
-        ):
-            raise ValueError(
-                "Routing response is not "
-                "a JSON object."
+        try:
+            parsed = json.loads(
+                cleaned
             )
 
-        return parsed
+            if isinstance(
+                parsed,
+                dict,
+            ):
+                return parsed
+
+        except json.JSONDecodeError:
+            pass
+
+        decoder = json.JSONDecoder()
+
+        for index, character in enumerate(
+            cleaned
+        ):
+            if character != "{":
+                continue
+
+            try:
+                parsed, _ = decoder.raw_decode(
+                    cleaned[index:]
+                )
+
+            except json.JSONDecodeError:
+                continue
+
+            if isinstance(
+                parsed,
+                dict,
+            ):
+                return parsed
+
+        raise ValueError(
+            "No valid JSON routing decision "
+            "was found in the provider response."
+        )
 
     def _validate_decision(
         self,
