@@ -416,6 +416,157 @@ with st.sidebar:
                 )
 
     # --------------------------------------------------
+    # Memory Manager
+    # --------------------------------------------------
+
+    with st.expander(
+        "🧠 Manage Memories",
+        expanded=False,
+    ):
+        memory_manager_notice = (
+            st.session_state.pop(
+                "memory_manager_notice",
+                None,
+            )
+        )
+
+        if memory_manager_notice:
+            st.success(
+                memory_manager_notice
+            )
+
+        managed_memory = (
+            st.session_state.engine
+            .persistent_memory
+            .get_memory()
+        )
+
+        managed_items = managed_memory.get(
+            "memory_items",
+            [],
+        )
+
+        if not isinstance(
+            managed_items,
+            list,
+        ):
+            managed_items = []
+
+        st.caption(
+            f"{len(managed_items)} durable "
+            "memory item(s)"
+        )
+
+        if not managed_items:
+            st.info(
+                "No durable memories are currently stored."
+            )
+
+        for memory_item in managed_items:
+            if not isinstance(
+                memory_item,
+                dict,
+            ):
+                continue
+
+            memory_id = str(
+                memory_item.get(
+                    "memory_id",
+                    "",
+                )
+            ).strip()
+
+            memory_type = str(
+                memory_item.get(
+                    "memory_type",
+                    "unknown",
+                )
+            )
+
+            memory_content = str(
+                memory_item.get(
+                    "content",
+                    "",
+                )
+            ).strip()
+
+            storage_scope = str(
+                memory_item.get(
+                    "storage_scope",
+                    "persistent",
+                )
+            )
+
+            sensitivity = str(
+                memory_item.get(
+                    "sensitivity",
+                    "medium",
+                )
+            )
+
+            created_at = str(
+                memory_item.get(
+                    "created_at",
+                    "",
+                )
+            )
+
+            with st.container(
+                border=True,
+            ):
+                st.markdown(
+                    f"**{memory_type}**"
+                )
+
+                st.write(
+                    memory_content
+                )
+
+                st.caption(
+                    f"Scope: {storage_scope} | "
+                    f"Sensitivity: {sensitivity}"
+                )
+
+                if created_at:
+                    st.caption(
+                        f"Created: {created_at[:19]}"
+                    )
+
+                if st.button(
+                    "Delete",
+                    key=(
+                        "delete_memory_item_"
+                        f"{memory_id}"
+                    ),
+                    use_container_width=True,
+                ):
+                    deletion_result = (
+                        st.session_state.engine
+                        .persistent_memory
+                        .delete_memory_item(
+                            memory_id
+                        )
+                    )
+
+                    if deletion_result.get(
+                        "deleted",
+                        False,
+                    ):
+                        st.session_state[
+                            "memory_manager_notice"
+                        ] = (
+                            "Memory deleted successfully."
+                        )
+
+                        st.rerun()
+
+                    else:
+                        st.error(
+                            "Memory item was not found."
+                        )
+
+
+    # --------------------------------------------------
     # Portable Memory
     # --------------------------------------------------
 
