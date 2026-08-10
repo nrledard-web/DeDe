@@ -457,10 +457,37 @@ with st.sidebar:
             "memory item(s)"
         )
 
-        if not managed_items:
-            st.info(
-                "No durable memories are currently stored."
-            )
+        folder_definitions = {
+            "👤 Identity & Preferences": {
+                "identity",
+                "preference",
+                "personal_fact",
+            },
+            "📁 Projects & Decisions": {
+                "project",
+                "decision",
+            },
+            "👥 People & Relationships": {
+                "relationship",
+            },
+            "📖 Personal History": {
+                "autobiographical",
+            },
+            "🤖 DeDe Identity": {
+                "assistant_identity",
+            },
+            "📦 Other Memories": {
+                "interaction_note",
+                "temporary_task",
+                "unknown",
+            },
+        }
+
+        folder_items = {
+            folder_name: []
+            for folder_name
+            in folder_definitions
+        }
 
         for memory_item in managed_items:
             if not isinstance(
@@ -469,101 +496,192 @@ with st.sidebar:
             ):
                 continue
 
-            memory_id = str(
-                memory_item.get(
-                    "memory_id",
-                    "",
-                )
-            ).strip()
-
             memory_type = str(
                 memory_item.get(
                     "memory_type",
                     "unknown",
                 )
+            ).strip().lower()
+
+            assigned_folder = (
+                "📦 Other Memories"
             )
 
-            memory_content = str(
-                memory_item.get(
-                    "content",
-                    "",
-                )
-            ).strip()
-
-            storage_scope = str(
-                memory_item.get(
-                    "storage_scope",
-                    "persistent",
-                )
-            )
-
-            sensitivity = str(
-                memory_item.get(
-                    "sensitivity",
-                    "medium",
-                )
-            )
-
-            created_at = str(
-                memory_item.get(
-                    "created_at",
-                    "",
-                )
-            )
-
-            with st.container(
-                border=True,
-            ):
-                st.markdown(
-                    f"**{memory_type}**"
-                )
-
-                st.write(
-                    memory_content
-                )
-
-                st.caption(
-                    f"Scope: {storage_scope} | "
-                    f"Sensitivity: {sensitivity}"
-                )
-
-                if created_at:
-                    st.caption(
-                        f"Created: {created_at[:19]}"
-                    )
-
-                if st.button(
-                    "Delete",
-                    key=(
-                        "delete_memory_item_"
-                        f"{memory_id}"
-                    ),
-                    use_container_width=True,
+            for (
+                folder_name,
+                accepted_types,
+            ) in folder_definitions.items():
+                if (
+                    memory_type
+                    in accepted_types
                 ):
-                    deletion_result = (
-                        st.session_state.engine
-                        .persistent_memory
-                        .delete_memory_item(
-                            memory_id
-                        )
+                    assigned_folder = (
+                        folder_name
+                    )
+                    break
+
+            folder_items[
+                assigned_folder
+            ].append(
+                memory_item
+            )
+
+        if not managed_items:
+            st.info(
+                "No durable memories are "
+                "currently stored."
+            )
+
+        else:
+            folder_labels = []
+
+            folder_lookup = {}
+
+            for folder_name in folder_definitions:
+                folder_count = len(
+                    folder_items[
+                        folder_name
+                    ]
+                )
+
+                folder_label = (
+                    f"{folder_name} "
+                    f"({folder_count})"
+                )
+
+                folder_labels.append(
+                    folder_label
+                )
+
+                folder_lookup[
+                    folder_label
+                ] = folder_name
+
+            selected_folder_label = (
+                st.selectbox(
+                    "Memory folder",
+                    folder_labels,
+                    key=(
+                        "selected_memory_folder"
+                    ),
+                )
+            )
+
+            selected_folder = (
+                folder_lookup[
+                    selected_folder_label
+                ]
+            )
+
+            selected_items = folder_items[
+                selected_folder
+            ]
+
+            if not selected_items:
+                st.info(
+                    "This memory folder is empty."
+                )
+
+            for memory_item in selected_items:
+                memory_id = str(
+                    memory_item.get(
+                        "memory_id",
+                        "",
+                    )
+                ).strip()
+
+                memory_type = str(
+                    memory_item.get(
+                        "memory_type",
+                        "unknown",
+                    )
+                )
+
+                memory_content = str(
+                    memory_item.get(
+                        "content",
+                        "",
+                    )
+                ).strip()
+
+                storage_scope = str(
+                    memory_item.get(
+                        "storage_scope",
+                        "persistent",
+                    )
+                )
+
+                sensitivity = str(
+                    memory_item.get(
+                        "sensitivity",
+                        "medium",
+                    )
+                )
+
+                created_at = str(
+                    memory_item.get(
+                        "created_at",
+                        "",
+                    )
+                )
+
+                with st.container(
+                    border=True,
+                ):
+                    st.markdown(
+                        f"**{memory_type}**"
                     )
 
-                    if deletion_result.get(
-                        "deleted",
-                        False,
+                    st.write(
+                        memory_content
+                    )
+
+                    st.caption(
+                        f"Scope: {storage_scope} | "
+                        f"Sensitivity: {sensitivity}"
+                    )
+
+                    if created_at:
+                        st.caption(
+                            "Created: "
+                            f"{created_at[:19]}"
+                        )
+
+                    if st.button(
+                        "Delete",
+                        key=(
+                            "delete_memory_item_"
+                            f"{memory_id}"
+                        ),
+                        use_container_width=True,
                     ):
-                        st.session_state[
-                            "memory_manager_notice"
-                        ] = (
-                            "Memory deleted successfully."
+                        deletion_result = (
+                            st.session_state
+                            .engine
+                            .persistent_memory
+                            .delete_memory_item(
+                                memory_id
+                            )
                         )
 
-                        st.rerun()
+                        if deletion_result.get(
+                            "deleted",
+                            False,
+                        ):
+                            st.session_state[
+                                "memory_manager_notice"
+                            ] = (
+                                "Memory deleted "
+                                "successfully."
+                            )
 
-                    else:
-                        st.error(
-                            "Memory item was not found."
-                        )
+                            st.rerun()
+
+                        else:
+                            st.error(
+                                "Memory item was "
+                                "not found."
+                            )
 
 
     # --------------------------------------------------
