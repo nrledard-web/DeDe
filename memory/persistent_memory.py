@@ -56,6 +56,7 @@ class PersistentMemory:
             "known_facts": [],
             "interaction_notes": [],
             "memory_items": [],
+            "memory_folders": [],
             "conversation_count": 0,
             "last_seen": None,
             "created_at": self._now(),
