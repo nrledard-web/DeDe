@@ -343,6 +343,96 @@ class PersistentMemory:
 
         return self.data
 
+    def delete_memory_item(
+        self,
+        memory_id: str,
+    ) -> dict[str, Any]:
+        """
+        Delete one durable memory item by its identifier.
+        """
+
+        cleaned_memory_id = str(
+            memory_id or ""
+        ).strip()
+
+        memory_items = self.data.get(
+            "memory_items",
+            [],
+        )
+
+        if (
+            not cleaned_memory_id
+            or not isinstance(
+                memory_items,
+                list,
+            )
+        ):
+            return {
+                "status": "not_found",
+                "deleted": False,
+                "memory_id": cleaned_memory_id,
+            }
+
+        remaining_items = []
+        deleted_item = None
+
+        for item in memory_items:
+            if not isinstance(
+                item,
+                dict,
+            ):
+                continue
+
+            if (
+                deleted_item is None
+                and str(
+                    item.get(
+                        "memory_id",
+                        "",
+                    )
+                ).strip()
+                == cleaned_memory_id
+            ):
+                deleted_item = item
+                continue
+
+            remaining_items.append(
+                item
+            )
+
+        if deleted_item is None:
+            return {
+                "status": "not_found",
+                "deleted": False,
+                "memory_id": cleaned_memory_id,
+            }
+
+        for index, item in enumerate(
+            remaining_items,
+            start=1,
+        ):
+            item["memory_id"] = (
+                f"memory_{index}"
+            )
+
+        self.data[
+            "memory_items"
+        ] = remaining_items
+
+        self.data[
+            "last_seen"
+        ] = self._now()
+
+        self.save()
+
+        return {
+            "status": "success",
+            "deleted": True,
+            "memory_id": cleaned_memory_id,
+            "deleted_item": deleted_item,
+        }
+
+
     def clear_memory(
         self,
     ) -> dict[str, Any]:
