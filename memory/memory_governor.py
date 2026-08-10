@@ -25,6 +25,7 @@ class MemoryGovernor:
 
     MEMORY_TYPES = {
         "identity",
+        "assistant_identity",
         "preference",
         "personal_fact",
         "project",
@@ -53,6 +54,7 @@ class MemoryGovernor:
 
     DURABLE_MEMORY_TYPES = {
         "identity",
+        "assistant_identity",
         "preference",
         "personal_fact",
         "project",
