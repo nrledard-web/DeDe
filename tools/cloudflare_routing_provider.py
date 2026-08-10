@@ -85,7 +85,96 @@ class CloudflareRoutingProvider:
             "max_tokens": 900,
             "temperature": 0.0,
             "response_format": {
-                "type": "json_object",
+                "type": "json_schema",
+                "json_schema": {
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string",
+                            "enum": [
+                                "use_tool",
+                                "use_working_memory",
+                                "respond_normally",
+                            ],
+                        },
+                        "tool_name": {
+                            "type": "string",
+                        },
+                        "confidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                        },
+                        "arguments": {
+                            "type": "object",
+                        },
+                        "direct_answer": {
+                            "type": "string",
+                        },
+                        "memory_reference": {
+                            "type": "string",
+                        },
+                        "memory_candidate": {
+                            "type": "object",
+                            "properties": {
+                                "content": {
+                                    "type": "string",
+                                },
+                                "memory_type": {
+                                    "type": "string",
+                                },
+                                "subject": {
+                                    "type": "string",
+                                },
+                                "attribute": {
+                                    "type": "string",
+                                },
+                                "value": {
+                                    "type": "string",
+                                },
+                                "selection_origin": {
+                                    "type": [
+                                        "string",
+                                        "null",
+                                    ],
+                                },
+                                "proposed_scope": {
+                                    "type": "string",
+                                },
+                                "sensitivity": {
+                                    "type": "string",
+                                },
+                                "confidence": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1,
+                                },
+                                "source": {
+                                    "type": "string",
+                                },
+                                "project": {
+                                    "type": [
+                                        "string",
+                                        "null",
+                                    ],
+                                },
+                            },
+                        },
+                        "reason": {
+                            "type": "string",
+                        },
+                    },
+                    "required": [
+                        "action",
+                        "tool_name",
+                        "confidence",
+                        "arguments",
+                        "direct_answer",
+                        "memory_reference",
+                        "memory_candidate",
+                        "reason",
+                    ],
+                },
             },
         }
 
