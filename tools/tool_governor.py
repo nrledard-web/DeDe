@@ -211,6 +211,10 @@ Return only valid JSON with this exact structure:
   "memory_candidate": {
     "content": "",
     "memory_type": "unknown",
+    "subject": "",
+    "attribute": "",
+    "value": "",
+    "selection_origin": null,
     "proposed_scope": "session",
     "sensitivity": "medium",
     "confidence": 0.0,
