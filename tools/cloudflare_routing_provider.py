@@ -9,6 +9,7 @@ It does not replace DeDe's main reasoning models.
 from __future__ import annotations
 
 from typing import Any
+import json
 import os
 
 import requests
@@ -18,7 +19,7 @@ class CloudflareRoutingProvider:
 
     name = "cloudflare_routing_provider"
 
-    model = "@cf/meta/llama-3.2-3b-instruct"
+    model = "@cf/meta/llama-3.1-8b-instruct-fast"
 
     MAX_PROMPT_CHARACTERS = 24_000
 
@@ -81,8 +82,11 @@ class CloudflareRoutingProvider:
 
         payload = {
             "prompt": prepared_prompt,
-            "max_tokens": 700,
+            "max_tokens": 900,
             "temperature": 0.0,
+            "response_format": {
+                "type": "json_object",
+            },
         }
 
         try:
@@ -90,7 +94,7 @@ class CloudflareRoutingProvider:
                 endpoint,
                 headers=headers,
                 json=payload,
-                timeout=12,
+                timeout=20,
             )
 
         except requests.Timeout as error:
@@ -138,13 +142,24 @@ class CloudflareRoutingProvider:
                 "Cloudflare returned an invalid result."
             )
 
-        routed_response = str(
-            result.get(
-                "response",
-                "",
+        raw_response = result.get(
+            "response",
+            "",
+        )
+
+        if isinstance(
+            raw_response,
+            dict,
+        ):
+            routed_response = json.dumps(
+                raw_response,
+                ensure_ascii=False,
             )
-            or ""
-        ).strip()
+
+        else:
+            routed_response = str(
+                raw_response or ""
+            ).strip()
 
         if not routed_response:
             raise RuntimeError(
@@ -183,6 +198,8 @@ class CloudflareRoutingProvider:
 
         return (
             beginning
-            + "\n\n[COMPACTED ROUTING CONTEXT]\n\n"
+            + "\n\n"
+            "[COMPACTED ROUTING CONTEXT]"
+            "\n\n"
             + ending
         )
