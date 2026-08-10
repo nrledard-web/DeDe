@@ -452,12 +452,76 @@ with st.sidebar:
         ):
             managed_items = []
 
+        custom_folders = managed_memory.get(
+            "memory_folders",
+            [],
+        )
+
+        if not isinstance(
+            custom_folders,
+            list,
+        ):
+            custom_folders = []
+
         st.caption(
             f"{len(managed_items)} durable "
             "memory item(s)"
         )
 
-        folder_definitions = {
+        # ----------------------------------------------
+        # Create a personal folder
+        # ----------------------------------------------
+
+        st.markdown(
+            "#### Personal folders"
+        )
+
+        new_folder_name = st.text_input(
+            "New folder name",
+            key="new_memory_folder_name",
+            placeholder=(
+                "Example: Family, Book, Health..."
+            ),
+        )
+
+        if st.button(
+            "Create Folder",
+            key="create_memory_folder",
+            use_container_width=True,
+        ):
+            creation_result = (
+                st.session_state.engine
+                .persistent_memory
+                .create_memory_folder(
+                    new_folder_name
+                )
+            )
+
+            if creation_result.get(
+                "created",
+                False,
+            ):
+                st.session_state[
+                    "memory_manager_notice"
+                ] = (
+                    "Memory folder created."
+                )
+
+                st.rerun()
+
+            else:
+                st.error(
+                    creation_result.get(
+                        "error",
+                        "The folder could not be created.",
+                    )
+                )
+
+        # ----------------------------------------------
+        # Automatic folders
+        # ----------------------------------------------
+
+        automatic_folders = {
             "👤 Identity & Preferences": {
                 "identity",
                 "preference",
@@ -483,17 +547,87 @@ with st.sidebar:
             },
         }
 
-        folder_items = {
-            folder_name: []
-            for folder_name
-            in folder_definitions
-        }
+        custom_folder_names = {}
+
+        for folder in custom_folders:
+            if not isinstance(
+                folder,
+                dict,
+            ):
+                continue
+
+            folder_id = str(
+                folder.get(
+                    "folder_id",
+                    "",
+                )
+            ).strip()
+
+            folder_name = str(
+                folder.get(
+                    "name",
+                    "",
+                )
+            ).strip()
+
+            if folder_id and folder_name:
+                custom_folder_names[
+                    folder_id
+                ] = folder_name
+
+        folder_contents = {}
+
+        for folder_name in automatic_folders:
+            folder_key = (
+                f"automatic:{folder_name}"
+            )
+
+            folder_contents[
+                folder_key
+            ] = []
+
+        for (
+            folder_id,
+            folder_name,
+        ) in custom_folder_names.items():
+            folder_key = (
+                f"custom:{folder_id}"
+            )
+
+            folder_contents[
+                folder_key
+            ] = []
 
         for memory_item in managed_items:
             if not isinstance(
                 memory_item,
                 dict,
             ):
+                continue
+
+            assigned_folder_id = str(
+                memory_item.get(
+                    "folder_id",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            custom_folder_key = (
+                f"custom:{assigned_folder_id}"
+            )
+
+            if (
+                assigned_folder_id
+                and custom_folder_key
+                in folder_contents
+            ):
+                folder_contents[
+                    custom_folder_key
+                ].append(
+                    memory_item
+                )
+
                 continue
 
             memory_type = str(
@@ -503,185 +637,371 @@ with st.sidebar:
                 )
             ).strip().lower()
 
-            assigned_folder = (
+            automatic_folder_name = (
                 "📦 Other Memories"
             )
 
             for (
                 folder_name,
                 accepted_types,
-            ) in folder_definitions.items():
+            ) in automatic_folders.items():
                 if (
                     memory_type
                     in accepted_types
                 ):
-                    assigned_folder = (
+                    automatic_folder_name = (
                         folder_name
                     )
                     break
 
-            folder_items[
-                assigned_folder
+            automatic_folder_key = (
+                "automatic:"
+                f"{automatic_folder_name}"
+            )
+
+            folder_contents[
+                automatic_folder_key
             ].append(
                 memory_item
             )
 
-        if not managed_items:
-            st.info(
-                "No durable memories are "
-                "currently stored."
+        # ----------------------------------------------
+        # Folder selector
+        # ----------------------------------------------
+
+        folder_labels = []
+        folder_lookup = {}
+
+        for folder_name in automatic_folders:
+            folder_key = (
+                f"automatic:{folder_name}"
             )
 
-        else:
-            folder_labels = []
-
-            folder_lookup = {}
-
-            for folder_name in folder_definitions:
-                folder_count = len(
-                    folder_items[
-                        folder_name
-                    ]
-                )
-
-                folder_label = (
-                    f"{folder_name} "
-                    f"({folder_count})"
-                )
-
-                folder_labels.append(
-                    folder_label
-                )
-
-                folder_lookup[
-                    folder_label
-                ] = folder_name
-
-            selected_folder_label = (
-                st.selectbox(
-                    "Memory folder",
-                    folder_labels,
-                    key=(
-                        "selected_memory_folder"
-                    ),
+            folder_count = len(
+                folder_contents.get(
+                    folder_key,
+                    [],
                 )
             )
 
-            selected_folder = (
-                folder_lookup[
-                    selected_folder_label
-                ]
+            folder_label = (
+                f"{folder_name} "
+                f"({folder_count})"
             )
 
-            selected_items = folder_items[
-                selected_folder
-            ]
+            folder_labels.append(
+                folder_label
+            )
 
-            if not selected_items:
-                st.info(
-                    "This memory folder is empty."
+            folder_lookup[
+                folder_label
+            ] = folder_key
+
+        for (
+            folder_id,
+            folder_name,
+        ) in custom_folder_names.items():
+            folder_key = (
+                f"custom:{folder_id}"
+            )
+
+            folder_count = len(
+                folder_contents.get(
+                    folder_key,
+                    [],
+                )
+            )
+
+            folder_label = (
+                f"🗂️ {folder_name} "
+                f"({folder_count})"
+            )
+
+            folder_labels.append(
+                folder_label
+            )
+
+            folder_lookup[
+                folder_label
+            ] = folder_key
+
+        selected_folder_label = st.selectbox(
+            "Memory folder",
+            folder_labels,
+            key="selected_memory_folder",
+        )
+
+        selected_folder_key = folder_lookup[
+            selected_folder_label
+        ]
+
+        selected_items = folder_contents.get(
+            selected_folder_key,
+            [],
+        )
+
+        # ----------------------------------------------
+        # Delete a personal folder
+        # ----------------------------------------------
+
+        if selected_folder_key.startswith(
+            "custom:"
+        ):
+            selected_custom_folder_id = (
+                selected_folder_key.split(
+                    ":",
+                    1,
+                )[1]
+            )
+
+            if st.button(
+                "Delete This Folder",
+                key=(
+                    "delete_memory_folder_"
+                    f"{selected_custom_folder_id}"
+                ),
+                use_container_width=True,
+            ):
+                folder_deletion_result = (
+                    st.session_state.engine
+                    .persistent_memory
+                    .delete_memory_folder(
+                        selected_custom_folder_id
+                    )
                 )
 
-            for memory_item in selected_items:
-                memory_id = str(
-                    memory_item.get(
-                        "memory_id",
-                        "",
-                    )
-                ).strip()
-
-                memory_type = str(
-                    memory_item.get(
-                        "memory_type",
-                        "unknown",
-                    )
-                )
-
-                memory_content = str(
-                    memory_item.get(
-                        "content",
-                        "",
-                    )
-                ).strip()
-
-                storage_scope = str(
-                    memory_item.get(
-                        "storage_scope",
-                        "persistent",
-                    )
-                )
-
-                sensitivity = str(
-                    memory_item.get(
-                        "sensitivity",
-                        "medium",
-                    )
-                )
-
-                created_at = str(
-                    memory_item.get(
-                        "created_at",
-                        "",
-                    )
-                )
-
-                with st.container(
-                    border=True,
+                if folder_deletion_result.get(
+                    "deleted",
+                    False,
                 ):
-                    st.markdown(
-                        f"**{memory_type}**"
+                    moved_item_count = (
+                        folder_deletion_result.get(
+                            "moved_item_count",
+                            0,
+                        )
                     )
 
-                    st.write(
-                        memory_content
+                    st.session_state[
+                        "memory_manager_notice"
+                    ] = (
+                        "Folder deleted. "
+                        f"{moved_item_count} memory "
+                        "item(s) returned to their "
+                        "automatic folder."
                     )
 
+                    st.rerun()
+
+                else:
+                    st.error(
+                        "Memory folder was not found."
+                    )
+
+        # ----------------------------------------------
+        # Selected folder contents
+        # ----------------------------------------------
+
+        if not selected_items:
+            st.info(
+                "This memory folder is empty."
+            )
+
+        for memory_item in selected_items:
+            memory_id = str(
+                memory_item.get(
+                    "memory_id",
+                    "",
+                )
+            ).strip()
+
+            memory_type = str(
+                memory_item.get(
+                    "memory_type",
+                    "unknown",
+                )
+            )
+
+            memory_content = str(
+                memory_item.get(
+                    "content",
+                    "",
+                )
+            ).strip()
+
+            storage_scope = str(
+                memory_item.get(
+                    "storage_scope",
+                    "persistent",
+                )
+            )
+
+            sensitivity = str(
+                memory_item.get(
+                    "sensitivity",
+                    "medium",
+                )
+            )
+
+            created_at = str(
+                memory_item.get(
+                    "created_at",
+                    "",
+                )
+            )
+
+            current_folder_id = str(
+                memory_item.get(
+                    "folder_id",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            with st.container(
+                border=True,
+            ):
+                st.markdown(
+                    f"**{memory_type}**"
+                )
+
+                st.write(
+                    memory_content
+                )
+
+                st.caption(
+                    f"Scope: {storage_scope} | "
+                    f"Sensitivity: {sensitivity}"
+                )
+
+                if created_at:
                     st.caption(
-                        f"Scope: {storage_scope} | "
-                        f"Sensitivity: {sensitivity}"
+                        "Created: "
+                        f"{created_at[:19]}"
                     )
 
-                    if created_at:
-                        st.caption(
-                            "Created: "
-                            f"{created_at[:19]}"
+                if custom_folder_names:
+                    move_labels = [
+                        "Automatic folder",
+                    ]
+
+                    move_lookup = {
+                        "Automatic folder": None,
+                    }
+
+                    current_move_index = 0
+
+                    for (
+                        folder_id,
+                        folder_name,
+                    ) in custom_folder_names.items():
+                        move_label = (
+                            f"🗂️ {folder_name}"
                         )
 
+                        move_labels.append(
+                            move_label
+                        )
+
+                        move_lookup[
+                            move_label
+                        ] = folder_id
+
+                        if (
+                            folder_id
+                            == current_folder_id
+                        ):
+                            current_move_index = (
+                                len(
+                                    move_labels
+                                )
+                                - 1
+                            )
+
+                    selected_move_label = (
+                        st.selectbox(
+                            "Move to folder",
+                            move_labels,
+                            index=(
+                                current_move_index
+                            ),
+                            key=(
+                                "move_memory_select_"
+                                f"{memory_id}"
+                            ),
+                        )
+                    )
+
                     if st.button(
-                        "Delete",
+                        "Move Memory",
                         key=(
-                            "delete_memory_item_"
+                            "move_memory_button_"
                             f"{memory_id}"
                         ),
                         use_container_width=True,
                     ):
-                        deletion_result = (
-                            st.session_state
-                            .engine
+                        move_result = (
+                            st.session_state.engine
                             .persistent_memory
-                            .delete_memory_item(
-                                memory_id
+                            .move_memory_item(
+                                memory_id=memory_id,
+                                folder_id=(
+                                    move_lookup[
+                                        selected_move_label
+                                    ]
+                                ),
                             )
                         )
 
-                        if deletion_result.get(
-                            "deleted",
+                        if move_result.get(
+                            "moved",
                             False,
                         ):
                             st.session_state[
                                 "memory_manager_notice"
                             ] = (
-                                "Memory deleted "
-                                "successfully."
+                                "Memory moved successfully."
                             )
 
                             st.rerun()
 
                         else:
                             st.error(
-                                "Memory item was "
-                                "not found."
+                                "The memory could not "
+                                "be moved."
                             )
+
+                if st.button(
+                    "Delete Memory",
+                    key=(
+                        "delete_memory_item_"
+                        f"{memory_id}"
+                    ),
+                    use_container_width=True,
+                ):
+                    deletion_result = (
+                        st.session_state.engine
+                        .persistent_memory
+                        .delete_memory_item(
+                            memory_id
+                        )
+                    )
+
+                    if deletion_result.get(
+                        "deleted",
+                        False,
+                    ):
+                        st.session_state[
+                            "memory_manager_notice"
+                        ] = (
+                            "Memory deleted successfully."
+                        )
+
+                        st.rerun()
+
+                    else:
+                        st.error(
+                            "Memory item was not found."
+                        )
 
 
     # --------------------------------------------------
