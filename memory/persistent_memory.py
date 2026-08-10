@@ -346,6 +346,354 @@ class PersistentMemory:
 
         return self.data
 
+        def create_memory_folder(
+        self,
+        folder_name: str,
+    ) -> dict[str, Any]:
+        """
+        Create one user-defined memory folder.
+        """
+
+        cleaned_name = str(
+            folder_name or ""
+        ).strip()
+
+        if not cleaned_name:
+            return {
+                "status": "invalid_name",
+                "created": False,
+                "error": (
+                    "The folder name is empty."
+                ),
+            }
+
+        memory_folders = self.data.setdefault(
+            "memory_folders",
+            [],
+        )
+
+        if not isinstance(
+            memory_folders,
+            list,
+        ):
+            memory_folders = []
+
+            self.data[
+                "memory_folders"
+            ] = memory_folders
+
+        normalized_name = (
+            cleaned_name.casefold()
+        )
+
+        for folder in memory_folders:
+            if not isinstance(
+                folder,
+                dict,
+            ):
+                continue
+
+            existing_name = str(
+                folder.get(
+                    "name",
+                    "",
+                )
+            ).strip().casefold()
+
+            if (
+                existing_name
+                == normalized_name
+            ):
+                return {
+                    "status": "already_exists",
+                    "created": False,
+                    "error": (
+                        "A memory folder with this "
+                        "name already exists."
+                    ),
+                    "folder": folder,
+                }
+
+        existing_ids = {
+            str(
+                folder.get(
+                    "folder_id",
+                    "",
+                )
+            ).strip()
+            for folder in memory_folders
+            if isinstance(
+                folder,
+                dict,
+            )
+        }
+
+        folder_number = 1
+
+        while (
+            f"folder_{folder_number}"
+            in existing_ids
+        ):
+            folder_number += 1
+
+        created_at = self._now()
+
+        new_folder = {
+            "folder_id": (
+                f"folder_{folder_number}"
+            ),
+            "name": cleaned_name,
+            "created_at": created_at,
+            "updated_at": created_at,
+        }
+
+        memory_folders.append(
+            new_folder
+        )
+
+        self.data["last_seen"] = (
+            created_at
+        )
+
+        self.save()
+
+        return {
+            "status": "success",
+            "created": True,
+            "folder": new_folder,
+        }
+
+    def delete_memory_folder(
+        self,
+        folder_id: str,
+    ) -> dict[str, Any]:
+        """
+        Delete a user-defined folder without deleting
+        the memories that it contained.
+        """
+
+        cleaned_folder_id = str(
+            folder_id or ""
+        ).strip()
+
+        memory_folders = self.data.get(
+            "memory_folders",
+            [],
+        )
+
+        if not isinstance(
+            memory_folders,
+            list,
+        ):
+            memory_folders = []
+
+        remaining_folders = []
+        deleted_folder = None
+
+        for folder in memory_folders:
+            if not isinstance(
+                folder,
+                dict,
+            ):
+                continue
+
+            if (
+                deleted_folder is None
+                and str(
+                    folder.get(
+                        "folder_id",
+                        "",
+                    )
+                ).strip()
+                == cleaned_folder_id
+            ):
+                deleted_folder = folder
+                continue
+
+            remaining_folders.append(
+                folder
+            )
+
+        if deleted_folder is None:
+            return {
+                "status": "not_found",
+                "deleted": False,
+                "folder_id": (
+                    cleaned_folder_id
+                ),
+            }
+
+        memory_items = self.data.get(
+            "memory_items",
+            [],
+        )
+
+        moved_item_count = 0
+
+        if isinstance(
+            memory_items,
+            list,
+        ):
+            for memory_item in memory_items:
+                if not isinstance(
+                    memory_item,
+                    dict,
+                ):
+                    continue
+
+                if str(
+                    memory_item.get(
+                        "folder_id",
+                        "",
+                    )
+                    or ""
+                ).strip() == cleaned_folder_id:
+                    memory_item[
+                        "folder_id"
+                    ] = None
+
+                    memory_item[
+                        "updated_at"
+                    ] = self._now()
+
+                    moved_item_count += 1
+
+        self.data[
+            "memory_folders"
+        ] = remaining_folders
+
+        self.data["last_seen"] = (
+            self._now()
+        )
+
+        self.save()
+
+        return {
+            "status": "success",
+            "deleted": True,
+            "folder_id": cleaned_folder_id,
+            "deleted_folder": deleted_folder,
+            "moved_item_count": (
+                moved_item_count
+            ),
+        }
+
+    def move_memory_item(
+        self,
+        memory_id: str,
+        folder_id: str | None,
+    ) -> dict[str, Any]:
+        """
+        Move one durable memory into a user-defined
+        folder or back to its automatic folder.
+        """
+
+        cleaned_memory_id = str(
+            memory_id or ""
+        ).strip()
+
+        cleaned_folder_id = str(
+            folder_id or ""
+        ).strip() or None
+
+        if cleaned_folder_id is not None:
+            memory_folders = self.data.get(
+                "memory_folders",
+                [],
+            )
+
+            valid_folder_ids = {
+                str(
+                    folder.get(
+                        "folder_id",
+                        "",
+                    )
+                ).strip()
+                for folder in memory_folders
+                if isinstance(
+                    folder,
+                    dict,
+                )
+            }
+
+            if (
+                cleaned_folder_id
+                not in valid_folder_ids
+            ):
+                return {
+                    "status": "folder_not_found",
+                    "moved": False,
+                    "memory_id": (
+                        cleaned_memory_id
+                    ),
+                    "folder_id": (
+                        cleaned_folder_id
+                    ),
+                }
+
+        memory_items = self.data.get(
+            "memory_items",
+            [],
+        )
+
+        if not isinstance(
+            memory_items,
+            list,
+        ):
+            memory_items = []
+
+        for memory_item in memory_items:
+            if not isinstance(
+                memory_item,
+                dict,
+            ):
+                continue
+
+            current_memory_id = str(
+                memory_item.get(
+                    "memory_id",
+                    "",
+                )
+            ).strip()
+
+            if (
+                current_memory_id
+                != cleaned_memory_id
+            ):
+                continue
+
+            memory_item[
+                "folder_id"
+            ] = cleaned_folder_id
+
+            memory_item[
+                "updated_at"
+            ] = self._now()
+
+            self.data["last_seen"] = (
+                self._now()
+            )
+
+            self.save()
+
+            return {
+                "status": "success",
+                "moved": True,
+                "memory_id": (
+                    cleaned_memory_id
+                ),
+                "folder_id": (
+                    cleaned_folder_id
+                ),
+            }
+
+        return {
+            "status": "not_found",
+            "moved": False,
+            "memory_id": cleaned_memory_id,
+            "folder_id": cleaned_folder_id,
+        }
+
     def delete_memory_item(
         self,
         memory_id: str,
