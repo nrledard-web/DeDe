@@ -161,8 +161,23 @@ Do not return vague labels such as "user preference", "preference
 regarding responses", "project information" or "personal fact".
 
 Possible memory types:
-identity, preference, personal_fact, project, decision,
-relationship, autobiographical, temporary_task, unknown.
+identity, assistant_identity, preference, personal_fact,
+project, decision, relationship, autobiographical,
+temporary_task, unknown.
+
+Use assistant_identity when:
+- the user assigns a durable name or identity attribute
+  to the assistant;
+- the user confirms a name previously proposed by the
+  assistant;
+- the user and assistant jointly settle an identity choice.
+
+For assistant_identity:
+- subject must be "assistant";
+- attribute must identify the changed identity field;
+- value must contain the exact chosen value;
+- selection_origin must be user_assigned,
+  assistant_proposed or jointly_selected.
 
 Possible proposed scopes:
 session, project, personal, persistent.
