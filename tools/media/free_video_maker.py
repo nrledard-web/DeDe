@@ -509,6 +509,8 @@ class FreeVideoMaker:
         aspect_ratio: str = "9:16",
         seconds_per_image: float = 3,
         background_color: str = "black",
+        narration_audio: bytes | None = None,
+        narration_extension: str = ".wav",
     ) -> dict[str, Any]:
         """
         Standard ToolManager entry point.
@@ -522,5 +524,11 @@ class FreeVideoMaker:
             ),
             background_color=(
                 background_color
+            ),
+            narration_audio=(
+                narration_audio
+            ),
+            narration_extension=(
+                narration_extension
             ),
         )
