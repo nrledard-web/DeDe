@@ -280,7 +280,7 @@ else:
     st.warning("Banner01.png not found in assets/")
 
 
-st.markdown(
+st.html(
     dedent(
         """
     <style>
@@ -470,8 +470,7 @@ st.markdown(
         privacy, and security.
     </p>
         """
-    ),
-    unsafe_allow_html=True,
+    )
 )
 
 # --------------------------------------------------
