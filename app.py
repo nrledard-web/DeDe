@@ -280,50 +280,195 @@ else:
 
 st.markdown(
     """
-    <h2 style="
+    <style>
+    .dede-title {
         text-align: center;
         margin-bottom: 0.5rem;
-    ">
+    }
+
+    .dede-description {
+        text-align: center;
+        color: #9aa0a6;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.55;
+        margin-top: 0;
+        margin-bottom: 0.3rem;
+    }
+
+    .dede-line {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        margin-bottom: 0.15rem;
+    }
+
+    .dede-help {
+        display: inline-block;
+        position: relative;
+    }
+
+    .dede-help summary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.15rem;
+        height: 1.15rem;
+        padding: 0;
+        border: 1px solid #9ca3af;
+        border-radius: 50%;
+        background-color: #f3f4f6;
+        color: #374151 !important;
+        font-size: 0.72rem;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+    }
+
+    .dede-help summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .dede-help[open] summary {
+        background-color: #e5e7eb;
+        border-color: #6b7280;
+    }
+
+    .dede-help-text {
+        position: absolute;
+        z-index: 1000;
+        top: 1.55rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(32rem, 82vw);
+        padding: 0.85rem 1rem;
+        background-color: #ffffff;
+        color: #111827 !important;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+        font-size: 0.88rem;
+        font-weight: 400;
+        line-height: 1.45;
+        text-align: left;
+    }
+
+    .dede-subtitle {
+        text-align: center;
+        font-size: 0.85rem;
+        color: #888888 !important;
+        margin-top: 0.4rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .dede-description {
+            font-size: 0.92rem;
+        }
+
+        .dede-line {
+            align-items: flex-start;
+        }
+
+        .dede-help summary {
+            margin-top: 0.18rem;
+        }
+
+        .dede-help-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: calc(100vw - 2rem);
+            max-width: 32rem;
+            font-size: 0.88rem;
+        }
+    }
+    </style>
+
+    <h2 class="dede-title">
         DeDe — Cognitive Daimon
     </h2>
 
-    <h4 style="
-        text-align: center;
-        color: #9aa0a6;
-        font-weight: 400;
-        margin-top: 0;
-        margin-bottom: 0.3rem;
-    ">
-        The First Agentic, Human-Like Cognitive AI Governor<br>
-        Designed for User-Owned, Private, and Portable Memory Storage<br>
-        Powered by Combinable AI Models and Evolving Tools<br>
-        With a Built-In Epistemic Anti-Coherence Loop
-    </h4>
+    <div class="dede-description">
 
-    <p style="
-        text-align: center;
-        font-size: 0.85rem;
-        color: #888888;
-        margin-top: 0.25rem;
-        margin-bottom: 1rem;
-    ">
+        <div class="dede-line">
+            <span>The First Agentic, Human-Like Cognitive AI Governor</span>
+
+            <details class="dede-help">
+                <summary>?</summary>
+                <div class="dede-help-text">
+                    DeDe is not merely a chatbot. It is a cognitive AI
+                    governor capable of coordinating up to five AI models
+                    simultaneously, comparing their reasoning, identifying
+                    disagreements, and synthesizing their responses. This
+                    deeper process may take longer than a standard chatbot
+                    response, but it can provide greater depth, balance,
+                    and reliability.
+                </div>
+            </details>
+        </div>
+
+        <div class="dede-line">
+            <span>
+                Designed for User-Owned, Private, and Portable Memory Storage
+            </span>
+
+            <details class="dede-help">
+                <summary>?</summary>
+                <div class="dede-help-text">
+                    DeDe’s memory belongs to the user. It can be downloaded,
+                    transferred, stored locally or in a personal cloud, and
+                    encrypted for additional security. DeDe asks for permission
+                    before saving durable personal information, allowing users
+                    to retain control over what is remembered.
+                </div>
+            </details>
+        </div>
+
+        <div class="dede-line">
+            <span>Powered by Combinable AI Models and Evolving Tools</span>
+
+            <details class="dede-help">
+                <summary>?</summary>
+                <div class="dede-help-text">
+                    DeDe can combine different AI models according to the task
+                    instead of depending on a single provider. Its modular
+                    architecture also supports evolving tools for web research,
+                    image and video generation, document creation, voice
+                    interaction, and future capabilities.
+                </div>
+            </details>
+        </div>
+
+        <div class="dede-line">
+            <span>With a Built-In Epistemic Anti-Coherence Loop</span>
+
+            <details class="dede-help">
+                <summary>?</summary>
+                <div class="dede-help-text">
+                    DeDe’s Epistemic Anti-Coherence Loop is designed to prevent
+                    internally coherent reasoning from becoming a closed
+                    system. It examines assumptions, reductions, blind spots,
+                    insufficiently grounded claims, and excessive certainty
+                    to keep conclusions open to evidence, revision, and
+                    alternative interpretations.
+                </div>
+            </details>
+        </div>
+
+    </div>
+
+    <p class="dede-subtitle">
         A little more time to respond—for greater accuracy,
         privacy, and security.
     </p>
     """,
     unsafe_allow_html=True,
 )
-
-
-st.caption("Phase 3 — Cognitive Mechanics")
-
-with st.expander("Prototype status"):
-    st.success("DeDe Phase 3 prototype is running.")
-
-    st.caption(
-        "Current status: CognitiveWorkspace, estimator layer, "
-        "agent interpretation and shared cognitive mechanics."
-    )
 
 # --------------------------------------------------
 # DeDe Sidebar Configuration
