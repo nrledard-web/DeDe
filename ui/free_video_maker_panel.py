@@ -134,6 +134,92 @@ def render_free_video_maker_panel(
                 ]
             )
 
+            st.markdown(
+                "#### Voice narration"
+            )
+
+            recorded_narration = (
+                st.audio_input(
+                    "Record your commentary",
+                    sample_rate=44100,
+                    key=(
+                        "free_video_maker_"
+                        "recorded_narration"
+                    ),
+                )
+            )
+
+            uploaded_narration = (
+                st.file_uploader(
+                    (
+                        "Or upload a voice "
+                        "commentary"
+                    ),
+                    type=[
+                        "wav",
+                        "mp3",
+                        "m4a",
+                        "aac",
+                    ],
+                    accept_multiple_files=False,
+                    key=(
+                        "free_video_maker_"
+                        "uploaded_narration"
+                    ),
+                )
+            )
+
+            narration_file = (
+                recorded_narration
+                or uploaded_narration
+            )
+
+            narration_audio = None
+            narration_extension = ".wav"
+
+            if narration_file:
+                narration_audio = bytes(
+                    narration_file.getvalue()
+                )
+
+                narration_name = getattr(
+                    narration_file,
+                    "name",
+                    "narration.wav",
+                )
+
+                narration_extension = (
+                    Path(
+                        narration_name
+                    ).suffix.lower()
+                    or ".wav"
+                )
+
+                narration_mime_type = getattr(
+                    narration_file,
+                    "type",
+                    "audio/wav",
+                )
+
+                st.audio(
+                    narration_audio,
+                    format=narration_mime_type,
+                )
+
+                if (
+                    recorded_narration
+                    and uploaded_narration
+                ):
+                    st.caption(
+                        "The recorded commentary "
+                        "will be used."
+                    )
+
+                else:
+                    st.success(
+                        "Voice commentary ready."
+                    )
+
             format_labels = {
                 "Vertical — 9:16": "9:16",
                 "Horizontal — 16:9": "16:9",
@@ -223,6 +309,12 @@ def render_free_video_maker_panel(
                     ),
                     background_color=(
                         background_color
+                    ),
+                    narration_audio=(
+                        narration_audio
+                    ),
+                    narration_extension=(
+                        narration_extension
                     ),
                 )
 
