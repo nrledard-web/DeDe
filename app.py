@@ -2693,6 +2693,10 @@ if text:
             audio = generate_speech(final_answer)
             st.audio(audio, format="audio/mp3")
 
+    finish_response_timer(
+        response_timer_state
+    )
+
     workspace = report["workspace"]
     variables = workspace["variables"]
     agent_results = report["agent_results"]
