@@ -332,15 +332,28 @@ Return only valid JSON with this exact structure:
                 raw_output
             )
 
-            return self._validate_decision(
-                decision=parsed,
-                available_tools=(
-                    available_tools
-                ),
-                working_memory=(
-                    working_memory
-                ),
+            validated_decision = (
+                self._validate_decision(
+                    decision=parsed,
+                    available_tools=(
+                        available_tools
+                    ),
+                    working_memory=(
+                        working_memory
+                    ),
+                )
             )
+
+            validated_decision[
+                "external_search_required"
+            ] = bool(
+                parsed.get(
+                    "external_search_required",
+                    False,
+                )
+            )
+
+            return validated_decision
 
         except Exception as error:
             return {
@@ -352,6 +365,7 @@ Return only valid JSON with this exact structure:
                 "arguments": {},
                 "direct_answer": "",
                 "memory_reference": "",
+                "external_search_required": False,
                 "memory_candidate": {},
                 "reason": (
                     "Routing failed; normal DeDe "
