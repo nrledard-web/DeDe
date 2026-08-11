@@ -528,6 +528,8 @@ def _create_free_video(
     aspect_ratio: str,
     seconds_per_image: int,
     background_color: str,
+    narration_audio: bytes | None,
+    narration_extension: str,
 ) -> None:
     """
     Create the MP4 from selected stored images.
