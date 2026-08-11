@@ -59,6 +59,16 @@ class FreeVideoMaker:
             "required": False,
             "default": "black",
         },
+        "narration_audio": {
+            "type": "bytes",
+            "required": False,
+            "default": None,
+        },
+        "narration_extension": {
+            "type": "string",
+            "required": False,
+            "default": ".wav",
+        },
     }
 
     ALLOWED_ASPECT_RATIOS = {
