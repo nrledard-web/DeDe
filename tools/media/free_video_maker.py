@@ -390,6 +390,21 @@ class FreeVideoMaker:
                 except Exception:
                     pass
 
+            if narration_clip is not None:
+                try:
+                    narration_clip.close()
+                except Exception:
+                    pass
+
+            if (
+                narration_path is not None
+                and narration_path.exists()
+            ):
+                try:
+                    narration_path.unlink()
+                except Exception:
+                    pass
+
     def _prepare_image(
         self,
         image_bytes: bytes,
