@@ -333,7 +333,11 @@ class FreeVideoMaker:
                     str(output_path),
                     fps=24,
                     codec="libx264",
-                    audio=False,
+                    audio=(
+                        narration_clip
+                        is not None
+                    ),
+                    audio_codec="aac",
                     logger=None,
                 )
 
