@@ -473,7 +473,6 @@ st.markdown(
     ),
     unsafe_allow_html=True,
 )
-)
 
 # --------------------------------------------------
 # DeDe Sidebar Configuration
