@@ -12,6 +12,7 @@ import streamlit.components.v1 as components
 
 from ui.image_generators_panel import (
     render_image_generators_panel,
+    _store_movie_maker_image,
 )
 
 from ui.document_studio_panel import (
