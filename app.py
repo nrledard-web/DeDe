@@ -2620,6 +2620,36 @@ if text:
 
         st.stop()
 
+    effective_search_mode = (
+        search_mode.lower()
+    )
+
+    effective_explicit_search_request = (
+        False
+    )
+
+    if active_document_request:
+        effective_search_mode = "off"
+
+    elif (
+        effective_search_mode
+        == "on_request"
+    ):
+        if tool_decision.get(
+            "external_search_required",
+            False,
+        ):
+            effective_search_mode = (
+                "manual"
+            )
+
+            effective_explicit_search_request = (
+                True
+            )
+
+        else:
+            effective_search_mode = "off"
+
     engine = st.session_state.engine
 
     cognitive_pipeline_started_at = (
@@ -2639,9 +2669,10 @@ if text:
             else search_profile
         ),
         search_mode=(
-            "off"
-            if active_document_request
-            else search_mode.lower()
+            effective_search_mode
+        ),
+        explicit_search_request=(
+            effective_explicit_search_request
         ),
         llm_profile="custom",
         llm_providers=llm_providers,
