@@ -891,7 +891,7 @@ Return only valid JSON with this exact structure:
             ),
         )
 
-            reason = str(
+        reason = str(
             decision.get(
                 "reason",
                 "",
@@ -909,6 +909,7 @@ Return only valid JSON with this exact structure:
                     or "Routing confidence is "
                     "insufficient."
                 ),
+                
                 confidence=confidence,
                 memory_candidate=(
                     memory_candidate
@@ -956,11 +957,6 @@ Return only valid JSON with this exact structure:
             action
             == "use_working_memory"
         ):
-            durable_memory = working_memory.get(
-                "durable_memory",
-                {},
-            )
-
             durable_memory = working_memory.get(
                 "durable_memory",
                 {},
