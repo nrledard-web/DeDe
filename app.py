@@ -1,8 +1,12 @@
 import streamlit as st
 from openai import OpenAI
+
 import tempfile
 import os
+import time
 from pathlib import Path
+
+import streamlit.components.v1 as components
 
 from ui.image_generators_panel import (
     render_image_generators_panel,
@@ -31,6 +35,77 @@ def pct(value):
     if value is None:
         return "N/A"
     return f"{round(value * 100)}%"
+
+def start_response_timer():
+    """
+    Start a browser-side timer while DeDe is working.
+    """
+
+    started_at = time.perf_counter()
+
+    timer_placeholder = st.empty()
+
+    with timer_placeholder:
+        components.html(
+            """
+            <div style="
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:8px;
+                font-family:Arial, sans-serif;
+                color:#9aa0a6;
+                font-size:14px;
+                padding:6px;
+            ">
+                <span>⏱️ DeDe is thinking:</span>
+                <strong id="dede-timer">0.0 s</strong>
+            </div>
+
+            <script>
+                const timerStart = performance.now();
+                const timerElement =
+                    document.getElementById("dede-timer");
+
+                setInterval(() => {
+                    const elapsed =
+                        (performance.now() - timerStart) / 1000;
+
+                    timerElement.textContent =
+                        elapsed.toFixed(1) + " s";
+                }, 100);
+            </script>
+            """,
+            height=45,
+        )
+
+    return {
+        "started_at": started_at,
+        "placeholder": timer_placeholder,
+    }
+
+
+def finish_response_timer(
+    timer_state,
+) -> float:
+    """
+    Stop the visual timer and show total response time.
+    """
+
+    elapsed = (
+        time.perf_counter()
+        - timer_state["started_at"]
+    )
+
+    timer_state[
+        "placeholder"
+    ].empty()
+
+    st.caption(
+        f"⏱️ Response time: {elapsed:.1f} seconds"
+    )
+
+    return elapsed
 
 
 def show_metric(label, value):
