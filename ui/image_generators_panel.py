@@ -273,7 +273,7 @@ def _generate_image(
             )
 
             added = (
-                _store_movie_maker_image(
+                store_movie_maker_image
                     image_bytes=bytes(
                         image_bytes
                     ),
@@ -295,7 +295,7 @@ def _generate_image(
                 )
 
 
-def _store_movie_maker_image(
+def store_movie_maker_image
     image_bytes: bytes,
     name: str,
     mime_type: str,
