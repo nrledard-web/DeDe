@@ -2,14 +2,23 @@
 DeDe - Free Video Maker Panel
 
 Streamlit sidebar interface for creating an MP4
-locally from uploaded images.
+locally from stored or uploaded images.
 """
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 import streamlit as st
+
+
+MOVIE_MAKER_LIBRARY_KEY = (
+    "movie_maker_image_library"
+)
+
+MAX_LIBRARY_IMAGES = 30
+MAX_VIDEO_IMAGES = 12
 
 
 def render_free_video_maker_panel(
@@ -25,13 +34,16 @@ def render_free_video_maker_panel(
             expanded=False,
         ):
             st.caption(
-                "Create an MP4 video locally "
-                "from your images. No paid "
-                "video API is required."
+                "Create an MP4 locally. "
+                "Drag images here on a computer, "
+                "or choose photos from a smartphone."
             )
 
             uploaded_images = st.file_uploader(
-                "Choose images",
+                (
+                    "Drag and drop images "
+                    "or browse your device"
+                ),
                 type=[
                     "png",
                     "jpg",
@@ -41,22 +53,85 @@ def render_free_video_maker_panel(
                 accept_multiple_files=True,
                 key="free_video_maker_images",
                 help=(
-                    "The images will appear "
-                    "in the order selected."
+                    "On a smartphone, tap "
+                    "Browse files to choose photos."
                 ),
             )
 
             if uploaded_images:
-                st.caption(
-                    f"{len(uploaded_images)} "
-                    "image(s) selected."
+                added_count = (
+                    _store_uploaded_images(
+                        uploaded_images
+                    )
                 )
 
-                if len(uploaded_images) > 12:
-                    st.warning(
-                        "Only the first 12 images "
-                        "will be used."
+                if added_count:
+                    st.success(
+                        f"{added_count} image(s) "
+                        "stored for Movie Maker."
                     )
+
+            camera_image = st.camera_input(
+                "Take a photo with this device",
+                key="free_video_maker_camera",
+            )
+
+            if camera_image:
+                added_count = (
+                    _store_uploaded_images(
+                        [camera_image],
+                        source="Camera",
+                    )
+                )
+
+                if added_count:
+                    st.success(
+                        "Photo stored for "
+                        "Movie Maker."
+                    )
+
+            library = (
+                st.session_state.setdefault(
+                    MOVIE_MAKER_LIBRARY_KEY,
+                    [],
+                )
+            )
+
+            st.markdown(
+                "#### Movie Maker image library"
+            )
+
+            if not library:
+                st.info(
+                    "No stored image yet."
+                )
+
+            else:
+                st.caption(
+                    f"{len(library)} stored "
+                    "image(s). Select up to "
+                    f"{MAX_VIDEO_IMAGES} "
+                    "for one video."
+                )
+
+                _render_library(
+                    library
+                )
+
+            selected_items = [
+                item
+                for item in library
+                if item.get(
+                    "selected",
+                    True,
+                )
+            ]
+
+            selected_items = (
+                selected_items[
+                    :MAX_VIDEO_IMAGES
+                ]
+            )
 
             format_labels = {
                 "Vertical — 9:16": "9:16",
@@ -96,51 +171,50 @@ def render_free_video_maker_panel(
                 "Light grey": "#e5e7eb",
             }
 
-            selected_background = st.selectbox(
-                "Background",
-                list(
-                    background_labels.keys()
-                ),
-                index=0,
-                key="free_video_maker_background",
+            selected_background = (
+                st.selectbox(
+                    "Background",
+                    list(
+                        background_labels.keys()
+                    ),
+                    index=0,
+                    key=(
+                        "free_video_maker_"
+                        "background"
+                    ),
+                )
             )
 
-            background_color = background_labels[
-                selected_background
-            ]
+            background_color = (
+                background_labels[
+                    selected_background
+                ]
+            )
 
-            if uploaded_images:
-                used_image_count = min(
-                    len(uploaded_images),
-                    12,
-                )
-
-                total_duration = (
-                    used_image_count
-                    * seconds_per_image
-                )
-
-                st.caption(
-                    "Estimated duration: "
-                    f"{total_duration} seconds."
-                )
+            total_duration = (
+                len(selected_items)
+                * seconds_per_image
+            )
 
             st.caption(
-                "The first version creates a clean "
-                "image sequence. Transitions, text "
-                "and narration will be added next."
+                f"Selected: "
+                f"{len(selected_items)} | "
+                "Estimated duration: "
+                f"{total_duration} seconds."
             )
 
             if st.button(
                 "Create free video",
-                key="create_free_video_button",
+                key=(
+                    "create_free_video_button"
+                ),
                 type="primary",
                 use_container_width=True,
             ):
                 _create_free_video(
                     tool_manager=tool_manager,
-                    uploaded_images=(
-                        uploaded_images
+                    selected_items=(
+                        selected_items
                     ),
                     aspect_ratio=aspect_ratio,
                     seconds_per_image=(
@@ -154,53 +228,212 @@ def render_free_video_maker_panel(
             _show_free_video()
 
 
-def _create_free_video(
-    tool_manager: Any,
+def _store_uploaded_images(
     uploaded_images: Any,
-    aspect_ratio: str,
-    seconds_per_image: int,
-    background_color: str,
-) -> None:
+    source: str = "Upload",
+) -> int:
     """
-    Validate uploaded images and create the MP4.
+    Store uploaded images in the session library.
     """
 
-    if not uploaded_images:
-        st.warning(
-            "Choose at least one image "
-            "before creating the video."
-        )
-        return
-
-    selected_images = (
-        uploaded_images[:12]
+    library = st.session_state.setdefault(
+        MOVIE_MAKER_LIBRARY_KEY,
+        [],
     )
 
-    image_bytes = []
+    added_count = 0
 
-    for uploaded_image in selected_images:
+    for uploaded_image in uploaded_images:
+        if (
+            len(library)
+            >= MAX_LIBRARY_IMAGES
+        ):
+            st.warning(
+                "The library is limited to "
+                f"{MAX_LIBRARY_IMAGES} images."
+            )
+            break
+
         try:
-            content = (
+            content = bytes(
                 uploaded_image.getvalue()
             )
 
         except Exception:
             content = b""
 
-        if content:
-            image_bytes.append(
-                content
+        if not content:
+            continue
+
+        image_id = hashlib.sha256(
+            content
+        ).hexdigest()
+
+        if any(
+            item.get("id") == image_id
+            for item in library
+        ):
+            continue
+
+        image_name = getattr(
+            uploaded_image,
+            "name",
+            "smartphone_photo.jpg",
+        )
+
+        mime_type = getattr(
+            uploaded_image,
+            "type",
+            "image/jpeg",
+        )
+
+        library.append(
+            {
+                "id": image_id,
+                "name": image_name,
+                "mime_type": mime_type,
+                "image_bytes": content,
+                "source": source,
+                "selected": True,
+            }
+        )
+
+        added_count += 1
+
+    return added_count
+
+
+def _render_library(
+    library: list[dict[str, Any]],
+) -> None:
+    """
+    Display stored images and ordering controls.
+    """
+
+    for index, item in enumerate(
+        list(library)
+    ):
+        image_id = item["id"]
+
+        st.image(
+            item["image_bytes"],
+            caption=(
+                f"{index + 1}. "
+                f"{item['name']}"
+            ),
+            width="stretch",
+        )
+
+        item["selected"] = st.checkbox(
+            "Use in video",
+            value=item.get(
+                "selected",
+                True,
+            ),
+            key=(
+                "movie_maker_selected_"
+                f"{image_id}"
+            ),
+        )
+
+        left_column, middle_column, (
+            right_column
+        ) = st.columns(3)
+
+        if left_column.button(
+            "⬆️",
+            key=f"movie_up_{image_id}",
+            disabled=(index == 0),
+            help="Move image up",
+        ):
+            (
+                library[index - 1],
+                library[index],
+            ) = (
+                library[index],
+                library[index - 1],
             )
 
-    if not image_bytes:
-        st.error(
-            "The selected files contained "
-            "no readable image data."
+            st.rerun()
+
+        if middle_column.button(
+            "⬇️",
+            key=f"movie_down_{image_id}",
+            disabled=(
+                index
+                == len(library) - 1
+            ),
+            help="Move image down",
+        ):
+            (
+                library[index + 1],
+                library[index],
+            ) = (
+                library[index],
+                library[index + 1],
+            )
+
+            st.rerun()
+
+        if right_column.button(
+            "🗑️",
+            key=(
+                f"movie_delete_{image_id}"
+            ),
+            help="Remove image",
+        ):
+            del library[index]
+
+            st.session_state.pop(
+                (
+                    "movie_maker_selected_"
+                    f"{image_id}"
+                ),
+                None,
+            )
+
+            st.rerun()
+
+        st.download_button(
+            label="Download this image",
+            data=item["image_bytes"],
+            file_name=item["name"],
+            mime=item["mime_type"],
+            key=(
+                f"movie_download_{image_id}"
+            ),
+            use_container_width=True,
+        )
+
+
+def _create_free_video(
+    tool_manager: Any,
+    selected_items: list[
+        dict[str, Any]
+    ],
+    aspect_ratio: str,
+    seconds_per_image: int,
+    background_color: str,
+) -> None:
+    """
+    Create the MP4 from selected stored images.
+    """
+
+    if not selected_items:
+        st.warning(
+            "Select at least one stored image "
+            "before creating the video."
         )
         return
 
+    image_bytes = [
+        item["image_bytes"]
+        for item in selected_items
+    ]
+
     with st.spinner(
-        "DeDe is assembling the free video..."
+        "DeDe is assembling "
+        "the free video..."
     ):
         tool_result = tool_manager.run(
             tool_name="free_video_maker",
