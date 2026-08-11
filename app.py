@@ -2105,6 +2105,15 @@ if text:
         ),
     }
 
+    memory_context_seconds = (
+        time.perf_counter()
+        - memory_context_started_at
+    )
+
+    routing_started_at = (
+        time.perf_counter()
+    )
+    
     tool_governor = ToolGovernor(
         llm_engine=(
             st.session_state
@@ -2122,6 +2131,11 @@ if text:
                 working_memory_context
             ),
         )
+    )
+
+    routing_seconds = (
+        time.perf_counter()
+        - routing_started_at
     )
     
     memory_candidate = tool_decision.get(
