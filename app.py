@@ -2041,6 +2041,10 @@ if text:
     st.session_state["voice_text"] = ""
 
 if text:
+    response_timer_state = (
+        start_response_timer()
+    )
+
     available_tools = (
         st.session_state.tool_manager.available_tools()
     )
