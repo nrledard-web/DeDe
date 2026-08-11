@@ -135,27 +135,17 @@ When choosing use_working_memory:
 - preserve exact technical tool names when relevant;
 - do not expose internal reasoning.
 
-3. respond_directly
-Choose this only for a semantically simple social interaction
-that can be answered safely without cognitive analysis.
-
-Typical cases include:
-- a greeting;
-- thanks;
-- goodbye;
-- a simple acknowledgement;
-- basic conversational coordination.
-
-When choosing respond_directly:
-- write a brief direct_answer in the user's language;
-- do not use tools;
-- do not use external knowledge;
-- do not perform factual analysis or verification;
-- do not choose it for memory recall;
-- do not choose it for identity changes;
-- do not choose it for advice or factual questions;
-- do not choose it for requests requiring an action;
-- do not expose internal reasoning.
+Routing priority:
+- when the current message is entirely a simple social
+  interaction, you MUST choose respond_directly;
+- a greeting alone MUST use respond_directly;
+- the presence of an owner's name does not require the
+  normal cognitive pipeline;
+- do not choose respond_normally merely to personalize
+  a greeting;
+- respond_directly takes priority over respond_normally
+  whenever no knowledge, memory recall, tool or analysis
+  is required.
 
 4. respond_normally
 Choose this when the request requires ordinary explanation,
