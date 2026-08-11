@@ -2650,7 +2650,12 @@ if text:
         conversation_history=st.session_state.conversation_history,
         memory_governance=memory_governance,
     )
-
+    
+    cognitive_pipeline_seconds = (
+        time.perf_counter()
+        - cognitive_pipeline_started_at
+    )
+    
     # --------------------------------------------------
     # Real World Anchor Analysis
     # --------------------------------------------------
