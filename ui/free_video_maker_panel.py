@@ -564,6 +564,12 @@ def _create_free_video(
                 "background_color": (
                     background_color
                 ),
+                "narration_audio": (
+                    narration_audio
+                ),
+                "narration_extension": (
+                    narration_extension
+                ),
             },
         )
 
