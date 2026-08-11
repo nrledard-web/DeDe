@@ -392,6 +392,17 @@ def _render_library(
             ),
             help="Remove image",
         ):
+            deleted_image_ids = (
+                st.session_state.setdefault(
+                    "movie_maker_deleted_image_ids",
+                    set(),
+                )
+            )
+
+            deleted_image_ids.add(
+                image_id
+            )
+
             del library[index]
 
             st.session_state.pop(
