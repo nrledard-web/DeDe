@@ -135,7 +135,29 @@ When choosing use_working_memory:
 - preserve exact technical tool names when relevant;
 - do not expose internal reasoning.
 
-3. respond_normally
+3. respond_directly
+Choose this only for a semantically simple social interaction
+that can be answered safely without cognitive analysis.
+
+Typical cases include:
+- a greeting;
+- thanks;
+- goodbye;
+- a simple acknowledgement;
+- basic conversational coordination.
+
+When choosing respond_directly:
+- write a brief direct_answer in the user's language;
+- do not use tools;
+- do not use external knowledge;
+- do not perform factual analysis or verification;
+- do not choose it for memory recall;
+- do not choose it for identity changes;
+- do not choose it for advice or factual questions;
+- do not choose it for requests requiring an action;
+- do not expose internal reasoning.
+
+4. respond_normally
 Choose this when the request requires ordinary explanation,
 knowledge, interpretation, verification or cognitive reasoning,
 or when working memory is insufficient or ambiguous.
