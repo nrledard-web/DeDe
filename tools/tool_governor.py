@@ -891,7 +891,7 @@ Return only valid JSON with this exact structure:
             ),
         )
 
-        reason = str(
+            reason = str(
             decision.get(
                 "reason",
                 "",
@@ -917,8 +917,50 @@ Return only valid JSON with this exact structure:
 
         if (
             action
+            == "respond_directly"
+        ):
+            if not direct_answer:
+                return self._normal_decision(
+                    reason=(
+                        "Direct routing was selected "
+                        "without a usable answer."
+                    ),
+                    confidence=confidence,
+                    memory_candidate=(
+                        memory_candidate
+                    ),
+                )
+
+            return {
+                "governor": self.name,
+                "status": "ready",
+                "action": "respond_directly",
+                "tool_name": "",
+                "confidence": confidence,
+                "arguments": {},
+                "direct_answer": direct_answer,
+                "memory_reference": "",
+                "memory_candidate": (
+                    memory_candidate
+                ),
+                "reason": (
+                    reason
+                    or (
+                        "A simple social response "
+                        "can be returned directly."
+                    )
+                ),
+            }
+
+        if (
+            action
             == "use_working_memory"
         ):
+            durable_memory = working_memory.get(
+                "durable_memory",
+                {},
+            )
+
             durable_memory = working_memory.get(
                 "durable_memory",
                 {},
