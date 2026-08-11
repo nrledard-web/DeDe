@@ -269,6 +269,16 @@ def _store_uploaded_images(
             content
         ).hexdigest()
 
+        deleted_image_ids = (
+            st.session_state.setdefault(
+                "movie_maker_deleted_image_ids",
+                set(),
+            )
+        )
+
+        if image_id in deleted_image_ids:
+            continue
+
         if any(
             item.get("id") == image_id
             for item in library
