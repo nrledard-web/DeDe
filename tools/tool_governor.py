@@ -244,6 +244,7 @@ Return only valid JSON with this exact structure:
   "arguments": {},
   "direct_answer": "",
   "memory_reference": "",
+  "external_search_required": false,
   "memory_candidate": {
     "content": "",
     "memory_type": "unknown",
