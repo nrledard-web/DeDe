@@ -2269,11 +2269,15 @@ if text:
                 )
             )
 
+            finish_response_timer(
+                response_timer_state
+            )
+
             if st.session_state.get(
                 "pending_memory_candidate"
             ):
                 st.rerun()
-            
+
             st.stop()
             
             
