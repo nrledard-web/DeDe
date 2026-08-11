@@ -2228,7 +2228,10 @@ if text:
         tool_decision.get(
             "action"
         )
-        == "use_working_memory"
+        in {
+            "use_working_memory",
+            "respond_directly",
+        }
     ):
         direct_answer = str(
             tool_decision.get(
