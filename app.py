@@ -2055,6 +2055,10 @@ if text:
         else ""
     )
 
+    memory_context_started_at = (
+        time.perf_counter()
+    )
+
     working_memory_context = (
         st.session_state.engine
         .conversation_manager
