@@ -1963,18 +1963,49 @@ for index, item in enumerate(
                     width="stretch",
                 )
 
+                image_file_name = (
+                    "dede_generated_image_"
+                    f"{index + 1}.{extension}"
+                )
+
                 st.download_button(
                     label=(
                         f"Download {extension.upper()}"
                     ),
                     data=image_bytes,
-                    file_name=(
-                        "dede_generated_image_"
-                        f"{index + 1}.{extension}"
-                    ),
+                    file_name=image_file_name,
                     mime=mime_type,
                     key=f"download_tool_image_{index}",
                 )
+
+                if st.button(
+                    "🎞️ Add to Movie Maker",
+                    key=(
+                        "add_chat_image_to_"
+                        f"movie_maker_{index}"
+                    ),
+                ):
+                    image_added = (
+                        _store_movie_maker_image(
+                            image_bytes=bytes(
+                                image_bytes
+                            ),
+                            name=image_file_name,
+                            mime_type=mime_type,
+                            source="DeDe chat",
+                        )
+                    )
+
+                    if image_added:
+                        st.success(
+                            "Image added to "
+                            "Movie Maker."
+                        )
+                    else:
+                        st.info(
+                            "This image is already "
+                            "in Movie Maker."
+                        )
 
                 st.caption(
                     f"Provider: {provider} | Model: "
