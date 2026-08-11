@@ -6,6 +6,8 @@ import os
 import time
 from pathlib import Path
 
+from textwrap import dedent
+
 import streamlit.components.v1 as components
 
 from ui.image_generators_panel import (
@@ -279,7 +281,8 @@ else:
 
 
 st.markdown(
-    """
+    dedent(
+        """
     <style>
     .dede-title {
         text-align: center;
@@ -466,8 +469,10 @@ st.markdown(
         A little more time to respond—for greater accuracy,
         privacy, and security.
     </p>
-    """,
+        """
+    ),
     unsafe_allow_html=True,
+)
 )
 
 # --------------------------------------------------
