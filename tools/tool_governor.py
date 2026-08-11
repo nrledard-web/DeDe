@@ -222,6 +222,19 @@ of the language used.
 For use_tool, select only an exact registered tool name and
 construct arguments that respect its supplied input schema.
 
+Also decide whether current external information is required.
+
+Set external_search_required to true only when the current
+request requires information that may be recent, changing,
+externally verifiable or unavailable in supplied memory.
+
+Set it to false for greetings, conversation, remembered
+information, writing requests, tool actions and questions
+that can be answered from stable internal knowledge.
+
+This search decision must be semantic and independent of
+specific words or languages.
+
 Return only valid JSON with this exact structure:
 
 {
