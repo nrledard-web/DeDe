@@ -2712,9 +2712,52 @@ if text:
             audio = generate_speech(final_answer)
             st.audio(audio, format="audio/mp3")
 
-    finish_response_timer(
-        response_timer_state
+    total_response_seconds = (
+        finish_response_timer(
+            response_timer_state
+        )
     )
+
+    measured_seconds = (
+        memory_context_seconds
+        + routing_seconds
+        + cognitive_pipeline_seconds
+    )
+
+    other_seconds = max(
+        0.0,
+        total_response_seconds
+        - measured_seconds,
+    )
+
+    with st.expander(
+        "⏱️ Performance details",
+        expanded=False,
+    ):
+        st.write(
+            "Memory context:",
+            f"{memory_context_seconds:.2f} s",
+        )
+
+        st.write(
+            "Tool routing:",
+            f"{routing_seconds:.2f} s",
+        )
+
+        st.write(
+            "Cognitive pipeline:",
+            f"{cognitive_pipeline_seconds:.2f} s",
+        )
+
+        st.write(
+            "Other processing:",
+            f"{other_seconds:.2f} s",
+        )
+
+        st.write(
+            "Total:",
+            f"{total_response_seconds:.2f} s",
+        )
 
     workspace = report["workspace"]
     variables = workspace["variables"]
