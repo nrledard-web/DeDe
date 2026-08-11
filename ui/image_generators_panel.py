@@ -7,9 +7,15 @@ image-generation providers.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 import streamlit as st
+
+
+MOVIE_MAKER_LIBRARY_KEY = (
+    "movie_maker_image_library"
+)
 
 
 def render_image_generators_panel(
@@ -30,8 +36,13 @@ def render_image_generators_panel(
             )
 
             provider_labels = {
-                "OpenAI Image — High Quality": "openai",
-                "Cloudflare FLUX — Free": "cloudflare",
+                (
+                    "OpenAI Image — High Quality"
+                ): "openai",
+                (
+                    "Cloudflare FLUX — Free, "
+                    "daily quota"
+                ): "cloudflare",
             }
 
             selected_provider_label = st.selectbox(
@@ -48,14 +59,14 @@ def render_image_generators_panel(
             image_prompt = st.text_area(
                 "Describe the image",
                 placeholder=(
-                    "Example: A cinematic sunset over "
-                    "Barcelona, realistic photography."
+                    "Example: A cinematic sunset "
+                    "over Barcelona, realistic "
+                    "photography."
                 ),
                 key="image_generator_prompt",
                 height=120,
             )
 
-            tool_name = ""
             tool_arguments: dict[str, Any] = {
                 "prompt": image_prompt,
             }
@@ -64,9 +75,15 @@ def render_image_generators_panel(
                 tool_name = "image_generator"
 
                 format_labels = {
-                    "Square — 1:1": "1024x1024",
-                    "Portrait — 2:3": "1024x1536",
-                    "Landscape — 3:2": "1536x1024",
+                    (
+                        "Square — 1:1"
+                    ): "1024x1024",
+                    (
+                        "Portrait — 2:3"
+                    ): "1024x1536",
+                    (
+                        "Landscape — 3:2"
+                    ): "1536x1024",
                 }
 
                 selected_format = st.selectbox(
@@ -74,10 +91,6 @@ def render_image_generators_panel(
                     list(format_labels.keys()),
                     key="openai_image_format",
                 )
-
-                image_size = format_labels[
-                    selected_format
-                ]
 
                 image_quality = st.selectbox(
                     "Quality",
@@ -90,19 +103,26 @@ def render_image_generators_panel(
                     key="openai_image_quality",
                 )
 
-                transparent_background = st.checkbox(
-                    "Transparent background",
-                    value=False,
-                    key="openai_image_transparent",
+                transparent_background = (
+                    st.checkbox(
+                        "Transparent background",
+                        value=False,
+                        key=(
+                            "openai_image_"
+                            "transparent"
+                        ),
+                    )
                 )
 
                 tool_arguments.update(
                     {
-                        "size": image_size,
+                        "size": format_labels[
+                            selected_format
+                        ],
                         "quality": image_quality,
-                        "transparent_background": (
-                            transparent_background
-                        ),
+                        (
+                            "transparent_background"
+                        ): transparent_background,
                     }
                 )
 
@@ -117,8 +137,8 @@ def render_image_generators_panel(
                     max_value=8,
                     value=4,
                     help=(
-                        "More steps can improve the image "
-                        "but take slightly longer."
+                        "More steps can improve "
+                        "the image but take longer."
                     ),
                     key="cloudflare_image_steps",
                 )
@@ -130,8 +150,8 @@ def render_image_generators_panel(
                 )
 
                 st.caption(
-                    "Cloudflare FLUX uses the free daily "
-                    "Workers AI allowance."
+                    "Cloudflare FLUX uses the free "
+                    "daily Workers AI allowance."
                 )
 
             if st.button(
@@ -157,7 +177,7 @@ def _generate_image(
     arguments: dict[str, Any],
 ) -> None:
     """
-    Validate the request and execute the selected tool.
+    Validate and execute image generation.
     """
 
     prompt = str(
@@ -169,7 +189,8 @@ def _generate_image(
 
     if not prompt:
         st.warning(
-            "Describe the image before starting generation."
+            "Describe the image before "
+            "starting generation."
         )
         return
 
@@ -232,6 +253,86 @@ def _generate_image(
         "last_generated_image"
     ] = normalized_result
 
+    if normalized_result.get(
+        "status"
+    ) == "success":
+        image_bytes = normalized_result.get(
+            "image_bytes"
+        )
+
+        if image_bytes:
+            mime_type = normalized_result.get(
+                "mime_type",
+                "image/png",
+            )
+
+            extension = (
+                "jpg"
+                if mime_type == "image/jpeg"
+                else "png"
+            )
+
+            added = (
+                _store_movie_maker_image(
+                    image_bytes=bytes(
+                        image_bytes
+                    ),
+                    name=(
+                        "dede_generated_image."
+                        f"{extension}"
+                    ),
+                    mime_type=mime_type,
+                    source=(
+                        "DeDe image generator"
+                    ),
+                )
+            )
+
+            if added:
+                st.success(
+                    "Image added to the "
+                    "Movie Maker library."
+                )
+
+
+def _store_movie_maker_image(
+    image_bytes: bytes,
+    name: str,
+    mime_type: str,
+    source: str,
+) -> bool:
+    """
+    Store one generated image for Movie Maker.
+    """
+
+    library = st.session_state.setdefault(
+        MOVIE_MAKER_LIBRARY_KEY,
+        [],
+    )
+
+    image_id = hashlib.sha256(
+        image_bytes
+    ).hexdigest()
+
+    if any(
+        item.get("id") == image_id
+        for item in library
+    ):
+        return False
+
+    library.append(
+        {
+            "id": image_id,
+            "name": name,
+            "mime_type": mime_type,
+            "image_bytes": image_bytes,
+            "source": source,
+            "selected": True,
+        }
+    )
+
+    return True
+
 
 def _show_generated_image() -> None:
     """
@@ -254,7 +355,8 @@ def _show_generated_image() -> None:
 
         if not image_bytes:
             st.error(
-                "The provider returned no image data."
+                "The provider returned "
+                "no image data."
             )
             return
 
@@ -282,16 +384,20 @@ def _show_generated_image() -> None:
         st.image(
             image_bytes,
             caption=(
-                f"Generated by DeDe with {provider}"
+                "Generated by DeDe with "
+                f"{provider}"
             ),
             width="stretch",
         )
 
         st.download_button(
-            label=f"Download {extension.upper()}",
+            label=(
+                f"Download {extension.upper()}"
+            ),
             data=image_bytes,
             file_name=(
-                f"dede_generated_image.{extension}"
+                "dede_generated_image."
+                f"{extension}"
             ),
             mime=mime_type,
             key="download_generated_image",
@@ -299,7 +405,8 @@ def _show_generated_image() -> None:
         )
 
         st.caption(
-            f"Provider: {provider} | Model: {model}"
+            f"Provider: {provider} | "
+            f"Model: {model}"
         )
 
     elif status:
