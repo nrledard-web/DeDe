@@ -185,6 +185,95 @@ def create_video(
 
         clips = []
 
+        narration_clip = None
+        narration_path = None
+        narration_duration = None
+    
+        if narration_audio:
+            allowed_audio_extensions = {
+                ".wav",
+                ".mp3",
+                ".m4a",
+                ".aac",
+            }
+    
+            resolved_extension = str(
+                narration_extension
+                or ".wav"
+            ).lower()
+    
+            if not resolved_extension.startswith(
+                "."
+            ):
+                resolved_extension = (
+                    f".{resolved_extension}"
+                )
+    
+            if (
+                resolved_extension
+                not in allowed_audio_extensions
+            ):
+                resolved_extension = ".wav"
+    
+            try:
+                with tempfile.NamedTemporaryFile(
+                    delete=False,
+                    suffix=resolved_extension,
+                ) as temporary_audio:
+                    temporary_audio.write(
+                        bytes(
+                            narration_audio
+                        )
+                    )
+    
+                    narration_path = Path(
+                        temporary_audio.name
+                    )
+    
+                narration_clip = AudioFileClip(
+                    str(
+                        narration_path
+                    )
+                )
+    
+                narration_duration = float(
+                    narration_clip.duration
+                )
+    
+                if narration_duration > 0:
+                    resolved_duration = max(
+                        self.MIN_SECONDS_PER_IMAGE,
+                        narration_duration
+                        / len(images),
+                    )
+    
+            except Exception as error:
+                if narration_clip is not None:
+                    try:
+                        narration_clip.close()
+                    except Exception:
+                        pass
+    
+                if (
+                    narration_path is not None
+                    and narration_path.exists()
+                ):
+                    try:
+                        narration_path.unlink()
+                    except Exception:
+                        pass
+    
+                return {
+                    "tool": self.name,
+                    "status": "invalid_audio",
+                    "error": (
+                        "The narration audio could "
+                        "not be read: "
+                        f"{error}"
+                    ),
+                    "video_bytes": None,
+                }
+
         try:
             for image_bytes in images:
                 prepared_image = (
