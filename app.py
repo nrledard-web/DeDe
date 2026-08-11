@@ -2622,6 +2622,10 @@ if text:
 
     engine = st.session_state.engine
 
+    cognitive_pipeline_started_at = (
+        time.perf_counter()
+    )
+
     report = engine.analyze(
         text=text,
         document_context=st.session_state.get(
