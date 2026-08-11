@@ -2119,14 +2119,6 @@ if text:
             ),
         )
     )
-
-    with st.expander(
-        "🧪 Tool Governor diagnostic",
-        expanded=True,
-    ):
-        st.json(
-            tool_decision
-        )
     
     memory_candidate = tool_decision.get(
         "memory_candidate",
