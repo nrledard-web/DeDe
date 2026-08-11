@@ -21,6 +21,7 @@ from PIL import (
 )
 
 from moviepy import (
+    AudioFileClip,
     ImageClip,
     concatenate_videoclips,
 )
