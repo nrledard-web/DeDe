@@ -97,15 +97,15 @@ class FreeVideoMaker:
     MIN_SECONDS_PER_IMAGE = 1.0
     MAX_SECONDS_PER_IMAGE = 10.0
 
-def create_video(
-    self,
-    images: list[bytes],
-    aspect_ratio: str = "9:16",
-    seconds_per_image: float = 3,
-    background_color: str = "black",
-    narration_audio: bytes | None = None,
-    narration_extension: str = ".wav",
-) -> dict[str, Any]:
+    def create_video(
+        self,
+        images: list[bytes],
+        aspect_ratio: str = "9:16",
+        seconds_per_image: float = 3,
+        background_color: str = "black",
+        narration_audio: bytes | None = None,
+        narration_extension: str = ".wav",
+    ) -> dict[str, Any]:
         """
         Build an MP4 video from image bytes.
         """
