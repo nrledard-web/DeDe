@@ -316,6 +316,13 @@ class FreeVideoMaker:
                 method="compose",
             )
 
+            if narration_clip is not None:
+                final_clip = (
+                    final_clip.with_audio(
+                        narration_clip
+                    )
+                )
+
             with tempfile.TemporaryDirectory() as temp_dir:
                 output_path = (
                     Path(temp_dir)
