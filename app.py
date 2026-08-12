@@ -1892,6 +1892,7 @@ for index, turn in enumerate(st.session_state.conversation_history):
 history_image_tools = {
     "image_generator",
     "cloudflare_image_generator",
+    "cloudflare_reference_image",
 }
 
 for index, item in enumerate(
