@@ -2533,15 +2533,14 @@ if uploaded_chat_image is not None:
                 {},
             )
 
-            st.success(
+            st.session_state[
+                "memory_manager_notice"
+            ] = (
                 "Image saved in persistent "
                 "DeDe memory."
             )
-
-            st.caption(
-                "Image ID: "
-                f"{saved_image.get('image_id', '')}"
-            )
+            
+            st.rerun()
 
         else:
 
