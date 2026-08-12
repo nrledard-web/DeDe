@@ -2273,6 +2273,72 @@ text = typed_text or st.session_state.get("voice_text", "")
 if text:
     st.session_state["voice_text"] = ""
 
+# --------------------------------------------------
+# Active Image Vision Analysis
+# --------------------------------------------------
+
+active_chat_image = st.session_state.get(
+    "active_chat_image",
+    {},
+)
+
+if text and active_chat_image:
+
+    image_bytes = active_chat_image.get(
+        "image_bytes",
+        b"",
+    )
+
+    if image_bytes:
+
+        vision_result = (
+            st.session_state.cloudflare_vision.analyze(
+                image_bytes=image_bytes,
+                prompt=text,
+            )
+        )
+
+        if vision_result.get("status") == "success":
+
+            vision_analysis = vision_result.get(
+                "analysis",
+                "",
+            )
+
+            st.session_state[
+                "active_image_analysis"
+            ] = {
+                "filename": active_chat_image.get(
+                    "name",
+                    "",
+                ),
+                "analysis": vision_analysis,
+                "provider": vision_result.get(
+                    "provider",
+                    "cloudflare",
+                ),
+                "model": vision_result.get(
+                    "model",
+                    "",
+                ),
+            }
+
+            text = (
+                f"{text}\n\n"
+                "Visual analysis supplied by "
+                "DeDe Vision:\n"
+                f"{vision_analysis}"
+            )
+
+        else:
+
+            st.error(
+                vision_result.get(
+                    "error",
+                    "Image analysis failed.",
+                )
+            )
+
 if text:
     response_timer_state = (
         start_response_timer()
