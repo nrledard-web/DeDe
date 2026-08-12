@@ -77,6 +77,7 @@ from estimators.estimator_engine import EstimatorEngine
 from memory.memory_retriever import MemoryRetriever
 from memory.memory_governor import MemoryGovernor
 from memory.persistent_memory import PersistentMemory
+from memory.image_memory import ImageMemory
 from memory.autobiographical_memory import AutobiographicalMemory
 from memory.autobiographical_reasoner import AutobiographicalReasoner
 
