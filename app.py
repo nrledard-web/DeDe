@@ -2537,7 +2537,7 @@ if active_image_preview:
             st.session_state.engine
             .image_memory
             .save_image(
-                image_bytes=uploaded_image_bytes,
+                image_bytes=preview_bytes,
                 original_name=(
                     uploaded_chat_image.name
                 ),
