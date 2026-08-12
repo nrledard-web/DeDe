@@ -326,6 +326,7 @@ Return only valid JSON with this exact structure:
   "tool_name": "exact registered tool name or empty string",
   "confidence": 0.0,
   "arguments": {},
+  "image_intent": "image_analysis" or "reference_image_generation" or "unrelated",
   "direct_answer": "",
   "memory_reference": "",
   "external_search_required": false,
