@@ -40,18 +40,18 @@ class ToolGovernor:
             CloudflareRoutingProvider()
         )
 
-def decide(
-    self,
-    text: str,
-    available_tools: list[dict[str, Any]],
-    provider: str,
-    conversation_context: (
-        dict[str, Any] | None
-    ) = None,
-    image_context: (
-        dict[str, Any] | None
-    ) = None,
-) -> dict[str, Any]:
+    def decide(
+        self,
+        text: str,
+        available_tools: list[dict[str, Any]],
+        provider: str,
+        conversation_context: (
+            dict[str, Any] | None
+        ) = None,
+        image_context: (
+            dict[str, Any] | None
+        ) = None,
+    ) -> dict[str, Any]:
         """
         Return a normalized semantic routing decision.
         """
