@@ -911,6 +911,21 @@ Return only valid JSON with this exact structure:
         ):
             arguments = {}
 
+        image_intent = str(
+            decision.get(
+                "image_intent",
+                "unrelated",
+            )
+            or "unrelated"
+        ).strip().lower()
+        
+        if image_intent not in {
+            "image_analysis",
+            "reference_image_generation",
+            "unrelated",
+        }:
+            image_intent = "unrelated"
+
         direct_answer = str(
             decision.get(
                 "direct_answer",
