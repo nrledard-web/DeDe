@@ -40,15 +40,18 @@ class ToolGovernor:
             CloudflareRoutingProvider()
         )
 
-    def decide(
-        self,
-        text: str,
-        available_tools: list[dict[str, Any]],
-        provider: str,
-        conversation_context: (
-            dict[str, Any] | None
-        ) = None,
-    ) -> dict[str, Any]:
+def decide(
+    self,
+    text: str,
+    available_tools: list[dict[str, Any]],
+    provider: str,
+    conversation_context: (
+        dict[str, Any] | None
+    ) = None,
+    image_context: (
+        dict[str, Any] | None
+    ) = None,
+) -> dict[str, Any]:
         """
         Return a normalized semantic routing decision.
         """
@@ -78,6 +81,40 @@ class ToolGovernor:
             conversation_context or {}
         )
 
+        image_context = (
+            image_context or {}
+        )
+        
+        prepared_image_context = {
+            "image_active": bool(
+                image_context.get(
+                    "image_active",
+                    False,
+                )
+            ),
+            "filename": str(
+                image_context.get(
+                    "filename",
+                    "",
+                )
+                or ""
+            ),
+            "mime_type": str(
+                image_context.get(
+                    "mime_type",
+                    "",
+                )
+                or ""
+            ),
+            "visual_analysis": self._limit_text(
+                image_context.get(
+                    "visual_analysis",
+                    "",
+                ),
+                3000,
+            ),
+        }
+        
         tool_descriptions = (
             self._prepare_tool_descriptions(
                 available_tools
