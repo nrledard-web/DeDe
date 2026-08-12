@@ -8,8 +8,8 @@ class CloudflareVision:
     name = "cloudflare_vision"
 
     model = (
-        "@cf/meta/"
-        "llama-3.2-11b-vision-instruct"
+        "@cf/moondream/"
+        "moondream3.1-9B-A2B"
     )
 
     def __init__(self):
@@ -34,13 +34,17 @@ class CloudflareVision:
         if not self.account_id:
             return {
                 "status": "error",
-                "error": "Missing CLOUDFLARE_ACCOUNT_ID.",
+                "error": (
+                    "Missing CLOUDFLARE_ACCOUNT_ID."
+                ),
             }
 
         if not self.api_token:
             return {
                 "status": "error",
-                "error": "Missing CLOUDFLARE_API_TOKEN.",
+                "error": (
+                    "Missing CLOUDFLARE_API_TOKEN."
+                ),
             }
 
         if not image_bytes:
@@ -52,7 +56,7 @@ class CloudflareVision:
         question = (
             prompt.strip()
             if prompt.strip()
-            else "Describe this image carefully."
+            else "What is visible in this image?"
         )
 
         encoded_image = base64.b64encode(
@@ -78,25 +82,13 @@ class CloudflareVision:
         }
 
         payload = {
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are DeDe Vision. "
-                        "Analyze only what is visible "
-                        "in the supplied image. "
-                        "Separate observations from "
-                        "interpretations and uncertainty."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": question,
-                },
-            ],
+            "task": "query",
             "image": image_data,
-            "max_tokens": 700,
+            "question": question,
+            "reasoning": False,
             "temperature": 0.2,
+            "max_tokens": 800,
+            "stream": False,
         }
 
         try:
@@ -111,6 +103,7 @@ class CloudflareVision:
             result = response.json()
 
             if response.status_code != 200:
+
                 return {
                     "status": "error",
                     "error": (
@@ -125,20 +118,27 @@ class CloudflareVision:
                 {},
             )
 
-            if isinstance(result_data, dict):
-                answer = result_data.get(
-                    "response",
-                    "",
-                )
-            else:
-                answer = str(result_data)
+            answer = ""
+
+            if isinstance(
+                result_data,
+                dict,
+            ):
+                answer = str(
+                    result_data.get(
+                        "answer",
+                        "",
+                    )
+                    or ""
+                ).strip()
 
             if not answer:
+
                 return {
                     "status": "error",
                     "error": (
                         "Cloudflare Vision returned "
-                        "an empty response."
+                        "no visual analysis."
                     ),
                 }
 
@@ -146,10 +146,11 @@ class CloudflareVision:
                 "status": "success",
                 "provider": "cloudflare",
                 "model": self.model,
-                "analysis": answer.strip(),
+                "analysis": answer,
             }
 
         except Exception as error:
+
             return {
                 "status": "error",
                 "error": str(error),
