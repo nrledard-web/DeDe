@@ -2495,18 +2495,18 @@ if text:
         and image_bytes
     ):
 
-    # ----------------------------------------------
-    # Recover useful recent conversational context
-    # ----------------------------------------------
-
-    recent_reference_context = []
-
-    for recent_turn in (
-        working_memory_context.get(
-            "recent_turns",
-            [],
-        )[-3:]
-    ):
+        # ----------------------------------------------
+        # Recover useful recent conversational context
+        # ----------------------------------------------
+    
+        recent_reference_context = []
+    
+        for recent_turn in (
+            working_memory_context.get(
+                "recent_turns",
+                [],
+            )[-3:]
+        ):
 
         if not isinstance(
             recent_turn,
