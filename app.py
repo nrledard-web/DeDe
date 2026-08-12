@@ -2253,18 +2253,7 @@ if uploaded_chat_image is not None:
 
     st.success("Image ready for DeDe.")
 
-    if st.button(
-        "✅ Use this image",
-        key="use_uploaded_chat_image",
-    ):
-        st.session_state[
-            "active_chat_image_confirmed"
-        ] = True
-    
-        st.success(
-            "Image selected for analysis."
-        )
-
+   
 # --------------------------------------------------
 # Cloudflare Vision Engine
 # --------------------------------------------------
