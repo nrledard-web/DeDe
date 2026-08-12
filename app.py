@@ -2456,6 +2456,46 @@ if text:
         )
     )
 
+# --------------------------------------------------
+# Vision Routing Protection
+# --------------------------------------------------
+
+vision_request_active = bool(
+    active_chat_image
+    and st.session_state.get(
+        "active_image_analysis"
+    )
+)
+
+if vision_request_active:
+
+    selected_vision_tool = str(
+        tool_decision.get(
+            "tool_name",
+            "",
+        )
+        or ""
+    ).lower()
+
+    if selected_vision_tool in {
+        "image_generator",
+        "cloudflare_image_generator",
+    }:
+
+        tool_decision["action"] = (
+            "respond_normally"
+        )
+
+        tool_decision["tool_name"] = ""
+
+        tool_decision["arguments"] = {}
+
+        tool_decision["reason"] = (
+            "An uploaded user image is being "
+            "analyzed. Image generation must "
+            "not be triggered."
+        )
+
     routing_seconds = (
         time.perf_counter()
         - routing_started_at
