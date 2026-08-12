@@ -2441,12 +2441,38 @@ if text:
 
     tool_decision = (
         tool_governor.decide(
-            text=text,
+            text=original_user_text,
             available_tools=available_tools,
             provider=active_tool_provider,
             conversation_context=(
                 working_memory_context
             ),
+            image_context={
+                "image_active": bool(
+                    active_chat_image
+                ),
+                "filename": (
+                    active_chat_image.get(
+                        "name",
+                        "",
+                    )
+                ),
+                "mime_type": (
+                    active_chat_image.get(
+                        "mime_type",
+                        "",
+                    )
+                ),
+                "visual_analysis": (
+                    st.session_state.get(
+                        "active_image_analysis",
+                        {},
+                    ).get(
+                        "analysis",
+                        "",
+                    )
+                ),
+            },
         )
     )
 
