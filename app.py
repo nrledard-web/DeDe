@@ -2474,39 +2474,25 @@ if text:
                 ),
             },
         )
-    )
-    # --------------------------------------------------
-    # Reference Image Generation Route
-    # --------------------------------------------------
-    
-    image_intent = str(
-        tool_decision.get(
-            "image_intent",
-            "unrelated",
-        )
-        or "unrelated"
-    ).strip().lower()
-    
-    
-    if (
-        image_intent
-        == "reference_image_generation"
-        and active_chat_image
-        and image_bytes
-    ):
+if (
+    image_intent
+    == "reference_image_generation"
+    and active_chat_image
+    and image_bytes
+):
 
-        # ----------------------------------------------
-        # Recover useful recent conversational context
-        # ----------------------------------------------
-    
-        recent_reference_context = []
-    
-        for recent_turn in (
-            working_memory_context.get(
-                "recent_turns",
-                [],
-            )[-3:]
-        ):
+    # ----------------------------------------------
+    # Recover useful recent conversational context
+    # ----------------------------------------------
+
+    recent_reference_context = []
+
+    for recent_turn in (
+        working_memory_context.get(
+            "recent_turns",
+            [],
+        )[-3:]
+    ):
 
         if not isinstance(
             recent_turn,
@@ -2557,7 +2543,6 @@ if text:
             "",
         )
     )
-
 
     reference_prompt = (
         "Use the supplied image as the "
