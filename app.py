@@ -2223,7 +2223,33 @@ if isinstance(
                 )
 
                 st.rerun()
+# --------------------------------------------------
+# Image Upload for DeDe Vision
+# --------------------------------------------------
 
+uploaded_chat_image = st.file_uploader(
+    "📷 Upload an image for DeDe to analyze",
+    type=["png", "jpg", "jpeg", "webp"],
+    key="dede_chat_image_upload",
+)
+
+if uploaded_chat_image is not None:
+
+    uploaded_image_bytes = uploaded_chat_image.getvalue()
+
+    st.session_state["active_chat_image"] = {
+        "name": uploaded_chat_image.name,
+        "mime_type": uploaded_chat_image.type,
+        "image_bytes": uploaded_image_bytes,
+    }
+
+    st.image(
+        uploaded_image_bytes,
+        caption=uploaded_chat_image.name,
+        width="stretch",
+    )
+
+    st.success("Image ready for DeDe.")
 # --------------------------------------------------
 # Chat Input
 # --------------------------------------------------
