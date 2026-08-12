@@ -1023,6 +1023,7 @@ Return only valid JSON with this exact structure:
                 "tool_name": "",
                 "confidence": confidence,
                 "arguments": {},
+                "image_intent": image_intent,
                 "direct_answer": direct_answer,
                 "memory_reference": "",
                 "memory_candidate": (
@@ -1093,6 +1094,7 @@ Return only valid JSON with this exact structure:
                 "tool_name": "",
                 "confidence": confidence,
                 "arguments": {},
+                "image_intent": image_intent,
                 "direct_answer": (
                     direct_answer
                 ),
@@ -1133,6 +1135,7 @@ Return only valid JSON with this exact structure:
                 "tool_name": tool_name,
                 "confidence": confidence,
                 "arguments": arguments,
+                "image_intent": image_intent,
                 "direct_answer": "",
                 "memory_reference": "",
                 "memory_candidate": (
@@ -1165,6 +1168,7 @@ Return only valid JSON with this exact structure:
         memory_candidate: (
             dict[str, Any] | None
         ) = None,
+        image_intent: str = "unrelated",
     ) -> dict[str, Any]:
 
         if not isinstance(
