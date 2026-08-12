@@ -2254,7 +2254,81 @@ if uploaded_chat_image is not None:
     )
 
     st.success("Image ready for DeDe.")
+    
+    # --------------------------------------------------
+    # Persistent Image Memory
+    # --------------------------------------------------
 
+    remember_image = st.button(
+        "🧠 Remember this image",
+        key="remember_active_chat_image",
+    )
+
+    if remember_image:
+
+        active_analysis = (
+            st.session_state.get(
+                "active_image_analysis",
+                {},
+            )
+        )
+
+        image_description = str(
+            active_analysis.get(
+                "analysis",
+                "",
+            )
+            or ""
+        ).strip()
+
+        save_result = (
+            st.session_state.engine
+            .image_memory
+            .save_image(
+                image_bytes=uploaded_image_bytes,
+                original_name=(
+                    uploaded_chat_image.name
+                ),
+                mime_type=(
+                    uploaded_chat_image.type
+                    or "image/jpeg"
+                ),
+                description=image_description,
+                label=uploaded_chat_image.name,
+                usage=[
+                    "visual_reference",
+                    "image_generation",
+                ],
+            )
+        )
+
+        if save_result.get(
+            "status"
+        ) == "success":
+
+            saved_image = save_result.get(
+                "image",
+                {},
+            )
+
+            st.success(
+                "Image saved in persistent "
+                "DeDe memory."
+            )
+
+            st.caption(
+                "Image ID: "
+                f"{saved_image.get('image_id', '')}"
+            )
+
+        else:
+
+            st.error(
+                save_result.get(
+                    "error",
+                    "Image memory save failed.",
+                )
+            )
    
 # --------------------------------------------------
 # Cloudflare Vision Engine
