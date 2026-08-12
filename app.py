@@ -2342,6 +2342,7 @@ if text and active_chat_image:
                     "Image analysis failed.",
                 )
             )
+            st.stop()
 
 if text:
     response_timer_state = (
