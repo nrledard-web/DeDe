@@ -152,6 +152,9 @@ class DoxaEnginePhase2:
         self.persistent_memory = PersistentMemory(
             user_id=user_id,
         )
+        self.image_memory = ImageMemory(
+            user_id=user_id,
+        )
         self._initialize_owner_profile(user_id)
         self.memory_retriever = MemoryRetriever()
         self.autobiographical_memory = AutobiographicalMemory()
