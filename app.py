@@ -2474,216 +2474,222 @@ if text:
                 ),
             },
         )
-if (
-    image_intent
-    == "reference_image_generation"
-    and active_chat_image
-    and image_bytes
-):
+    )
+    
+    # --------------------------------------------------
+    # Reference Image Generation Route
+    # --------------------------------------------------
 
-    # ----------------------------------------------
-    # Recover useful recent conversational context
-    # ----------------------------------------------
+    image_intent = str(
+        tool_decision.get(
+            "image_intent",
+            "unrelated",
+        )
+        or "unrelated"
+    ).strip().lower()
 
-    recent_reference_context = []
-
-    for recent_turn in (
-        working_memory_context.get(
-            "recent_turns",
-            [],
-        )[-3:]
+    if (
+        image_intent
+        == "reference_image_generation"
+        and active_chat_image
+        and image_bytes
     ):
 
-        if not isinstance(
-            recent_turn,
-            dict,
+        # ----------------------------------------------
+        # Recover useful recent conversational context
+        # ----------------------------------------------
+
+        recent_reference_context = []
+
+        for recent_turn in (
+            working_memory_context.get(
+                "recent_turns",
+                [],
+            )[-3:]
         ):
-            continue
 
-        recent_user = str(
-            recent_turn.get(
-                "user_input",
-                "",
-            )
-            or ""
-        ).strip()
+            if not isinstance(
+                recent_turn,
+                dict,
+            ):
+                continue
 
-        recent_answer = str(
-            recent_turn.get(
-                "answer",
-                "",
-            )
-            or ""
-        ).strip()
+            recent_user = str(
+                recent_turn.get(
+                    "user_input",
+                    "",
+                )
+                or ""
+            ).strip()
 
-        if recent_user:
-            recent_reference_context.append(
-                f"Previous user request: "
-                f"{recent_user}"
-            )
+            recent_answer = str(
+                recent_turn.get(
+                    "answer",
+                    "",
+                )
+                or ""
+            ).strip()
 
-        if recent_answer:
-            recent_reference_context.append(
-                f"Previous DeDe response: "
-                f"{recent_answer}"
-            )
+            if recent_user:
+                recent_reference_context.append(
+                    f"Previous user request: "
+                    f"{recent_user}"
+                )
 
+            if recent_answer:
+                recent_reference_context.append(
+                    f"Previous DeDe response: "
+                    f"{recent_answer}"
+                )
 
-    previous_context_text = "\n".join(
-        recent_reference_context
-    )
-
-
-    visual_reference_analysis = (
-        st.session_state.get(
-            "active_image_analysis",
-            {},
-        ).get(
-            "analysis",
-            "",
-        )
-    )
-
-    reference_prompt = (
-        "Use the supplied image as the "
-        "visual reference.\n\n"
-
-        "Preserve the relevant person's visible "
-        "identity and facial characteristics as "
-        "closely as the reference allows.\n\n"
-
-        "If the user identifies a particular person "
-        "within the reference image, use that person "
-        "rather than another visible person.\n\n"
-
-        "Do not copy the original background unless "
-        "the user asks for it.\n\n"
-
-        f"Visual analysis of the reference:\n"
-        f"{visual_reference_analysis}\n\n"
-
-        f"Recent conversational context:\n"
-        f"{previous_context_text}\n\n"
-
-        f"Current user request:\n"
-        f"{original_user_text}"
-    )
-
-
-    with st.chat_message("user"):
-        st.write(
-            original_user_text
+        previous_context_text = "\n".join(
+            recent_reference_context
         )
 
+        visual_reference_analysis = (
+            st.session_state.get(
+                "active_image_analysis",
+                {},
+            ).get(
+                "analysis",
+                "",
+            )
+        )
 
-    with st.chat_message("assistant"):
+        reference_prompt = (
+            "Use the supplied image as the "
+            "visual reference.\n\n"
+            "Preserve the relevant person's visible "
+            "identity and facial characteristics as "
+            "closely as the reference allows.\n\n"
+            "If the user identifies a particular person "
+            "within the reference image, use that person "
+            "rather than another visible person.\n\n"
+            "Do not copy the original background unless "
+            "the user asks for it.\n\n"
+            f"Visual analysis of the reference:\n"
+            f"{visual_reference_analysis}\n\n"
+            f"Recent conversational context:\n"
+            f"{previous_context_text}\n\n"
+            f"Current user request:\n"
+            f"{original_user_text}"
+        )
 
-        with st.spinner(
-            "DeDe is creating the image "
-            "from the reference..."
-        ):
+        with st.chat_message("user"):
+            st.write(
+                original_user_text
+            )
 
-            reference_result = (
-                st.session_state
-                .cloudflare_reference_image
-                .generate(
-                    prompt=reference_prompt,
-                    reference_image=image_bytes,
+        with st.chat_message("assistant"):
+
+            with st.spinner(
+                "DeDe is creating the image "
+                "from the reference..."
+            ):
+
+                reference_result = (
+                    st.session_state
+                    .cloudflare_reference_image
+                    .generate(
+                        prompt=reference_prompt,
+                        reference_image=image_bytes,
+                    )
                 )
-            )
 
-
-        if (
-            reference_result.get(
-                "status"
-            )
-            == "success"
-        ):
-
-            generated_image_bytes = (
+            if (
                 reference_result.get(
-                    "image_bytes",
-                    b"",
+                    "status"
                 )
-            )
+                == "success"
+            ):
 
-            generated_mime_type = (
-                reference_result.get(
-                    "mime_type",
-                    "image/png",
-                )
-            )
-
-            if generated_image_bytes:
-
-                st.image(
-                    generated_image_bytes,
-                    caption=(
-                        "Generated by DeDe "
-                        "from the reference image"
-                    ),
-                    width="stretch",
+                generated_image_bytes = (
+                    reference_result.get(
+                        "image_bytes",
+                        b"",
+                    )
                 )
 
-                st.download_button(
-                    label="Download image",
-                    data=generated_image_bytes,
-                    file_name=(
-                        "dede_reference_image.png"
-                    ),
-                    mime=generated_mime_type,
-                    key=(
-                        "download_reference_image_"
-                        f"{len(st.session_state.tool_history)}"
-                    ),
+                generated_mime_type = (
+                    reference_result.get(
+                        "mime_type",
+                        "image/png",
+                    )
                 )
 
-                st.session_state.tool_history.append(
-                    {
-                        "user_input": (
-                            original_user_text
+                if generated_image_bytes:
+
+                    st.image(
+                        generated_image_bytes,
+                        caption=(
+                            "Generated by DeDe "
+                            "from the reference image"
                         ),
-                        "tool_name": (
-                            "cloudflare_reference_image"
+                        width="stretch",
+                    )
+
+                    st.download_button(
+                        label="Download image",
+                        data=generated_image_bytes,
+                        file_name=(
+                            "dede_reference_image.png"
                         ),
-                        "tool_result": {
-                            "status": "success",
-                            "data": {
-                                "image_bytes": (
-                                    generated_image_bytes
-                                ),
-                                "mime_type": (
-                                    generated_mime_type
-                                ),
-                                "provider": "cloudflare",
-                                "model": (
-                                    reference_result.get(
-                                        "model",
-                                        "",
-                                    )
-                                ),
+                        mime=generated_mime_type,
+                        key=(
+                            "download_reference_image_"
+                            f"{len(st.session_state.tool_history)}"
+                        ),
+                    )
+
+                    st.session_state.tool_history.append(
+                        {
+                            "user_input": (
+                                original_user_text
+                            ),
+                            "tool_name": (
+                                "cloudflare_reference_image"
+                            ),
+                            "tool_result": {
+                                "status": "success",
+                                "data": {
+                                    "image_bytes": (
+                                        generated_image_bytes
+                                    ),
+                                    "mime_type": (
+                                        generated_mime_type
+                                    ),
+                                    "provider": "cloudflare",
+                                    "model": (
+                                        reference_result.get(
+                                            "model",
+                                            "",
+                                        )
+                                    ),
+                                },
                             },
-                        },
-                    }
-                )
+                        }
+                    )
+
+                else:
+
+                    st.error(
+                        "Reference generation succeeded "
+                        "but no image was returned."
+                    )
 
             else:
 
                 st.error(
-                    "Reference generation succeeded "
-                    "but no image was returned."
+                    reference_result.get(
+                        "error",
+                        (
+                            "Reference image "
+                            "generation failed."
+                        ),
+                    )
                 )
 
-        else:
-
-            st.error(
-                reference_result.get(
-                    "error",
-                    "Reference image generation failed.",
-                )
-            )
-
-    st.stop()
+        st.stop()
     # --------------------------------------------------
     # Vision Routing Protection
     # --------------------------------------------------
