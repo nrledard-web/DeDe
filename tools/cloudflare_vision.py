@@ -28,22 +28,19 @@ class CloudflareVision:
         self,
         image_bytes: bytes,
         prompt: str = "",
+        mime_type: str = "image/jpeg",
     ) -> dict:
 
         if not self.account_id:
             return {
                 "status": "error",
-                "error": (
-                    "Missing CLOUDFLARE_ACCOUNT_ID."
-                ),
+                "error": "Missing CLOUDFLARE_ACCOUNT_ID.",
             }
 
         if not self.api_token:
             return {
                 "status": "error",
-                "error": (
-                    "Missing CLOUDFLARE_API_TOKEN."
-                ),
+                "error": "Missing CLOUDFLARE_API_TOKEN.",
             }
 
         if not image_bytes:
@@ -55,17 +52,17 @@ class CloudflareVision:
         question = (
             prompt.strip()
             if prompt.strip()
-            else (
-                "Analyze this image carefully. "
-                "Describe what is visibly present. "
-                "Separate direct observations from "
-                "interpretations or uncertain conclusions."
-            )
+            else "Describe this image carefully."
         )
 
-        image_base64 = base64.b64encode(
+        encoded_image = base64.b64encode(
             image_bytes
         ).decode("utf-8")
+
+        image_data = (
+            f"data:{mime_type};base64,"
+            f"{encoded_image}"
+        )
 
         url = (
             "https://api.cloudflare.com/client/v4/"
@@ -83,24 +80,23 @@ class CloudflareVision:
         payload = {
             "messages": [
                 {
+                    "role": "system",
+                    "content": (
+                        "You are DeDe Vision. "
+                        "Analyze only what is visible "
+                        "in the supplied image. "
+                        "Separate observations from "
+                        "interpretations and uncertainty."
+                    ),
+                },
+                {
                     "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": question,
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": (
-                                    "data:image/jpeg;base64,"
-                                    + image_base64
-                                ),
-                            },
-                        },
-                    ],
-                }
-            ]
+                    "content": question,
+                },
+            ],
+            "image": image_data,
+            "max_tokens": 700,
+            "temperature": 0.2,
         }
 
         try:
@@ -112,39 +108,48 @@ class CloudflareVision:
                 timeout=60,
             )
 
-            if response.status_code != 200:
+            result = response.json()
 
+            if response.status_code != 200:
                 return {
                     "status": "error",
                     "error": (
                         "Cloudflare Vision error "
                         f"{response.status_code}: "
-                        f"{response.text[:500]}"
+                        f"{result}"
                     ),
                 }
-
-            result = response.json()
 
             result_data = result.get(
                 "result",
                 {},
             )
 
-            answer = (
-                result_data.get("response")
-                or result_data.get("text")
-                or ""
-            )
+            if isinstance(result_data, dict):
+                answer = result_data.get(
+                    "response",
+                    "",
+                )
+            else:
+                answer = str(result_data)
+
+            if not answer:
+                return {
+                    "status": "error",
+                    "error": (
+                        "Cloudflare Vision returned "
+                        "an empty response."
+                    ),
+                }
 
             return {
                 "status": "success",
                 "provider": "cloudflare",
                 "model": self.model,
-                "analysis": str(answer).strip(),
+                "analysis": answer.strip(),
             }
 
         except Exception as error:
-
             return {
                 "status": "error",
                 "error": str(error),
