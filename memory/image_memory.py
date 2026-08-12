@@ -203,8 +203,9 @@ class ImageMemory:
                 )
                 else []
             ),
+            "folder_id": "",
             "created_at": created_at,
-        }
+            }
 
         data = self._read_index()
 
@@ -302,6 +303,130 @@ class ImageMemory:
             "status": "error",
             "error": "Image not found.",
         }
+        
+    def move_image(
+        self,
+        image_id: str,
+        folder_id: str | None,
+    ) -> dict[str, Any]:
+    
+        cleaned_id = str(
+            image_id or ""
+        ).strip()
+    
+        cleaned_folder_id = str(
+            folder_id or ""
+        ).strip()
+    
+        if not cleaned_id:
+    
+            return {
+                "status": "error",
+                "error": "Missing image_id.",
+            }
+    
+        data = self._read_index()
+    
+        for item in data.get(
+            "images",
+            [],
+        ):
+    
+            if not isinstance(
+                item,
+                dict,
+            ):
+                continue
+    
+            if (
+                item.get("image_id")
+                != cleaned_id
+            ):
+                continue
+    
+            item["folder_id"] = (
+                cleaned_folder_id
+            )
+    
+            self._write_index(
+                data
+            )
+    
+            return {
+                "status": "success",
+                "image": item,
+            }
+    
+        return {
+            "status": "error",
+            "error": "Image not found.",
+        }
+    
+    
+    def rename_image(
+        self,
+        image_id: str,
+        label: str,
+    ) -> dict[str, Any]:
+    
+        cleaned_id = str(
+            image_id or ""
+        ).strip()
+    
+        cleaned_label = str(
+            label or ""
+        ).strip()
+    
+        if not cleaned_id:
+    
+            return {
+                "status": "error",
+                "error": "Missing image_id.",
+            }
+    
+        if not cleaned_label:
+    
+            return {
+                "status": "error",
+                "error": "Image label is empty.",
+            }
+    
+        data = self._read_index()
+    
+        for item in data.get(
+            "images",
+            [],
+        ):
+    
+            if not isinstance(
+                item,
+                dict,
+            ):
+                continue
+    
+            if (
+                item.get("image_id")
+                != cleaned_id
+            ):
+                continue
+    
+            item["label"] = (
+                cleaned_label
+            )
+    
+            self._write_index(
+                data
+            )
+    
+            return {
+                "status": "success",
+                "image": item,
+            }
+    
+        return {
+            "status": "error",
+            "error": "Image not found.",
+        }    
 
 
     def delete_image(
