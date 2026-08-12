@@ -53,10 +53,31 @@ class CloudflareVision:
                 "error": "No image provided.",
             }
 
-        question = (
+        user_question = (
             prompt.strip()
             if prompt.strip()
-            else "What is visible in this image?"
+            else "Describe this image."
+        )
+        
+        question = (
+            "Analyze the supplied image carefully.\n\n"
+            f"User request: {user_question}\n\n"
+            "Rules:\n"
+            "- Describe only information actually visible "
+            "in the image.\n"
+            "- Never invent text, numbers, names, objects, "
+            "or relationships that cannot be read clearly.\n"
+            "- If text is unclear, incomplete, or too small, "
+            "say that it cannot be read reliably.\n"
+            "- Do not reconstruct missing text from context.\n"
+            "- Distinguish visible observations from "
+            "interpretation.\n"
+            "- When reading text, preserve the original "
+            "wording as closely as possible.\n"
+            "- Avoid repetition.\n"
+            "- Answer in the same language as the user's "
+            "request whenever possible.\n\n"
+            "Return a concise, factual visual analysis."
         )
 
         encoded_image = base64.b64encode(
