@@ -2295,6 +2295,10 @@ if text and active_chat_image:
             st.session_state.cloudflare_vision.analyze(
                 image_bytes=image_bytes,
                 prompt=text,
+                mime_type=active_chat_image.get(
+                    "mime_type",
+                    "image/jpeg",
+                ),
             )
         )
 
