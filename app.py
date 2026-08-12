@@ -2252,6 +2252,16 @@ if uploaded_chat_image is not None:
     )
 
     st.success("Image ready for DeDe.")
+
+# --------------------------------------------------
+# Cloudflare Vision Engine
+# --------------------------------------------------
+
+if "cloudflare_vision" not in st.session_state:
+    st.session_state.cloudflare_vision = (
+        CloudflareVision()
+    )
+    
 # --------------------------------------------------
 # Chat Input
 # --------------------------------------------------
