@@ -2688,8 +2688,12 @@ if text:
                         ),
                     )
                 )
-
-        st.stop()
+                
+            finish_response_timer(
+                response_timer_state
+            )
+    
+            st.stop()
     # --------------------------------------------------
     # Vision Routing Protection
     # --------------------------------------------------
@@ -2747,8 +2751,8 @@ if text:
         memory_candidate = {}
 
     memory_storage_mode = st.session_state.get(
-    "memory_storage_mode",
-    "selective",
+        "memory_storage_mode",
+        "selective",
     )
     
     memory_governance = (
