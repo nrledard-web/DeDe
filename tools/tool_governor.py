@@ -360,6 +360,12 @@ Return only valid JSON with this exact structure:
                 ensure_ascii=False,
                 indent=2,
             )
+            + "\n\nIMAGE CONTEXT:\n"
+            + json.dumps(
+                prepared_image_context,
+                ensure_ascii=False,
+                indent=2,
+            )
             + "\n\nCURRENT USER MESSAGE:\n"
             + cleaned_text
         )
