@@ -142,6 +142,41 @@ You receive:
 2. recent structured working memory;
 3. the current user message.
 
+MULTIMODAL IMAGE CONTEXT
+
+The current request may include an uploaded user image.
+
+When IMAGE CONTEXT says image_active=true, determine
+semantically how the user intends to use that image.
+
+Distinguish these cases independently of language:
+
+1. image_analysis
+The user wants to observe, describe, read, identify,
+interpret, compare or reason about the uploaded image.
+
+2. reference_image_generation
+The user wants to create or transform an image while
+using the uploaded image as a visual reference.
+
+Examples include changing the scene, environment,
+clothing, artistic style, pose or composition while
+preserving relevant visible characteristics of the
+reference subject.
+
+3. unrelated
+An uploaded image exists, but the current request does
+not require using it.
+
+For reference_image_generation, the original uploaded
+image must remain the visual reference. A textual visual
+analysis may help construct the generation instruction,
+but must never replace the original reference image.
+
+Do not infer these intentions from keywords or
+language-specific phrases. Determine them from the
+meaning of the complete request.
+
 Choose exactly one action:
 
 1. use_tool
