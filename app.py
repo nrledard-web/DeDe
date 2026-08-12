@@ -2539,14 +2539,22 @@ if active_image_preview:
             .save_image(
                 image_bytes=preview_bytes,
                 original_name=(
-                    uploaded_chat_image.name
+                    active_image_preview.get(
+                        "name",
+                        "",
+                    )
                 ),
                 mime_type=(
-                    uploaded_chat_image.type
-                    or "image/jpeg"
+                    active_image_preview.get(
+                        "mime_type",
+                        "image/jpeg",
+                    )
                 ),
                 description=image_description,
-                label=uploaded_chat_image.name,
+                label=active_image_preview.get(
+                    "name",
+                    "",
+                ),
                 usage=[
                     "visual_reference",
                     "image_generation",
