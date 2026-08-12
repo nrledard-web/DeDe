@@ -34,6 +34,8 @@ from core.real_world_anchor import RealWorldAnchor
 from tools.tool_governor import ToolGovernor
 from tools.tool_factory import build_tool_manager
 
+from tools.cloudflare_vision import CloudflareVision
+
 def pct(value):
     if value is None:
         return "N/A"
