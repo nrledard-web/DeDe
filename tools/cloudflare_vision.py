@@ -118,6 +118,15 @@ class CloudflareVision:
                 result,
             )
             
+            if (
+                isinstance(result_data, dict)
+                and isinstance(
+                    result_data.get("result"),
+                    dict,
+                )
+            ):
+                result_data = result_data["result"]
+            
             answer = ""
             
             if isinstance(result_data, dict):
