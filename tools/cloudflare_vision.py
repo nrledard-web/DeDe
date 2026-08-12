@@ -115,30 +115,42 @@ class CloudflareVision:
 
             result_data = result.get(
                 "result",
-                {},
+                result,
             )
-
+            
             answer = ""
-
-            if isinstance(
-                result_data,
-                dict,
-            ):
+            
+            if isinstance(result_data, dict):
+            
                 answer = str(
                     result_data.get(
                         "answer",
                         "",
                     )
+                    or result_data.get(
+                        "caption",
+                        "",
+                    )
+                    or result_data.get(
+                        "response",
+                        "",
+                    )
                     or ""
                 ).strip()
-
+            
+            elif isinstance(result_data, str):
+            
+                answer = result_data.strip()
+            
+            
             if not answer:
-
+            
                 return {
                     "status": "error",
                     "error": (
                         "Cloudflare Vision returned "
-                        "no visual analysis."
+                        "no visual analysis. "
+                        f"Raw response: {result}"
                     ),
                 }
 
