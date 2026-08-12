@@ -1245,6 +1245,228 @@ with st.sidebar:
                             "Memory item was not found."
                         )
 
+        # ----------------------------------------------
+        # Image Memories
+        # ----------------------------------------------
+
+        st.divider()
+
+        st.markdown(
+            "#### 🖼️ Image Memories"
+        )
+
+        remembered_images = (
+            st.session_state.engine
+            .image_memory
+            .list_images()
+        )
+
+        st.caption(
+            f"{len(remembered_images)} "
+            "remembered image(s)"
+        )
+
+        if not remembered_images:
+
+            st.info(
+                "No persistent image memory yet."
+            )
+
+        for remembered_image in remembered_images:
+
+            if not isinstance(
+                remembered_image,
+                dict,
+            ):
+                continue
+
+            remembered_image_id = str(
+                remembered_image.get(
+                    "image_id",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            remembered_label = str(
+                remembered_image.get(
+                    "label",
+                    "",
+                )
+                or remembered_image.get(
+                    "original_name",
+                    "",
+                )
+                or remembered_image_id
+            ).strip()
+
+            remembered_description = str(
+                remembered_image.get(
+                    "description",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            image_result = (
+                st.session_state.engine
+                .image_memory
+                .get_image(
+                    remembered_image_id
+                )
+            )
+
+            with st.container(
+                border=True,
+            ):
+
+                st.markdown(
+                    f"**{remembered_label}**"
+                )
+
+                if (
+                    image_result.get(
+                        "status"
+                    )
+                    == "success"
+                ):
+
+                    remembered_bytes = (
+                        image_result.get(
+                            "image_bytes",
+                            b"",
+                        )
+                    )
+
+                    if remembered_bytes:
+
+                        st.image(
+                            remembered_bytes,
+                            width="stretch",
+                        )
+
+                if remembered_description:
+
+                    st.caption(
+                        remembered_description
+                    )
+
+                st.caption(
+                    "Image ID: "
+                    f"{remembered_image_id}"
+                )
+
+                activate_image = st.button(
+                    "📌 Use as active reference",
+                    key=(
+                        "activate_memory_image_"
+                        f"{remembered_image_id}"
+                    ),
+                    use_container_width=True,
+                )
+
+                if activate_image:
+
+                    if (
+                        image_result.get(
+                            "status"
+                        )
+                        == "success"
+                    ):
+
+                        st.session_state[
+                            "active_chat_image"
+                        ] = {
+                            "name": remembered_image.get(
+                                "original_name",
+                                remembered_label,
+                            ),
+                            "mime_type": remembered_image.get(
+                                "mime_type",
+                                "image/jpeg",
+                            ),
+                            "image_bytes": (
+                                image_result.get(
+                                    "image_bytes",
+                                    b"",
+                                )
+                            ),
+                            "memory_image_id": (
+                                remembered_image_id
+                            ),
+                        }
+
+                        st.session_state[
+                            "active_image_analysis"
+                        ] = {
+                            "filename": remembered_image.get(
+                                "original_name",
+                                remembered_label,
+                            ),
+                            "analysis": (
+                                remembered_description
+                            ),
+                            "provider": (
+                                "persistent_image_memory"
+                            ),
+                            "model": "",
+                        }
+
+                        st.session_state[
+                            "memory_manager_notice"
+                        ] = (
+                            "Image activated as "
+                            "visual reference."
+                        )
+
+                        st.rerun()
+
+                delete_image = st.button(
+                    "🗑️ Delete Image Memory",
+                    key=(
+                        "delete_memory_image_"
+                        f"{remembered_image_id}"
+                    ),
+                    use_container_width=True,
+                )
+
+                if delete_image:
+
+                    delete_result = (
+                        st.session_state.engine
+                        .image_memory
+                        .delete_image(
+                            remembered_image_id
+                        )
+                    )
+
+                    if (
+                        delete_result.get(
+                            "status"
+                        )
+                        == "success"
+                    ):
+
+                        st.session_state[
+                            "memory_manager_notice"
+                        ] = (
+                            "Image memory deleted."
+                        )
+
+                        st.rerun()
+
+                    else:
+
+                        st.error(
+                            delete_result.get(
+                                "error",
+                                (
+                                    "Image memory "
+                                    "could not be deleted."
+                                ),
+                            )
+                        )
+
 
     # --------------------------------------------------
     # Portable Memory
