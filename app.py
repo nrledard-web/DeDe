@@ -2461,21 +2461,51 @@ uploaded_chat_image = st.file_uploader(
 
 if uploaded_chat_image is not None:
 
-    uploaded_image_bytes = uploaded_chat_image.getvalue()
+    uploaded_image_bytes = (
+        uploaded_chat_image.getvalue()
+    )
 
-    st.session_state["active_chat_image"] = {
+    st.session_state[
+        "active_chat_image"
+    ] = {
         "name": uploaded_chat_image.name,
         "mime_type": uploaded_chat_image.type,
         "image_bytes": uploaded_image_bytes,
     }
 
-    st.image(
-        uploaded_image_bytes,
-        caption=uploaded_chat_image.name,
-        width="stretch",
+
+active_image_preview = (
+    st.session_state.get(
+        "active_chat_image",
+        {},
+    )
+)
+
+if active_image_preview:
+
+    preview_bytes = (
+        active_image_preview.get(
+            "image_bytes",
+            b"",
+        )
     )
 
-    st.success("Image ready for DeDe.")
+    if preview_bytes:
+
+        st.image(
+            preview_bytes,
+            caption=(
+                active_image_preview.get(
+                    "name",
+                    "DeDe image",
+                )
+            ),
+            width="stretch",
+        )
+
+        st.success(
+            "Image ready for DeDe."
+        )
     
     # --------------------------------------------------
     # Persistent Image Memory
