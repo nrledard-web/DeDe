@@ -2263,6 +2263,15 @@ if "cloudflare_vision" not in st.session_state:
     st.session_state.cloudflare_vision = (
         CloudflareVision()
     )
+
+# --------------------------------------------------
+# Cloudflare Reference Image Engine
+# --------------------------------------------------
+
+if "cloudflare_reference_image" not in st.session_state:
+    st.session_state.cloudflare_reference_image = (
+        CloudflareReferenceImage()
+    )
     
 # --------------------------------------------------
 # Chat Input
