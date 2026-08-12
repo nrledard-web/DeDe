@@ -2283,14 +2283,7 @@ active_chat_image = st.session_state.get(
     {},
 )
 
-if (
-    text
-    and active_chat_image
-    and st.session_state.get(
-        "active_chat_image_confirmed",
-        False,
-    )
-):
+if text and active_chat_image:
 
     image_bytes = active_chat_image.get(
         "image_bytes",
