@@ -742,6 +742,44 @@ class CognitiveTherapyAgent:
                 ]
             ),
 
+            # ---------------------------------------------
+            # TEMPORAL THERAPY ANALYSIS
+            # ---------------------------------------------
+
+            "therapy_temporal_analysis": (
+                temporal_analysis
+            ),
+
+            "therapy_delta_G": (
+                temporal_analysis.get(
+                    "delta_G"
+                )
+            ),
+
+            "therapy_delta_N": (
+                temporal_analysis.get(
+                    "delta_N"
+                )
+            ),
+
+            "therapy_delta_D": (
+                temporal_analysis.get(
+                    "delta_D"
+                )
+            ),
+
+            "therapy_delta_M": (
+                temporal_analysis.get(
+                    "delta_M"
+                )
+            ),
+
+            "therapy_direction": (
+                temporal_analysis.get(
+                    "direction"
+                )
+            ),
+
             "summary": summary,
             "committee_reply": committee_reply,
         }
