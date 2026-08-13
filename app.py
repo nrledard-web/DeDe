@@ -4144,16 +4144,37 @@ if text:
         col1, col2, col3 = st.columns(3)
     
         with col1:
-            show_metric("Support", core["support"])
-            show_metric("Pressure", core["pressure"])
-    
+            show_metric(
+                "Support",
+                core["support"],
+            )
+        
+            show_metric(
+                "Pressure",
+                core["pressure"],
+            )
+        
         with col2:
-            show_metric("Mecroyance Pressure", core["mecroyance_pressure"])
-            show_metric("Mecroyance Risk", core["mecroyance_risk"])
-    
+            show_metric(
+                "Cognitive Pressure",
+                core["cognitive_pressure"],
+            )
+        
+            show_metric(
+                "Closure Risk",
+                core["closure_risk"],
+            )
+        
         with col3:
-            show_metric("Revisability", core["revisability"])
-            show_metric("Surconfidence", derived["surconfidence"])
+            show_metric(
+                "Revisability",
+                core["revisability"],
+            )
+        
+            show_metric(
+                "Surconfidence",
+                derived["surconfidence"],
+            )
             
         # --------------------------------------------------
         # Derived Cognitive Pressures
