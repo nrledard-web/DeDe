@@ -103,6 +103,9 @@ class LLMConnector:
             source_analysis=source_analysis,
             url_read_result=url_read_result,
             grounding_state=grounding_state,
+            cognitive_therapy_context=(
+                cognitive_therapy_context
+            ),
         )
        
         search_has_results = grounding_state.get(
