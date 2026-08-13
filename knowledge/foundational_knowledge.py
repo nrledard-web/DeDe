@@ -100,20 +100,71 @@ FOUNDATIONAL_KNOWLEDGE: dict[str, Any] = {
     "cognitive_mechanics": {
         "official_formula": "M = (G + N) - D",
         "variables": {
-            "G": "Gnosis: articulated knowledge, factual grounding, sources, traces and evidence.",
-            "N": "Nous: integrated understanding, contextualization, nuance and coherent integration.",
-            "D": "Doxa: stabilized certainty, assertive rigidity and closure pressure.",
-            "M": "Mecroyance: belief-state where certainty may exceed integrated knowledge and understanding.",
+            "G": (
+                "Gnosis: articulated knowledge, factual grounding, "
+                "sources, traces and evidence."
+            ),
+            "N": (
+                "Nous: integrated understanding, contextualization, "
+                "nuance and coherent integration."
+            ),
+            "D": (
+                "Doxa: stabilized certainty, assertive rigidity "
+                "and closure pressure."
+            ),
+            "M": (
+                "Mecroyance: position on the Mecroyance spectrum "
+                "produced by the relation between Gnosis, Nous and Doxa."
+            ),
         },
     },
-
+    
     "mecroyance": {
         "definition": (
-            "Mecroyance is not simple ignorance, deception or false belief. "
-            "It appears when certainty stabilizes faster than understanding, "
-            "or when a coherent belief becomes insufficiently revisable."
+            "Mecroyance is a structural and permanent condition of finite "
+            "cognition. Every finite cognitive system necessarily operates "
+            "through incomplete representations of reality and therefore "
+            "remains within Mecroyance."
         ),
-        "root_cause": "Forgotten reduction.",
+    
+        "general_mecroyance": (
+            "General Mecroyance is the permanent condition of finite cognition. "
+            "A person does not simply enter or leave Mecroyance."
+        ),
+    
+        "cognitive_closure_mecroyance": (
+            "When D exceeds G + N, M becomes negative. This represents a "
+            "specific zone of Mecroyance called cognitive-closure Mecroyance, "
+            "where stabilized certainty exceeds articulated knowledge and "
+            "integrated understanding."
+        ),
+    
+        "spectrum_principle": (
+            "M measures a position within Mecroyance. A higher or lower M "
+            "represents a change in the relation between Gnosis, Nous and Doxa; "
+            "it never means that Mecroyance has disappeared."
+        ),
+    
+        "root_cause": (
+            "Forgotten reduction and loss of revisability can move cognition "
+            "toward cognitive closure."
+        ),
+    
+        "properties": [
+            "Not simple ignorance.",
+            "Not necessarily irrationality.",
+            "Not necessarily deception.",
+            "Often coherent from inside its own frame.",
+            "Marked by loss or weakening of revisability.",
+        ],
+    
+        "do_not_redefine": [
+            "Do not redefine G as generalization.",
+            "Do not redefine N as naturalization.",
+            "Do not redefine D as doubt.",
+            "Do not invent new meanings for M, G, N or D unless explicitly asked to speculate.",
+        ],
+    },
         "properties": [
             "Not simple ignorance.",
             "Not necessarily irrationality.",
