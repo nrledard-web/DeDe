@@ -204,6 +204,10 @@ class ConversationManager:
             ),
             "recent_topics": recent_topics,
             "recent_turns": recent_turns,
+            
+            "therapy_history": therapy_history,
+            "therapy_trend": therapy_trend,
+            
             "recent_artifacts": recent_artifacts,
             "active_task": active_task,
             "summary": (
