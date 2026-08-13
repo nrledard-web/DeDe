@@ -109,6 +109,34 @@ class ConversationManager:
             for turn in recent_history
         ]
 
+        therapy_history = []
+
+        for turn in recent_history:
+
+            therapy_snapshot = turn.get(
+                "therapy_snapshot",
+                {},
+            )
+
+            if not isinstance(
+                therapy_snapshot,
+                dict,
+            ):
+                continue
+
+            if not therapy_snapshot:
+                continue
+
+            therapy_history.append(
+                dict(
+                    therapy_snapshot
+                )
+            )
+
+        therapy_trend = self._build_therapy_trend(
+            therapy_history
+        )
+
         recent_artifacts = []
 
         for turn in recent_history:
