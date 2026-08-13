@@ -9,6 +9,15 @@ and computes derived cognitive mechanics indicators.
 Formulas do not estimate.
 Formulas do not interpret.
 They calculate.
+
+Important:
+The canonical Mécroyance formula is handled by CognitiveTherapyAgent:
+
+    M = (G + N) - D
+
+This Formula Engine does NOT compute canonical Mécroyance.
+It computes support, cognitive pressure, closure risk and
+other secondary cognitive mechanics indicators.
 """
 
 from typing import Any
@@ -18,7 +27,8 @@ from core.cognitive_workspace import CognitiveWorkspace
 
 class DoxaFormulaEngine:
     """
-    Computes Phase 2 cognitive mechanics metrics from the workspace.
+    Computes Phase 2 secondary cognitive mechanics metrics
+    from the workspace.
 
     Inputs
     ------
@@ -29,13 +39,15 @@ class DoxaFormulaEngine:
 
     Outputs
     -------
-    - Mecroyance pressure
-    - Mecroyance risk
+    - Cognitive pressure
+    - Closure risk
     - Cognitive balance
     - Surconfidence
     - Cognitive closure
     - Forgotten reduction pressure
     - Revisability
+
+    Canonical Mécroyance is NOT calculated here.
     """
 
     def compute(
@@ -52,8 +64,15 @@ class DoxaFormulaEngine:
         # Raw mechanics
         # -------------------------------------------------
 
-        raw_support = grounding + integration
-        raw_pressure = closure + reduction
+        raw_support = (
+            grounding
+            + integration
+        )
+
+        raw_pressure = (
+            closure
+            + reduction
+        )
 
         # -------------------------------------------------
         # Normalized values (UI)
@@ -61,12 +80,18 @@ class DoxaFormulaEngine:
 
         support = max(
             0.0,
-            min(1.0, raw_support),
+            min(
+                1.0,
+                raw_support,
+            ),
         )
 
         pressure = max(
             0.0,
-            min(1.0, raw_pressure),
+            min(
+                1.0,
+                raw_pressure,
+            ),
         )
 
         # -------------------------------------------------
@@ -77,41 +102,53 @@ class DoxaFormulaEngine:
             -1.0,
             min(
                 1.0,
-                raw_support - raw_pressure,
+                raw_support
+                - raw_pressure,
             ),
         )
 
-        mecroyance_pressure = max(
+        cognitive_pressure = max(
             -1.0,
             min(
                 1.0,
-                raw_pressure - raw_support,
+                raw_pressure
+                - raw_support,
             ),
         )
 
-        mecroyance_risk = max(
+        closure_risk = max(
             0.0,
             min(
                 1.0,
-                mecroyance_pressure,
+                cognitive_pressure,
             ),
         )
 
         surconfidence = max(
             0.0,
-            closure - (grounding * 0.5),
+            closure
+            - (
+                grounding
+                * 0.5
+            ),
         )
 
         cognitive_closure = max(
             0.0,
-            closure - (
-                (grounding + integration) / 2.0
+            closure
+            - (
+                (
+                    grounding
+                    + integration
+                )
+                / 2.0
             ),
         )
 
         forgotten_reduction_pressure = max(
             0.0,
-            reduction - integration,
+            reduction
+            - integration,
         )
 
         revisability = max(
@@ -176,23 +213,37 @@ class DoxaFormulaEngine:
                 "support": support,
                 "pressure": pressure,
 
-                "cognitive_balance": cognitive_balance,
+                "cognitive_balance": (
+                    cognitive_balance
+                ),
 
-                "mecroyance_pressure": mecroyance_pressure,
-                "mecroyance_risk": mecroyance_risk,
+                "cognitive_pressure": (
+                    cognitive_pressure
+                ),
 
-                "revisability": revisability,
+                "closure_risk": (
+                    closure_risk
+                ),
+
+                "revisability": (
+                    revisability
+                ),
 
             },
 
             "derived": {
 
-                "surconfidence": surconfidence,
+                "surconfidence": (
+                    surconfidence
+                ),
 
-                "cognitive_closure": cognitive_closure,
+                "cognitive_closure": (
+                    cognitive_closure
+                ),
 
-                "forgotten_reduction_pressure":
-                    forgotten_reduction_pressure,
+                "forgotten_reduction_pressure": (
+                    forgotten_reduction_pressure
+                ),
 
             },
 
