@@ -1872,6 +1872,10 @@ class DoxaEnginePhase2:
             ),
             "workspace": workspace.snapshot(),
             "agent_results": agent_results,
+            "therapy_snapshot": workspace.interpretations.get(
+                "therapy_snapshot",
+                {},
+            ),
             "committee": committee_result,
             "formulas": formulas,
 
