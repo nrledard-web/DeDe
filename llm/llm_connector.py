@@ -99,6 +99,7 @@ class LLMConnector:
             source_analysis=source_analysis,
             url_read_result=url_read_result,
             grounding_state=grounding_state,
+            cognitive_feedback=cognitive_feedback,
         )
        
         search_has_results = grounding_state.get(
@@ -652,6 +653,7 @@ class LLMConnector:
         graph_queries: dict[str, Any],
         cognitive_state: dict[str, Any],
         cognitive_reasoning: dict[str, Any],
+        cognitive_feedback: dict[str, Any],
         user_memory: dict[str, Any],
         persistent_memory: dict[str, Any],
         retrieved_memory: dict[str, Any],
