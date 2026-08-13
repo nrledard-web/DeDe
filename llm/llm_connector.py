@@ -66,7 +66,6 @@ class LLMConnector:
         search_summary = search_summary or {}
         source_analysis = source_analysis or {}
         url_read_result = url_read_result or {}
-        cognitive_feedback = cognitive_feedback or {}
         
         grounding_state = self._build_grounding_state(
             search_result=search_result,
