@@ -149,22 +149,7 @@ FOUNDATIONAL_KNOWLEDGE: dict[str, Any] = {
             "Forgotten reduction and loss of revisability can move cognition "
             "toward cognitive closure."
         ),
-    
-        "properties": [
-            "Not simple ignorance.",
-            "Not necessarily irrationality.",
-            "Not necessarily deception.",
-            "Often coherent from inside its own frame.",
-            "Marked by loss or weakening of revisability.",
-        ],
-    
-        "do_not_redefine": [
-            "Do not redefine G as generalization.",
-            "Do not redefine N as naturalization.",
-            "Do not redefine D as doubt.",
-            "Do not invent new meanings for M, G, N or D unless explicitly asked to speculate.",
-        ],
-    },
+
         "properties": [
             "Not simple ignorance.",
             "Not necessarily irrationality.",
