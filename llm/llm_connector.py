@@ -725,6 +725,236 @@ class LLMConnector:
         lines.append("")
 
         # --------------------------------------------------
+        # Cognitive Therapy Context
+        # --------------------------------------------------
+
+        cognitive_therapy_context = (
+            cognitive_therapy_context
+            or {}
+        )
+
+        if cognitive_therapy_context:
+
+            mecroyance = (
+                cognitive_therapy_context.get(
+                    "mecroyance",
+                    {},
+                )
+            )
+
+            if not isinstance(
+                mecroyance,
+                dict,
+            ):
+                mecroyance = {}
+
+            temporal_analysis = (
+                cognitive_therapy_context.get(
+                    "therapy_temporal_analysis",
+                    {},
+                )
+            )
+
+            if not isinstance(
+                temporal_analysis,
+                dict,
+            ):
+                temporal_analysis = {}
+
+            lines.append(
+                "COGNITIVE THERAPY CONTEXT"
+            )
+
+            lines.append("")
+
+            lines.append(
+                "Mécroyance spectrum:"
+            )
+
+            lines.append(
+                "- formula: "
+                f'{mecroyance.get("formula", "M = (G + N) - D")}'
+            )
+
+            lines.append(
+                "- Gnosis (G): "
+                f'{mecroyance.get("G", "unavailable")}'
+            )
+
+            lines.append(
+                "- Nous (N): "
+                f'{mecroyance.get("N", "unavailable")}'
+            )
+
+            lines.append(
+                "- Doxa (D): "
+                f'{mecroyance.get("D", "unavailable")}'
+            )
+
+            lines.append(
+                "- Mécroyance (M): "
+                f'{mecroyance.get("M", "unavailable")}'
+            )
+
+            lines.append(
+                "- spectrum minimum: "
+                f'{mecroyance.get("minimum", -10.0)}'
+            )
+
+            lines.append(
+                "- spectrum maximum: "
+                f'{mecroyance.get("maximum", 20.0)}'
+            )
+
+            lines.append(
+                "- current zone: "
+                f'{mecroyance.get("zone_label", "unavailable")}'
+            )
+
+            lines.append(
+                "- zone identifier: "
+                f'{mecroyance.get("zone", "unavailable")}'
+            )
+
+            lines.append(
+                "- bar position: "
+                f'{mecroyance.get("bar_position", "unavailable")}'
+            )
+
+            mecroyance_interpretation = str(
+                mecroyance.get(
+                    "interpretation",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            if mecroyance_interpretation:
+                lines.append(
+                    "- interpretation: "
+                    f"{mecroyance_interpretation}"
+                )
+
+            lines.append("")
+
+            lines.append(
+                "Mécroyance principle:"
+            )
+
+            lines.append(
+                "Mécroyance is a permanent structural condition "
+                "of finite cognition. M represents a position "
+                "within the Mécroyance spectrum; it does not "
+                "represent entering or leaving Mécroyance."
+            )
+
+            lines.append(
+                "When D exceeds G + N and M becomes negative, "
+                "this is specifically a cognitive-closure zone "
+                "within Mécroyance."
+            )
+
+            lines.append(
+                "The bar position is a graphical representation "
+                "of M on the historical spectrum from -10 to 20. "
+                "It is not a health percentage, a goodness score, "
+                "or a percentage of Mécroyance."
+            )
+
+            if temporal_analysis:
+
+                lines.append("")
+                lines.append(
+                    "Therapy evolution:"
+                )
+
+                lines.append(
+                    "- status: "
+                    f'{temporal_analysis.get("status", "unavailable")}'
+                )
+
+                lines.append(
+                    "- sample count: "
+                    f'{temporal_analysis.get("sample_count", 0)}'
+                )
+
+                lines.append(
+                    "- delta G: "
+                    f'{temporal_analysis.get("delta_G", "unavailable")}'
+                )
+
+                lines.append(
+                    "- delta N: "
+                    f'{temporal_analysis.get("delta_N", "unavailable")}'
+                )
+
+                lines.append(
+                    "- delta D: "
+                    f'{temporal_analysis.get("delta_D", "unavailable")}'
+                )
+
+                lines.append(
+                    "- delta M: "
+                    f'{temporal_analysis.get("delta_M", "unavailable")}'
+                )
+
+                lines.append(
+                    "- direction: "
+                    f'{temporal_analysis.get("direction", "unavailable")}'
+                )
+
+                previous_state = (
+                    temporal_analysis.get(
+                        "previous",
+                        {},
+                    )
+                )
+
+                if isinstance(
+                    previous_state,
+                    dict,
+                ) and previous_state:
+
+                    lines.append(
+                        "- previous therapy state: "
+                        f"{previous_state}"
+                    )
+
+            lines.append("")
+
+            lines.append(
+                "THERAPY LANGUAGE INSTRUCTION:"
+            )
+
+            lines.append(
+                "When the conversation is about DeDe's Cognitive "
+                "Therapy, Cognitive Mechanics, Mécroyance or the "
+                "formula M = (G + N) - D, expressions such as "
+                "'barre de vie', 'barre cognitive', "
+                "'barre de mécroyance', 'life bar', "
+                "'cognitive life bar', 'Mécroyance bar' and their "
+                "natural equivalents refer to this Mécroyance "
+                "spectrum unless the conversational context clearly "
+                "indicates another meaning."
+            )
+
+            lines.append(
+                "Do not reinterpret this cognitive bar as a generic "
+                "metaphor about life goals, existential direction "
+                "or personal values when the conversation is clearly "
+                "about DeDe's Mécroyance mechanics."
+            )
+
+            lines.append(
+                "If the user asks directly about the bar, explain "
+                "the current G, N, D and M values, the current zone "
+                "and, when available, the change from the previous "
+                "therapy state."
+            )
+
+            lines.append("")
+
+        # --------------------------------------------------
         # URL Reader
         # --------------------------------------------------
     
