@@ -1415,6 +1415,50 @@ class DoxaEnginePhase2:
         # Formula Engine
         # --------------------------------------------------
         formulas = self.formula_engine.compute(workspace)
+
+        # --------------------------------------------------
+        # Cognitive Therapy Temporal Snapshot
+        # --------------------------------------------------
+
+        cognitive_therapy_result = (
+            agent_results.get(
+                "cognitive_therapy",
+                {},
+            )
+        )
+
+        mecroyance_state = (
+            cognitive_therapy_result.get(
+                "mecroyance",
+                {},
+            )
+        )
+
+        therapy_snapshot = {
+            "G": mecroyance_state.get(
+                "G"
+            ),
+            "N": mecroyance_state.get(
+                "N"
+            ),
+            "D": mecroyance_state.get(
+                "D"
+            ),
+            "M": mecroyance_state.get(
+                "M"
+            ),
+            "zone": mecroyance_state.get(
+                "zone"
+            ),
+            "zone_label": mecroyance_state.get(
+                "zone_label"
+            ),
+        }
+
+        workspace.add_interpretation(
+            "therapy_snapshot",
+            therapy_snapshot,
+        )
     
         # --------------------------------------------------
         # Phase 4.17
