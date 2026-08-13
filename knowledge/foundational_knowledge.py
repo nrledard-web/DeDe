@@ -281,20 +281,12 @@ def build_foundational_context() -> str:
 
     lines.extend(
         [
+            "Project:",
+            f'- name: {project["name"]}',
+            f'- role: {project["role"]}',
+            f'- purpose: {project["purpose"]}',
             "",
-            "Mecroyance:",
-            f'- definition: {mecroyance["definition"]}',
-            f'- general mecroyance: {mecroyance["general_mecroyance"]}',
-            (
-                "- cognitive-closure mecroyance: "
-                f'{mecroyance["cognitive_closure_mecroyance"]}'
-            ),
-            (
-                "- spectrum principle: "
-                f'{mecroyance["spectrum_principle"]}'
-            ),
-            f'- root cause: {mecroyance["root_cause"]}',
-            "- properties:",
+            "First principles:",
         ]
     )
 
