@@ -4762,7 +4762,128 @@ if text:
         # --------------------------------------------------
         # Agent Interpretations
         # --------------------------------------------------
+        # --------------------------------------------------
+        # Mécroyance Therapy Spectrum
+        # --------------------------------------------------
         
+        cognitive_therapy = agent_results.get(
+            "cognitive_therapy",
+            {},
+        )
+        
+        mecroyance = cognitive_therapy.get(
+            "mecroyance",
+            {},
+        )
+        
+        if mecroyance:
+        
+            st.subheader("🧠 Mécroyance Therapy")
+        
+            g_value = float(
+                mecroyance.get("G", 0.0)
+            )
+        
+            n_value = float(
+                mecroyance.get("N", 0.0)
+            )
+        
+            d_value = float(
+                mecroyance.get("D", 0.0)
+            )
+        
+            m_value = float(
+                mecroyance.get("M", 0.0)
+            )
+        
+            bar_position = float(
+                mecroyance.get(
+                    "bar_position",
+                    0.0,
+                )
+            )
+        
+            zone_label = mecroyance.get(
+                "zone_label",
+                "Unknown",
+            )
+        
+            interpretation = mecroyance.get(
+                "interpretation",
+                "",
+            )
+        
+            # ----------------------------------------------
+            # G / N / D / M
+            # ----------------------------------------------
+        
+            col1, col2, col3, col4 = st.columns(4)
+        
+            with col1:
+                st.metric(
+                    "G — Gnosis",
+                    f"{g_value:.1f}",
+                )
+        
+            with col2:
+                st.metric(
+                    "N — Nous",
+                    f"{n_value:.1f}",
+                )
+        
+            with col3:
+                st.metric(
+                    "D — Doxa",
+                    f"{d_value:.1f}",
+                )
+        
+            with col4:
+                st.metric(
+                    "M — Mécroyance",
+                    f"{m_value:.1f}",
+                )
+        
+            # ----------------------------------------------
+            # Mécroyance bar
+            # ----------------------------------------------
+        
+            st.markdown(
+                "#### Barre de mécroyance"
+            )
+        
+            st.progress(
+                max(
+                    0.0,
+                    min(
+                        1.0,
+                        bar_position,
+                    ),
+                )
+            )
+        
+            # ----------------------------------------------
+            # Spectrum reference
+            # ----------------------------------------------
+        
+            st.caption(
+                "-10  ·  0  ·  10  ·  17  ·  19  ·  20"
+            )
+        
+            st.markdown(
+                f"**Zone actuelle : {zone_label}**"
+            )
+        
+            if interpretation:
+                st.info(
+                    interpretation
+                )
+        
+            with st.expander(
+                "Mécroyance details"
+            ):
+                st.json(
+                    mecroyance
+                )
         st.subheader("Agent Interpretations")
     
         for name, result in agent_results.items():
