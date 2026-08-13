@@ -346,27 +346,49 @@ def build_foundational_context() -> str:
     )
 
     for key, value in mechanics["variables"].items():
-        lines.append(f"  - {key}: {value}")
+        lines.append(
+            f"  - {key}: {value}"
+        )
 
-    mecroyance = FOUNDATIONAL_KNOWLEDGE["mecroyance"]
+    mecroyance = FOUNDATIONAL_KNOWLEDGE[
+        "mecroyance"
+    ]
 
     lines.extend(
         [
             "",
             "Mecroyance:",
             f'- definition: {mecroyance["definition"]}',
+            (
+                "- general mecroyance: "
+                f'{mecroyance["general_mecroyance"]}'
+            ),
+            (
+                "- cognitive-closure mecroyance: "
+                f'{mecroyance["cognitive_closure_mecroyance"]}'
+            ),
+            (
+                "- spectrum principle: "
+                f'{mecroyance["spectrum_principle"]}'
+            ),
             f'- root cause: {mecroyance["root_cause"]}',
             "- properties:",
         ]
     )
 
     for item in mecroyance["properties"]:
-        lines.append(f"  - {item}")
+        lines.append(
+            f"  - {item}"
+        )
 
-    lines.append("- do not redefine:")
+    lines.append(
+        "- do not redefine:"
+    )
 
     for item in mecroyance["do_not_redefine"]:
-        lines.append(f"  - {item}")
+        lines.append(
+            f"  - {item}"
+        )
 
     lines.extend(
         [
