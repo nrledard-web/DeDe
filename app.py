@@ -411,9 +411,51 @@ st.html(
     }
     </style>
 
-    <h2 class="dede-title">
-        DeDe — Cognitive Daimon
-    </h2>
+    <div class="dede-line" style="margin-bottom:0.5rem;">
+        <h2 class="dede-title" style="margin-bottom:0;">
+            DeDe — Cognitive Daimon
+        </h2>
+    
+        <details class="dede-help">
+            <summary>?</summary>
+    
+            <div class="dede-help-text">
+                <strong>What is a Daimon?</strong><br><br>
+    
+                In ancient Greek philosophy, the <em>daimōn</em> was not
+                a demon, but a guiding presence associated with discernment,
+                inner orientation and the conduct of life.
+    
+                Socrates famously described his <em>daimonion</em> as an
+                inner sign that warned him against certain actions.
+                Later philosophical traditions, including Stoicism,
+                emphasized reason, self-examination, inner guidance
+                and the disciplined interpretation of experience.
+    
+                <br><br>
+    
+                <strong>
+                    DeDe reinterprets this ancient idea in cognitive form.
+                </strong>
+    
+                <br><br>
+    
+                It is designed as a persistent companion for reflection,
+                psychological support, self-understanding and emotional
+                regulation — not an authority that thinks in your place,
+                but a presence that helps you examine your beliefs,
+                remember your history, recognize cognitive tensions,
+                preserve doubt and revisability, and understand how
+                your own thinking changes over time.
+    
+                <br><br>
+    
+                DeDe does not replace professional mental-health care.
+                Its role is to support reflection, cognitive orientation
+                and personal understanding.
+            </div>
+        </details>
+    </div>
 
     <div class="dede-description">
 
