@@ -567,39 +567,117 @@ class CognitiveTherapyAgent:
                 "from it."
             ),
         }
+        
         # -------------------------------------------------
         # TEMPORAL THERAPY EVOLUTION
         # -------------------------------------------------
-
-        therapy_delta = therapy_trend.get(
-            "delta",
-            {},
-        )
-
-        therapy_direction = therapy_trend.get(
-            "trend",
-            "unavailable",
-        )
+        #
+        # conversation_context contains only PREVIOUS turns.
+        #
+        # Therefore:
+        #
+        # therapy_trend["current"]
+        #     = latest historical therapy snapshot
+        #
+        # mecroyance
+        #     = therapy state of the CURRENT user turn
+        #
+        # Temporal comparison must therefore be:
+        #
+        #     current turn - previous historical turn
+        #
+        # and NOT:
+        #
+        #     previous turn - turn before previous
+        # -------------------------------------------------
 
         previous_therapy_state = therapy_trend.get(
-            "previous",
-            {},
-        )
-
-        current_therapy_state = therapy_trend.get(
             "current",
             {},
         )
 
+        if not isinstance(
+            previous_therapy_state,
+            dict,
+        ):
+            previous_therapy_state = {}
+
+        current_therapy_state = dict(
+            mecroyance
+        )
+
+        therapy_delta = {}
+
+        if previous_therapy_state:
+
+            for key in [
+                "G",
+                "N",
+                "D",
+                "M",
+            ]:
+                current_value = (
+                    current_therapy_state.get(
+                        key
+                    )
+                )
+
+                previous_value = (
+                    previous_therapy_state.get(
+                        key
+                    )
+                )
+
+                if not isinstance(
+                    current_value,
+                    (int, float),
+                ):
+                    continue
+
+                if not isinstance(
+                    previous_value,
+                    (int, float),
+                ):
+                    continue
+
+                therapy_delta[key] = round(
+                    current_value
+                    - previous_value,
+                    3,
+                )
+
+        delta_m = therapy_delta.get(
+            "M"
+        )
+
+        if not previous_therapy_state:
+            therapy_direction = "baseline"
+
+        elif delta_m is None:
+            therapy_direction = "unavailable"
+
+        elif abs(delta_m) < 0.10:
+            therapy_direction = "stable"
+
+        elif delta_m > 0:
+            therapy_direction = "increasing"
+
+        else:
+            therapy_direction = "decreasing"
+
         temporal_analysis = {
-            "status": therapy_trend.get(
-                "status",
-                "empty",
+            "status": (
+                "ready"
+                if previous_therapy_state
+                else "baseline"
             ),
 
-            "sample_count": therapy_trend.get(
-                "sample_count",
-                0,
+            "sample_count": (
+                therapy_trend.get(
+                    "sample_count",
+                    0,
+                )
+                + 1
             ),
 
             "previous": previous_therapy_state,
