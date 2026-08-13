@@ -44,7 +44,6 @@ class LLMConnector:
         search_summary: dict[str, Any] | None = None,
         source_analysis: dict[str, Any] | None = None,
         url_read_result: dict[str, Any] | None = None,
-        cognitive_feedback: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         cognitive_state = cognitive_state or {}
