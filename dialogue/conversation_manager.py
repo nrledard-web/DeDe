@@ -36,6 +36,12 @@ class ConversationManager:
             history or []
         )
 
+        therapy_history = []
+
+        therapy_trend = self._build_therapy_trend(
+            therapy_history
+        )
+
         if not history:
             return {
                 "manager": self.name,
