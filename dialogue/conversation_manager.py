@@ -238,6 +238,11 @@ class ConversationManager:
             ),
             "focus_concept": focus_concept,
             "topics": topics,
+
+            "therapy_snapshot": dict(
+                therapy_snapshot
+            ),
+
             "tool_name": None,
             "tool_status": None,
             "tool_arguments": {},
