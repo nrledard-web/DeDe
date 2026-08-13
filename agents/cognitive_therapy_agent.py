@@ -567,7 +567,69 @@ class CognitiveTherapyAgent:
                 "from it."
             ),
         }
+        # -------------------------------------------------
+        # TEMPORAL THERAPY EVOLUTION
+        # -------------------------------------------------
 
+        therapy_delta = therapy_trend.get(
+            "delta",
+            {},
+        )
+
+        therapy_direction = therapy_trend.get(
+            "trend",
+            "unavailable",
+        )
+
+        previous_therapy_state = therapy_trend.get(
+            "previous",
+            {},
+        )
+
+        current_therapy_state = therapy_trend.get(
+            "current",
+            {},
+        )
+
+        temporal_analysis = {
+            "status": therapy_trend.get(
+                "status",
+                "empty",
+            ),
+
+            "sample_count": therapy_trend.get(
+                "sample_count",
+                0,
+            ),
+
+            "previous": previous_therapy_state,
+
+            "current": current_therapy_state,
+
+            "delta_G": therapy_delta.get(
+                "G"
+            ),
+
+            "delta_N": therapy_delta.get(
+                "N"
+            ),
+
+            "delta_D": therapy_delta.get(
+                "D"
+            ),
+
+            "delta_M": therapy_delta.get(
+                "M"
+            ),
+
+            "direction": therapy_direction,
+
+            "principle": (
+                "Temporal movement describes variation "
+                "within Mécroyance. Increasing or decreasing "
+                "does not automatically mean better or worse."
+            ),
+        }
         # -------------------------------------------------
         # SUMMARY
         # -------------------------------------------------
