@@ -50,6 +50,8 @@ class ConversationManager:
                 "recent_focus_concepts": [],
                 "recent_topics": [],
                 "recent_turns": [],
+                "therapy_history": therapy_history,
+                "therapy_trend": therapy_trend,
                 "recent_artifacts": [],
                 "active_task": None,
                 "summary": (
@@ -416,6 +418,118 @@ class ConversationManager:
         return history[
             -self.MAX_HISTORY_TURNS:
         ]
+        
+    def _build_therapy_trend(
+        self,
+        therapy_history: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """
+        Compare recent Mécroyance Therapy snapshots.
+
+        This does not judge whether a movement is good or bad.
+        It only describes temporal variation.
+        """
+
+        if not therapy_history:
+            return {
+                "status": "empty",
+                "sample_count": 0,
+                "previous": {},
+                "current": {},
+                "delta": {},
+                "trend": "unavailable",
+                "summary": (
+                    "No previous Mécroyance Therapy "
+                    "history is available."
+                ),
+            }
+
+        current = dict(
+            therapy_history[-1]
+        )
+
+        if len(therapy_history) < 2:
+            return {
+                "status": "baseline",
+                "sample_count": 1,
+                "previous": {},
+                "current": current,
+                "delta": {},
+                "trend": "baseline",
+                "summary": (
+                    "A first Mécroyance Therapy "
+                    "baseline is available."
+                ),
+            }
+
+        previous = dict(
+            therapy_history[-2]
+        )
+
+        delta = {}
+
+        for key in [
+            "G",
+            "N",
+            "D",
+            "M",
+        ]:
+            current_value = current.get(
+                key
+            )
+
+            previous_value = previous.get(
+                key
+            )
+
+            if not isinstance(
+                current_value,
+                (int, float),
+            ):
+                continue
+
+            if not isinstance(
+                previous_value,
+                (int, float),
+            ):
+                continue
+
+            delta[key] = round(
+                current_value
+                - previous_value,
+                3,
+            )
+
+        delta_m = delta.get(
+            "M"
+        )
+
+        if delta_m is None:
+            trend = "unavailable"
+
+        elif abs(delta_m) < 0.10:
+            trend = "stable"
+
+        elif delta_m > 0:
+            trend = "increasing"
+
+        else:
+            trend = "decreasing"
+
+        return {
+            "status": "ready",
+            "sample_count": len(
+                therapy_history
+            ),
+            "previous": previous,
+            "current": current,
+            "delta": delta,
+            "trend": trend,
+            "summary": (
+                "Recent Mécroyance Therapy "
+                f"trend: {trend}."
+            ),
+        }
 
     def _build_turn_context(
         self,
