@@ -1290,6 +1290,12 @@ class DoxaEnginePhase2:
         print("SUMMARY :", search_summary)
         print("=" * 80)
 
+        cognitive_therapy_context = (
+            agent_results.get(
+                "cognitive_therapy",
+                {},
+            )
+        )
         
         llm_package = self.llm_connector.build_prompt_package(
             text=text,
@@ -1312,8 +1318,11 @@ class DoxaEnginePhase2:
             search_summary=search_summary,
             source_analysis=source_analysis,
             url_read_result=url_read_result,
-        )
 
+            cognitive_therapy_context=(
+                cognitive_therapy_context
+            ),
+        )
         # --------------------------------------------------
         # Cognitive Governor 4.11b
         # --------------------------------------------------
