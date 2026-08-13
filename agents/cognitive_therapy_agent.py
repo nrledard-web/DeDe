@@ -205,6 +205,16 @@ class CognitiveTherapyAgent:
 
         interpretations = workspace.interpretations
 
+        conversation_context = interpretations.get(
+            "conversation_context",
+            {},
+        )
+        
+        therapy_trend = conversation_context.get(
+            "therapy_trend",
+            {},
+        )
+
         nous = interpretations.get(
             "nous",
             {},
