@@ -659,7 +659,7 @@ class LLMConnector:
         graph_queries: dict[str, Any],
         cognitive_state: dict[str, Any],
         cognitive_reasoning: dict[str, Any],
-        cognitive_feedback: dict[str, Any],
+        cognitive_therapy_context: dict[str, Any],
         user_memory: dict[str, Any],
         persistent_memory: dict[str, Any],
         retrieved_memory: dict[str, Any],
