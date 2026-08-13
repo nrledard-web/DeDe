@@ -44,6 +44,7 @@ class LLMConnector:
         search_summary: dict[str, Any] | None = None,
         source_analysis: dict[str, Any] | None = None,
         url_read_result: dict[str, Any] | None = None,
+        cognitive_feedback: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         cognitive_state = cognitive_state or {}
@@ -66,6 +67,7 @@ class LLMConnector:
         search_summary = search_summary or {}
         source_analysis = source_analysis or {}
         url_read_result = url_read_result or {}
+        cognitive_feedback = cognitive_feedback or {}
         
         grounding_state = self._build_grounding_state(
             search_result=search_result,
