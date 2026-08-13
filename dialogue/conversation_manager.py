@@ -203,6 +203,17 @@ class ConversationManager:
             )
         )
 
+        therapy_snapshot = report.get(
+            "therapy_snapshot",
+            {},
+        )
+
+        if not isinstance(
+            therapy_snapshot,
+            dict,
+        ):
+            therapy_snapshot = {}
+
         turn = {
             "turn_type": "dialogue",
             "user_input": str(
