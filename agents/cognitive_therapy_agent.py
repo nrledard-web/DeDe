@@ -652,18 +652,27 @@ class CognitiveTherapyAgent:
 
         if not previous_therapy_state:
             therapy_direction = "baseline"
+            therapy_orientation = "baseline"
 
         elif delta_m is None:
             therapy_direction = "unavailable"
+            therapy_orientation = "unavailable"
 
         elif abs(delta_m) < 0.10:
             therapy_direction = "stable"
+            therapy_orientation = "stable"
 
         elif delta_m > 0:
             therapy_direction = "increasing"
+            therapy_orientation = (
+                "toward_greater_revisability"
+            )
 
         else:
             therapy_direction = "decreasing"
+            therapy_orientation = (
+                "toward_cognitive_closure"
+            )
 
         temporal_analysis = {
             "status": (
