@@ -397,6 +397,10 @@ document_context = (
             user_memory,
         )
 
+        mark_performance(
+            "memory_identity_dialogue"
+        )
+
         # --------------------------------------------------
         # Phase 5.3
         # DeDe Identity State
