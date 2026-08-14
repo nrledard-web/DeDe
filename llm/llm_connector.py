@@ -980,17 +980,27 @@ class LLMConnector:
                 )
 
                 lines.append(
-                    "Avoid automatic validation phrases such as "
-                    "'you are right' when the user's statement itself "
-                    "contains a strong reduction or claims that no other "
-                    "explanation is possible."
+                    "Do not flatter or positively reframe cognitive closure. "
+                    "When the user says that no other explanation is possible, "
+                    "do not describe this as clarity, strength, confidence or "
+                    "a well-structured vision."
                 )
 
                 lines.append(
                     "When the user excludes every alternative explanation, "
-                    "treat this as a possible sign of cognitive closure or "
-                    "forgotten reduction, not as proof that the user's "
-                    "preferred explanation is wrong."
+                    "state directly that this may indicate a narrowed cognitive "
+                    "frame, excessive reduction or forgotten reduction. "
+                    "Explain that the issue is not that the preferred explanation "
+                    "is necessarily false, but that the disappearance of alternatives "
+                    "reduces revisability."
+                )
+
+                lines.append(
+                    "Prefer formulations such as: "
+                    "'The absence of perceived alternatives may indicate that "
+                    "the current frame has become too narrow.' "
+                    "Separate the possible validity of the explanation from the "
+                    "certainty that it is the only possible explanation."
                 )
 
             if temporal_analysis:
