@@ -1571,6 +1571,10 @@ document_context = (
         user_response = self.response_builder.build(
             dialogue_context,
         )
+
+        mark_performance(
+            "committee_formula_dialogue"
+        )
         
         # ----------------------------------------
         # Daimon Filter
