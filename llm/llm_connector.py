@@ -900,6 +900,99 @@ class LLMConnector:
                 "or a percentage of Mécroyance."
             )
 
+            # --------------------------------------------------
+            # Reduction Analysis
+            # --------------------------------------------------
+
+            if reduction_state:
+
+                lines.append("")
+                lines.append(
+                    "Reduction analysis:"
+                )
+
+                lines.append(
+                    "- reduction state: "
+                    f'{reduction_state.get("reduction_state", "unavailable")}'
+                )
+
+                lines.append(
+                    "- hidden assumption pressure: "
+                    f'{reduction_state.get("hidden_assumption_pressure", "unavailable")}'
+                )
+
+                lines.append(
+                    "- excessive reduction pressure: "
+                    f'{reduction_state.get("excessive_reduction_pressure", "unavailable")}'
+                )
+
+                lines.append(
+                    "- forgotten reduction pressure: "
+                    f'{reduction_state.get("forgotten_reduction_pressure", "unavailable")}'
+                )
+
+                lines.append(
+                    "- missing dimension pressure: "
+                    f'{reduction_state.get("missing_dimension_pressure", "unavailable")}'
+                )
+
+                lines.append(
+                    "- alternative scarcity: "
+                    f'{reduction_state.get("alternative_scarcity", "unavailable")}'
+                )
+
+                lines.append(
+                    "- excessive reduction detected: "
+                    f'{reduction_state.get("excessive_reduction", False)}'
+                )
+
+                lines.append(
+                    "- forgotten reduction detected: "
+                    f'{reduction_state.get("forgotten_reduction", False)}'
+                )
+
+                lines.append("")
+
+                lines.append(
+                    "REDUCTION THERAPY PRINCIPLE:"
+                )
+
+                lines.append(
+                    "Reduction is necessary to cognition and must not "
+                    "be treated as an error by itself. The therapeutic "
+                    "risk appears when the representation becomes too "
+                    "narrow, excludes relevant dimensions, suppresses "
+                    "plausible alternatives, or is forgotten as a "
+                    "reduction and treated as if it were reality itself."
+                )
+
+                lines.append(
+                    "Do not tell the user that a claim is false merely "
+                    "because reduction pressure is high. Distinguish the "
+                    "possible truth of the claim from the possibility "
+                    "that its frame is incomplete."
+                )
+
+                lines.append(
+                    "When excessive or forgotten reduction is detected, "
+                    "help restore missing dimensions, alternatives and "
+                    "context before increasing certainty."
+                )
+
+                lines.append(
+                    "Avoid automatic validation phrases such as "
+                    "'you are right' when the user's statement itself "
+                    "contains a strong reduction or claims that no other "
+                    "explanation is possible."
+                )
+
+                lines.append(
+                    "When the user excludes every alternative explanation, "
+                    "treat this as a possible sign of cognitive closure or "
+                    "forgotten reduction, not as proof that the user's "
+                    "preferred explanation is wrong."
+                )
+
             if temporal_analysis:
 
                 lines.append("")
