@@ -856,6 +856,34 @@ class CognitiveTherapyAgent:
                 reduction_level
             ),
 
+            "reduction_state": (
+                reduction_state
+            ),
+
+            "excessive_reduction_pressure": (
+                excessive_reduction_pressure
+            ),
+
+            "forgotten_reduction_pressure": (
+                forgotten_reduction_pressure
+            ),
+
+            "missing_dimension_pressure": (
+                missing_dimension_pressure
+            ),
+
+            "alternative_scarcity": (
+                alternative_scarcity
+            ),
+
+            "excessive_reduction": (
+                excessive_reduction
+            ),
+
+            "forgotten_reduction": (
+                forgotten_reduction
+            ),
+
             "cognitive_filter_level": (
                 cognitive_filter_level
             ),
