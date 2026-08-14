@@ -1365,6 +1365,10 @@ document_context = (
             providers=llm_providers,
             enabled=enable_llm,
         )
+
+        mark_performance(
+            "llm_generation"
+        )
         
         llm_bridge_response = {
             "status": llm_engine_response.get("status"),
