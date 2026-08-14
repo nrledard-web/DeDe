@@ -1,17 +1,22 @@
 """
 DeDe - Consensus Trend Estimator
 
-Measures the degree to which a discourse appears stabilized
-by collective agreement, repetition, institutional authority
-or ideological convergence.
+Estimates collective stabilization around a claim or representation.
 
-It does not measure truth.
+Consensus Trend does NOT measure truth.
 
-A high consensus trend means that a claim, representation
-or interpretive frame appears strongly supported by collective
-alignment.
+It measures how strongly a representation appears collectively
+supported, repeated or stabilized, while preserving a distinction
+between:
 
-This may coexist with either strong or weak empirical grounding.
+- collective agreement
+- source independence
+- empirical grounding
+- ideological pressure
+- availability of alternatives
+
+A strong consensus may be well grounded or poorly grounded.
+Those dimensions must remain separate.
 """
 
 from __future__ import annotations
@@ -23,286 +28,525 @@ from core.cognitive_workspace import CognitiveWorkspace
 
 class ConsensusTrendEstimator:
     """
-    Estimate collective consensus pressure independently
-    from truth or empirical grounding.
+    Estimate collective consensus pressure without equating
+    consensus with truth.
     """
 
     name = "consensus_trend"
 
-    def analyze(
+    def run(
         self,
         workspace: CognitiveWorkspace,
-    ) -> dict[str, Any]:
+    ) -> CognitiveWorkspace:
 
-        text = str(
-            workspace.text or ""
-        ).lower().strip()
+        # --------------------------------------------------
+        # Existing source analysis
+        # --------------------------------------------------
 
-        if not text:
-            result = self._empty_result()
+        source_analysis = (
+            workspace.interpretations.get(
+                "source_analysis",
+                {},
+            )
+        )
 
-            workspace.set(
-                self.name,
-                0.0,
-                signals=result,
+        if not isinstance(
+            source_analysis,
+            dict,
+        ):
+            source_analysis = {}
+
+        sources = source_analysis.get(
+            "sources",
+            [],
+        )
+
+        if not isinstance(
+            sources,
+            list,
+        ):
+            sources = []
+
+        source_count = len(
+            sources
+        )
+
+        # --------------------------------------------------
+        # Semantic reasoning
+        # --------------------------------------------------
+
+        semantic_reasoning = (
+            workspace.interpretations.get(
+                "semantic_reasoner",
+                {},
+            )
+        )
+
+        if not isinstance(
+            semantic_reasoning,
+            dict,
+        ):
+            semantic_reasoning = {}
+
+        alternative_count = self._safe_int(
+            semantic_reasoning.get(
+                "alternative_count",
+                0,
+            )
+        )
+
+        uncertainty_count = self._safe_int(
+            semantic_reasoning.get(
+                "uncertainty_count",
+                0,
+            )
+        )
+
+        # --------------------------------------------------
+        # Source-level cognitive signals
+        # --------------------------------------------------
+
+        independence_values = []
+        ideological_pressure_values = []
+        relevance_values = []
+        evidence_values = []
+
+        for source in sources:
+
+            if not isinstance(
+                source,
+                dict,
+            ):
+                continue
+
+            analysis = source.get(
+                "analysis",
+                {},
             )
 
-            return result
+            if not isinstance(
+                analysis,
+                dict,
+            ):
+                continue
 
-        # --------------------------------------------------
-        # Collective agreement markers
-        # --------------------------------------------------
+            independence_values.append(
+                self._normalize_score(
+                    analysis.get(
+                        "independence",
+                        0.0,
+                    )
+                )
+            )
 
-        collective_agreement = self._score_markers(
-            text,
-            [
-                "tout le monde sait",
-                "tout le monde pense",
-                "tout le monde est d'accord",
-                "la majorité pense",
-                "la majorité considère",
-                "la plupart des gens",
-                "consensus",
-                "consensus général",
-                "opinion générale",
-                "opinion dominante",
-                "idée dominante",
-                "pensée dominante",
-                "on sait que",
-                "il est admis que",
-                "il est reconnu que",
-                "communément admis",
-                "widely accepted",
-                "everyone knows",
-                "most people believe",
-                "general consensus",
-                "widely believed",
-                "commonly accepted",
-            ],
+            ideological_pressure_values.append(
+                self._normalize_score(
+                    analysis.get(
+                        "ideological_pressure",
+                        0.0,
+                    )
+                )
+            )
+
+            relevance_values.append(
+                self._normalize_score(
+                    analysis.get(
+                        "relevance",
+                        0.0,
+                    )
+                )
+            )
+
+            evidence_values.append(
+                self._normalize_score(
+                    analysis.get(
+                        "evidence_level",
+                        0.0,
+                    )
+                )
+            )
+
+        independence = self._average(
+            independence_values
+        )
+
+        ideological_pressure = self._average(
+            ideological_pressure_values
+        )
+
+        relevance = self._average(
+            relevance_values
+        )
+
+        evidence = self._average(
+            evidence_values
         )
 
         # --------------------------------------------------
-        # Institutional authority markers
+        # Quantity signal
         # --------------------------------------------------
 
-        institutional_authority = self._score_markers(
-            text,
-            [
-                "les experts",
-                "les scientifiques",
-                "les économistes",
-                "les historiens",
-                "les autorités",
-                "les institutions",
-                "les médias",
-                "l'université",
-                "la communauté scientifique",
-                "la communauté internationale",
-                "les spécialistes",
-                "les professionnels",
-                "experts agree",
-                "scientists agree",
-                "authorities say",
-                "academic consensus",
-                "scientific consensus",
-            ],
+        if source_count <= 0:
+            source_quantity = 0.0
+
+        elif source_count == 1:
+            source_quantity = 0.20
+
+        elif source_count == 2:
+            source_quantity = 0.40
+
+        elif source_count == 3:
+            source_quantity = 0.60
+
+        elif source_count == 4:
+            source_quantity = 0.80
+
+        else:
+            source_quantity = 1.0
+
+        # --------------------------------------------------
+        # Alternative scarcity
+        # --------------------------------------------------
+
+        alternative_scarcity = max(
+            0.0,
+            min(
+                1.0,
+                1.0
+                - min(
+                    1.0,
+                    alternative_count / 3.0,
+                ),
+            ),
         )
 
         # --------------------------------------------------
-        # Social repetition / normalization
+        # Uncertainty preservation
         # --------------------------------------------------
 
-        repetition_normalization = self._score_markers(
-            text,
-            [
-                "toujours entendu",
-                "on nous dit",
-                "on nous répète",
-                "depuis toujours",
-                "tout le monde répète",
-                "c'est connu",
-                "c'est normal",
-                "c'est évident pour tous",
-                "on apprend que",
-                "on enseigne que",
-                "everyone says",
-                "we are told",
-                "commonly repeated",
-                "always been taught",
-            ],
+        uncertainty_presence = min(
+            1.0,
+            uncertainty_count / 3.0,
         )
 
         # --------------------------------------------------
-        # Group / ideological identity pressure
-        # --------------------------------------------------
-
-        group_alignment = self._score_markers(
-            text,
-            [
-                "nous pensons",
-                "nous croyons",
-                "notre mouvement",
-                "notre parti",
-                "notre communauté",
-                "notre religion",
-                "notre doctrine",
-                "notre idéologie",
-                "les vrais",
-                "ceux qui savent",
-                "les gens comme nous",
-                "our movement",
-                "our party",
-                "our community",
-                "our ideology",
-                "people like us",
-            ],
-        )
-
-        # --------------------------------------------------
-        # Dissent exclusion
-        # --------------------------------------------------
-
-        dissent_exclusion = self._score_markers(
-            text,
-            [
-                "personne ne peut nier",
-                "seuls les ignorants",
-                "seuls les idiots",
-                "ceux qui ne sont pas d'accord",
-                "aucune personne sérieuse",
-                "il n'y a pas de débat",
-                "le débat est clos",
-                "toute autre opinion est fausse",
-                "no serious person",
-                "no one can deny",
-                "there is no debate",
-                "debate is settled",
-                "any other view is wrong",
-            ],
-        )
-
-        # --------------------------------------------------
-        # Consensus trend score
+        # Consensus availability
         # --------------------------------------------------
         #
-        # Consensus is NOT truth.
-        #
-        # This score measures stabilization by collective
-        # agreement and conformity pressure.
+        # Without external sources, DeDe should NOT pretend
+        # to know the degree of collective consensus.
         # --------------------------------------------------
 
-        score = (
-            collective_agreement * 0.30
-            + institutional_authority * 0.20
-            + repetition_normalization * 0.15
-            + group_alignment * 0.15
-            + dissent_exclusion * 0.20
+        consensus_available = (
+            source_count >= 2
         )
 
-        score = max(
+        if consensus_available:
+
+            # ----------------------------------------------
+            # Collective stabilization
+            # ----------------------------------------------
+            #
+            # Many relevant sources increase apparent
+            # convergence.
+            #
+            # Low independence reduces the epistemic value
+            # of that convergence, but does NOT erase the
+            # fact that consensus exists.
+            # ----------------------------------------------
+
+            collective_stabilization = (
+                source_quantity * 0.40
+                + relevance * 0.25
+                + alternative_scarcity * 0.20
+                + ideological_pressure * 0.15
+            )
+
+            collective_stabilization = max(
+                0.0,
+                min(
+                    1.0,
+                    collective_stabilization,
+                ),
+            )
+
+            # ----------------------------------------------
+            # Independent convergence
+            # ----------------------------------------------
+
+            independent_convergence = (
+                collective_stabilization
+                * independence
+            )
+
+            # ----------------------------------------------
+            # Consensus dependency
+            # ----------------------------------------------
+            #
+            # High consensus + low independence suggests
+            # repetition or shared framing rather than many
+            # independent confirmations.
+            # ----------------------------------------------
+
+            consensus_dependency = (
+                collective_stabilization
+                * (
+                    1.0
+                    - independence
+                )
+            )
+
+        else:
+
+            collective_stabilization = 0.0
+            independent_convergence = 0.0
+            consensus_dependency = 0.0
+
+        # --------------------------------------------------
+        # Classification
+        # --------------------------------------------------
+
+        if not consensus_available:
+            level = "unavailable"
+
+        elif collective_stabilization >= 0.75:
+            level = "very_high"
+
+        elif collective_stabilization >= 0.55:
+            level = "high"
+
+        elif collective_stabilization >= 0.35:
+            level = "moderate"
+
+        else:
+            level = "low"
+
+        # --------------------------------------------------
+        # Epistemic relation
+        # --------------------------------------------------
+        #
+        # Consensus and grounding must remain separate.
+        # --------------------------------------------------
+
+        if not consensus_available:
+
+            epistemic_relation = (
+                "consensus_not_established"
+            )
+
+        elif (
+            collective_stabilization >= 0.55
+            and evidence >= 0.55
+            and independence >= 0.55
+        ):
+
+            epistemic_relation = (
+                "consensus_with_independent_grounding"
+            )
+
+        elif (
+            collective_stabilization >= 0.55
+            and (
+                evidence < 0.40
+                or independence < 0.40
+            )
+        ):
+
+            epistemic_relation = (
+                "consensus_exceeds_grounding"
+            )
+
+        elif (
+            collective_stabilization < 0.35
+            and evidence >= 0.55
+        ):
+
+            epistemic_relation = (
+                "grounding_exceeds_consensus"
+            )
+
+        else:
+
+            epistemic_relation = (
+                "mixed"
+            )
+
+        # --------------------------------------------------
+        # Result
+        # --------------------------------------------------
+
+        result = {
+            "estimator": self.name,
+            "status": (
+                "ready"
+                if consensus_available
+                else "unavailable"
+            ),
+
+            "score": round(
+                collective_stabilization,
+                3,
+            ),
+
+            "level": level,
+
+            "consensus_available": (
+                consensus_available
+            ),
+
+            "source_count": (
+                source_count
+            ),
+
+            "components": {
+                "source_quantity": round(
+                    source_quantity,
+                    3,
+                ),
+
+                "relevance": round(
+                    relevance,
+                    3,
+                ),
+
+                "independence": round(
+                    independence,
+                    3,
+                ),
+
+                "evidence": round(
+                    evidence,
+                    3,
+                ),
+
+                "ideological_pressure": round(
+                    ideological_pressure,
+                    3,
+                ),
+
+                "alternative_scarcity": round(
+                    alternative_scarcity,
+                    3,
+                ),
+
+                "uncertainty_presence": round(
+                    uncertainty_presence,
+                    3,
+                ),
+            },
+
+            "independent_convergence": round(
+                independent_convergence,
+                3,
+            ),
+
+            "consensus_dependency": round(
+                consensus_dependency,
+                3,
+            ),
+
+            "epistemic_relation": (
+                epistemic_relation
+            ),
+
+            "principle": (
+                "Consensus Trend measures collective stabilization, "
+                "not truth. Consensus, grounding and source independence "
+                "must remain distinct cognitive dimensions."
+            ),
+        }
+
+        # --------------------------------------------------
+        # Workspace
+        # --------------------------------------------------
+
+        workspace.set(
+            self.name,
+            collective_stabilization,
+            signals=result,
+        )
+
+        workspace.set_raw(
+            "consensus_epistemic_relation",
+            epistemic_relation,
+        )
+
+        workspace.set_raw(
+            "consensus_independent_convergence",
+            independent_convergence,
+        )
+
+        workspace.set_raw(
+            "consensus_dependency",
+            consensus_dependency,
+        )
+
+        workspace.add_interpretation(
+            self.name,
+            result,
+        )
+
+        return workspace
+
+    # ======================================================
+    # Helpers
+    # ======================================================
+
+    @staticmethod
+    def _average(
+        values: list[float],
+    ) -> float:
+
+        if not values:
+            return 0.0
+
+        return sum(
+            values
+        ) / len(
+            values
+        )
+
+    @staticmethod
+    def _safe_int(
+        value: Any,
+    ) -> int:
+
+        try:
+            return int(
+                value
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+            return 0
+
+    @staticmethod
+    def _normalize_score(
+        value: Any,
+    ) -> float:
+
+        try:
+            score = float(
+                value
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+            return 0.0
+
+        if score > 1.0:
+            score = (
+                score / 100.0
+            )
+
+        return max(
             0.0,
             min(
                 1.0,
                 score,
             ),
         )
-
-        # --------------------------------------------------
-        # Classification
-        # --------------------------------------------------
-
-        if score >= 0.75:
-            level = "very_high"
-
-        elif score >= 0.55:
-            level = "high"
-
-        elif score >= 0.35:
-            level = "moderate"
-
-        elif score >= 0.15:
-            level = "low"
-
-        else:
-            level = "minimal"
-
-        result = {
-            "estimator": self.name,
-            "status": "ready",
-            "score": round(
-                score,
-                3,
-            ),
-            "level": level,
-            "components": {
-                "collective_agreement": round(
-                    collective_agreement,
-                    3,
-                ),
-                "institutional_authority": round(
-                    institutional_authority,
-                    3,
-                ),
-                "repetition_normalization": round(
-                    repetition_normalization,
-                    3,
-                ),
-                "group_alignment": round(
-                    group_alignment,
-                    3,
-                ),
-                "dissent_exclusion": round(
-                    dissent_exclusion,
-                    3,
-                ),
-            },
-            "principle": (
-                "Consensus Trend measures collective stabilization, "
-                "not truth. A high consensus score may coexist with "
-                "either strong or weak empirical grounding."
-            ),
-        }
-
-        workspace.set(
-            self.name,
-            score,
-            signals=result,
-        )
-
-        return result
-
-    def _score_markers(
-        self,
-        text: str,
-        markers: list[str],
-    ) -> float:
-
-        matches = [
-            marker
-            for marker in markers
-            if marker in text
-        ]
-
-        if not markers:
-            return 0.0
-
-        return min(
-            1.0,
-            len(matches) / 3.0,
-        )
-
-    def _empty_result(
-        self,
-    ) -> dict[str, Any]:
-
-        return {
-            "estimator": self.name,
-            "status": "empty",
-            "score": 0.0,
-            "level": "minimal",
-            "components": {},
-            "principle": (
-                "Consensus Trend measures collective stabilization, "
-                "not truth."
-            ),
-        }
