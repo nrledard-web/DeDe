@@ -1739,6 +1739,23 @@ document_context = (
             "user_response",
             user_response,
         )
+
+        mark_performance(
+            "final_processing"
+        )
+
+        performance_profile[
+            "total_internal"
+        ] = round(
+            time.perf_counter()
+            - pipeline_started_at,
+            4,
+        )
+
+        workspace.add_interpretation(
+            "performance_profile",
+            performance_profile,
+        )
     
         # --------------------------------------------------
         # Phase 4.20
