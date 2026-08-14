@@ -50,6 +50,7 @@ Report
 
 from typing import Any
 import re
+import time
 
 from search.search_engine import SearchEngine
 from search.search_validator import SearchValidator
@@ -101,41 +102,7 @@ from dialogue.conversation_manager import ConversationManager
 from dialogue.conversation_reasoner import ConversationReasoner
 from dialogue.dialogue_profile import DialogueProfile
 
-from llm.llm_connector import LLMConnector
-from llm.llm_response_interpreter import LLMResponseInterpreter
-from llm.llm_bridge import LLMBridge
-
-from committee.cognitive_committee import CognitiveCommittee
-
-from core.daimon_filter import DaimonFilter
-from governance.cognitive_governor import CognitiveGovernor
-
-from formulas.doxa_formula_engine import DoxaFormulaEngine
-from agents.nous_agent import NousAgent
-from agents.doxa_agent import DoxaAgent
-from agents.reduction_agent import ReductionAgent
-from agents.nouscope_agent import NOUSCOPEAgent
-from agents.cognitive_therapy_agent import CognitiveTherapyAgent
-
-from analysis.text_analysis_engine import TextAnalysisEngine
-from analysis.cognitive_comparator import CognitiveComparator
-from analysis.source_analysis_engine import SourceAnalysisEngine
-
-class DoxaEnginePhase2:
-    """
-    Main orchestrator for DeDe Phase 2.
-
-    This class coordinates all symbolic, semantic, cognitive,
-    inferential and LLM-preparation layers.
-    """
-
-    def __init__(
-        self,
-        user_id: str = "default_user",
-    ):
-        # --------------------------------------------------
-        # Knowledge and semantic layers
-        # --------------------------------------------------
+document_context = (
         self.knowledge = KnowledgeAgent()
         self.url_reader = URLReader()
         self.concept_extractor = ConceptExtractor()
