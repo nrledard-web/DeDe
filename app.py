@@ -431,15 +431,15 @@ st.html(
                 Later philosophical traditions, including Stoicism,
                 emphasized reason, self-examination, inner guidance
                 and the disciplined interpretation of experience.
-    
+
                 <br><br>
-    
+
                 <strong>
                     DeDe reinterprets this ancient idea in cognitive form.
                 </strong>
-    
+
                 <br><br>
-    
+
                 It is designed as a persistent companion for reflection,
                 psychological support, self-understanding and emotional
                 regulation — not an authority that thinks in your place,
@@ -447,12 +447,142 @@ st.html(
                 remember your history, recognize cognitive tensions,
                 preserve doubt and revisability, and understand how
                 your own thinking changes over time.
-    
+
                 <br><br>
-    
-                DeDe does not replace professional mental-health care.
-                Its role is to support reflection, cognitive orientation
-                and personal understanding.
+
+                <strong>
+                    Its Cognitive Therapy is based on Cognitive Mechanics.
+                </strong>
+
+                <br><br>
+
+                DeDe follows the relation:
+
+                <br><br>
+
+                <strong>
+                    M = (G + N) − D
+                </strong>
+
+                <br><br>
+
+                where <strong>G — Gnosis</strong> represents articulated
+                and grounded knowledge, <strong>N — Nous</strong>
+                represents integrated understanding, and
+                <strong>D — Doxa</strong> represents stabilized certainty
+                and cognitive closure.
+
+                <br><br>
+
+                <strong>M — Mécroyance</strong> represents the current
+                position of cognition on a spectrum. Mécroyance is not
+                something a human being simply enters or leaves:
+                every finite cognition necessarily works through
+                incomplete representations of reality. The important
+                question is therefore not whether Mécroyance exists,
+                but <strong>where cognition currently lies within it</strong>.
+
+                <br><br>
+
+                DeDe can represent this position through a
+                <strong>Mécroyance Life Bar</strong>, ranging theoretically
+                from <strong>−10 to 20</strong>. The bar is not a measure
+                of intelligence, mental health or personal worth.
+                It is a cognitive orientation tool showing the evolving
+                relation between knowledge, understanding and certainty.
+
+                <br><br>
+
+                When <strong>D exceeds G + N</strong>, M moves toward
+                the negative part of the spectrum and toward
+                <strong>cognitive closure</strong>. When knowledge and
+                integrated understanding increase relative to certainty,
+                cognition moves toward greater revisability.
+
+                <br><br>
+
+                DeDe can also compare this cognitive position over time.
+                It can observe changes in Gnosis, Nous, Doxa and
+                Mécroyance from one interaction to another, allowing
+                the user to see whether a belief is becoming more
+                grounded, more integrated, more rigid, or more open
+                to revision.
+
+                <br><br>
+
+                <strong>
+                    Reduction is another central part of this therapy.
+                </strong>
+
+                <br><br>
+
+                Human cognition necessarily reduces reality: every word,
+                category, theory and explanation selects some dimensions
+                while leaving others outside the representation.
+                Reduction itself is therefore not an error.
+
+                <br><br>
+
+                DeDe distinguishes between
+                <strong>ordinary reduction</strong>,
+                <strong>excessive reduction</strong>, and
+                <strong>forgotten reduction</strong>. Excessive reduction
+                appears when too many relevant dimensions are compressed
+                or excluded. Forgotten reduction appears when a simplified
+                representation is no longer recognized as a model of
+                reality and begins to be treated as reality itself.
+
+                <br><br>
+
+                This is one of the principal mechanisms DeDe watches for,
+                because excessive or forgotten reduction can weaken
+                Gnosis and Nous while Doxa remains stable or increases,
+                pushing cognition toward closure.
+
+                <br><br>
+
+                Cognitive Therapy therefore attempts to restore missing
+                dimensions, identify hidden assumptions, introduce
+                alternative hypotheses, strengthen grounding, improve
+                contextual integration and recalibrate excessive certainty
+                — <strong>without replacing the user's beliefs with
+                DeDe's own beliefs</strong>.
+
+                <br><br>
+
+                DeDe can also examine
+                <strong>cognitive tensions and possible dissonance</strong>
+                across a person's expressed beliefs. The objective is not
+                to label disagreement, ideology or doctrine as pathological,
+                but to notice when two personally held principles become
+                difficult to reconcile, particularly when certainty or
+                group consensus makes revision harder.
+
+                <br><br>
+
+                The same principle applies to ideological, political,
+                religious or philosophical systems. DeDe does not assume
+                that an <em>-ism</em> is true or false because it is widely
+                accepted or rejected. It distinguishes
+                <strong>consensus from truth</strong>, examines the
+                reductions contained within a doctrine, and looks at
+                whether collective certainty may be stabilizing claims
+                beyond their grounding.
+
+                <br><br>
+
+                Throughout this process, the user remains the author of
+                their own thought. DeDe's role is to make cognitive
+                structures more visible, preserve alternatives and help
+                maintain the capacity to revise.
+
+                <br><br>
+
+                <strong>
+                    DeDe does not replace professional mental-health care.
+                </strong>
+                Its role is to support reflection, cognitive orientation,
+                psychological support and personal understanding.
             </div>
         </details>
     </div>
