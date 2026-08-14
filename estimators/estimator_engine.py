@@ -11,7 +11,16 @@ from estimators.grounding_estimator import GroundingEstimator
 from estimators.integration_estimator import IntegrationEstimator
 from estimators.closure_estimator import ClosureEstimator
 from estimators.reduction_estimator import ReductionEstimator
-
+from estimators.consensus_trend_estimator import (
+    ConsensusTrendEstimator,
+)
+self.estimators = [
+    GroundingEstimator(),
+    IntegrationEstimator(),
+    ClosureEstimator(),
+    ReductionEstimator(),
+    ConsensusTrendEstimator(),
+]
 
 class EstimatorEngine:
     """
