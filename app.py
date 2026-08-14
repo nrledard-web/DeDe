@@ -3897,6 +3897,89 @@ if text:
             f"{total_response_seconds:.2f} s",
         )
 
+        internal_profile = report.get(
+            "performance_profile",
+            {},
+        )
+
+        if internal_profile:
+
+            st.markdown(
+                "#### 🔬 Cognitive pipeline details"
+            )
+
+            st.write(
+                "Memory + identity + dialogue:",
+                f"{internal_profile.get(
+                    'memory_identity_dialogue',
+                    0.0,
+                ):.2f} s",
+            )
+
+            st.write(
+                "Knowledge + semantic:",
+                f"{internal_profile.get(
+                    'knowledge_semantic',
+                    0.0,
+                ):.2f} s",
+            )
+
+            st.write(
+                "Search + source analysis:",
+                f"{internal_profile.get(
+                    'search_source_analysis',
+                    0.0,
+                ):.2f} s",
+            )
+
+            st.write(
+                "Graph + agents + reasoning:",
+                f"{internal_profile.get(
+                    'graph_agents_reasoning',
+                    0.0,
+                ):.2f} s",
+            )
+
+            st.write(
+                "LLM prompt build:",
+                f"{internal_profile.get(
+                    'llm_prompt_build',
+                    0.0,
+                ):.2f} s",
+            )
+
+            st.write(
+                "LLM generation:",
+                f"{internal_profile.get(
+                    'llm_generation',
+                    0.0,
+                ):.2f} s",
+            )
+
+            st.write(
+                "Committee + formulas + dialogue:",
+                f"{internal_profile.get(
+                    'committee_formula_dialogue',
+                    0.0,
+                ):.2f} s",
+            )
+
+            st.write(
+                "Final processing:",
+                f"{internal_profile.get(
+                    'final_processing',
+                    0.0,
+                ):.2f} s",
+            )
+
+            st.write(
+                "**Internal total:**",
+                f"{internal_profile.get(
+                    'total_internal',
+                    0.0,
+                ):.2f} s",
+            )
+
     workspace = report["workspace"]
     variables = workspace["variables"]
     agent_results = report["agent_results"]
