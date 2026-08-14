@@ -3781,7 +3781,7 @@ if text:
         explicit_search_request=(
             effective_explicit_search_request
         ),
-        llm_profile="custom",
+        llm_profile="fast",
         llm_providers=llm_providers,
         knowledge_providers=knowledge_providers,
         knowledge_mode=knowledge_mode,
