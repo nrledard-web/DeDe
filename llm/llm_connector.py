@@ -761,6 +761,23 @@ class LLMConnector:
             ):
                 temporal_analysis = {}
 
+            # --------------------------------------------------
+            # Reduction Therapy State
+            # --------------------------------------------------
+
+            reduction_state = (
+                cognitive_therapy_context.get(
+                    "reduction",
+                    {},
+                )
+            )
+
+            if not isinstance(
+                reduction_state,
+                dict,
+            ):
+                reduction_state = {}
+
             lines.append(
                 "COGNITIVE THERAPY CONTEXT"
             )
