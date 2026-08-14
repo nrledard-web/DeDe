@@ -330,7 +330,6 @@ class DoxaEnginePhase2:
         memory_governance: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
-        """
         Run the complete DeDe Phase 2 cognitive pipeline.
         """
 
