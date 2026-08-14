@@ -764,19 +764,69 @@ class LLMConnector:
             # --------------------------------------------------
             # Reduction Therapy State
             # --------------------------------------------------
+            #
+            # Reduction mechanics are stored directly in the
+            # Cognitive Therapy result, not inside a nested
+            # "reduction" dictionary.
+            # --------------------------------------------------
 
-            reduction_state = (
-                cognitive_therapy_context.get(
-                    "reduction",
-                    {},
-                )
-            )
+            reduction_state = {
+                "reduction_state": (
+                    cognitive_therapy_context.get(
+                        "reduction_state",
+                        "ordinary_reduction",
+                    )
+                ),
 
-            if not isinstance(
-                reduction_state,
-                dict,
-            ):
-                reduction_state = {}
+                "hidden_assumption_pressure": (
+                    cognitive_therapy_context.get(
+                        "reduction_level_from_committee",
+                        0.0,
+                    )
+                ),
+
+                "excessive_reduction_pressure": (
+                    cognitive_therapy_context.get(
+                        "excessive_reduction_pressure",
+                        0.0,
+                    )
+                ),
+
+                "forgotten_reduction_pressure": (
+                    cognitive_therapy_context.get(
+                        "forgotten_reduction_pressure",
+                        0.0,
+                    )
+                ),
+
+                "missing_dimension_pressure": (
+                    cognitive_therapy_context.get(
+                        "missing_dimension_pressure",
+                        0.0,
+                    )
+                ),
+
+                "alternative_scarcity": (
+                    cognitive_therapy_context.get(
+                        "alternative_scarcity",
+                        0.0,
+                    )
+                ),
+
+                "excessive_reduction": (
+                    cognitive_therapy_context.get(
+                        "excessive_reduction",
+                        False,
+                    )
+                ),
+
+                "forgotten_reduction": (
+                    cognitive_therapy_context.get(
+                        "forgotten_reduction",
+                        False,
+                    )
+                ),
+            }
 
             lines.append(
                 "COGNITIVE THERAPY CONTEXT"
