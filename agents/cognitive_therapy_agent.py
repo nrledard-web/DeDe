@@ -252,6 +252,53 @@ class CognitiveTherapyAgent:
             "reduction_level"
         )
 
+        # -------------------------------------------------
+        # REDUCTION MECHANICS
+        # -------------------------------------------------
+
+        reduction_state = reduction_view.get(
+            "reduction_state",
+            "ordinary_reduction",
+        )
+
+        excessive_reduction_pressure = self._safe_level(
+            reduction_view.get(
+                "excessive_reduction_pressure"
+            )
+        )
+
+        forgotten_reduction_pressure = self._safe_level(
+            reduction_view.get(
+                "forgotten_reduction_pressure"
+            )
+        )
+
+        missing_dimension_pressure = self._safe_level(
+            reduction_view.get(
+                "missing_dimension_pressure"
+            )
+        )
+
+        alternative_scarcity = self._safe_level(
+            reduction_view.get(
+                "alternative_scarcity"
+            )
+        )
+
+        excessive_reduction = bool(
+            reduction_view.get(
+                "excessive_reduction",
+                False,
+            )
+        )
+
+        forgotten_reduction = bool(
+            reduction_view.get(
+                "forgotten_reduction",
+                False,
+            )
+        )
+
         cognitive_filter_level = nouscope.get(
             "cognitive_filter_level"
         )
