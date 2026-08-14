@@ -268,8 +268,31 @@ document_context = (
         memory_governance: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
+        """
         Run the complete DeDe Phase 2 cognitive pipeline.
         """
+
+        # --------------------------------------------------
+        # Internal Performance Profiler
+        # --------------------------------------------------
+
+        pipeline_started_at = time.perf_counter()
+        performance_last_mark = pipeline_started_at
+        performance_profile = {}
+
+        def mark_performance(
+            name: str,
+        ) -> None:
+            nonlocal performance_last_mark
+
+            now = time.perf_counter()
+
+            performance_profile[name] = round(
+                now - performance_last_mark,
+                4,
+            )
+
+            performance_last_mark = now
 
         document_context = (
             document_context or {}
