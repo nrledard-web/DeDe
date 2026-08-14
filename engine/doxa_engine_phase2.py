@@ -1171,6 +1171,10 @@ document_context = (
             search_summary,
         )
 
+        mark_performance(
+            "search_source_analysis"
+        )
+
         # --------------------------------------------------
         # Phase 4.2
         # Initial Semantic Graph
