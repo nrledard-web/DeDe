@@ -409,13 +409,29 @@ class CognitiveTherapyAgent:
                 "doxastic pressure."
             )
 
-        if (
-            reduction_level is not None
-            and reduction_level >= 0.60
-        ):
+        if excessive_reduction:
             strategies.append(
-                "Check whether reduction pressure is "
-                "hiding relevant dimensions."
+                "Expand the cognitive frame because the current "
+                "representation may be compressing too many "
+                "relevant dimensions."
+            )
+
+        if forgotten_reduction:
+            strategies.append(
+                "Restore awareness that the current representation "
+                "is a reduction of reality rather than reality itself."
+            )
+
+        if missing_dimension_pressure >= 0.60:
+            strategies.append(
+                "Identify important dimensions that may have been "
+                "excluded from the current frame."
+            )
+
+        if alternative_scarcity >= 0.60:
+            strategies.append(
+                "Introduce additional plausible alternatives before "
+                "allowing the interpretation to stabilize."
             )
 
         if assumptions:
