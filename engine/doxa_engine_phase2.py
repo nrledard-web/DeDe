@@ -529,6 +529,10 @@ document_context = (
             philosophical_context,
         )
 
+        mark_performance(
+            "knowledge_semantic"
+        )
+
         # --------------------------------------------------
         # Phase 5.4b
         # Search Provider
