@@ -70,6 +70,77 @@ class ReductionAgent:
             hidden_assumption_pressure >= 0.60
         )
 
+        # --------------------------------------------------
+        # EXCESSIVE / FORGOTTEN REDUCTION
+        # --------------------------------------------------
+        #
+        # Reduction itself is necessary to cognition.
+        # The risk appears when:
+        #
+        # - too much of reality is compressed or excluded;
+        # - alternatives become scarce;
+        # - integration becomes insufficient;
+        # - closure stabilizes the reduced frame;
+        # - the reduction is no longer recognized as reduction.
+        # --------------------------------------------------
+
+        alternative_scarcity = max(
+            0.0,
+            min(
+                1.0,
+                1.0 - (
+                    alternative_count / 3.0
+                ),
+            ),
+        )
+
+        missing_dimension_pressure = max(
+            0.0,
+            min(
+                1.0,
+                (
+                    reduction * 0.35
+                    + hidden_assumption_pressure * 0.25
+                    + (1.0 - integration) * 0.25
+                    + alternative_scarcity * 0.15
+                ),
+            ),
+        )
+
+        excessive_reduction_pressure = max(
+            0.0,
+            min(
+                1.0,
+                (
+                    reduction * 0.35
+                    + hidden_assumption_pressure * 0.30
+                    + missing_dimension_pressure * 0.20
+                    + closure * 0.15
+                ),
+            ),
+        )
+
+        forgotten_reduction_pressure = max(
+            0.0,
+            min(
+                1.0,
+                (
+                    excessive_reduction_pressure * 0.40
+                    + closure * 0.30
+                    + alternative_scarcity * 0.20
+                    + (1.0 - integration) * 0.10
+                ),
+            ),
+        )
+
+        excessive_reduction = (
+            excessive_reduction_pressure >= 0.60
+        )
+
+        forgotten_reduction = (
+            forgotten_reduction_pressure >= 0.60
+        )
+
         if hidden_assumption_pressure >= 0.70:
             summary = "Strong reduction pressure detected."
             committee_reply = (
