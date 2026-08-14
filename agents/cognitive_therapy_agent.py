@@ -348,11 +348,19 @@ class CognitiveTherapyAgent:
             0.0,
             min(
                 1.0,
-                (closure * 0.35)
-                + (reduction * 0.30)
-                - (grounding * 0.15)
-                - (integration * 0.15)
-                + 0.25
+                (closure * 0.30)
+                + (reduction * 0.20)
+                + (
+                    excessive_reduction_pressure
+                    * 0.15
+                )
+                + (
+                    forgotten_reduction_pressure
+                    * 0.20
+                )
+                - (grounding * 0.10)
+                - (integration * 0.10)
+                + 0.20
                 + semantic_recalibration_pressure,
             ),
         )
