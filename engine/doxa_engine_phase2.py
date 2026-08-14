@@ -1351,6 +1351,10 @@ document_context = (
             llm_package.get("cognitive_governor", {}),
         )
 
+        mark_performance(
+            "llm_prompt_build"
+        )
+
         # --------------------------------------------------
         # Phase 4.12
         # LLM Bridge
