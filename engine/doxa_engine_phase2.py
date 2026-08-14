@@ -1764,6 +1764,9 @@ document_context = (
         report = {
             "phase": "phase_5_4_identity_memory_dialogue",
             "text": text,
+            "performance_profile": (
+                performance_profile
+            ),
             "conversation_context": workspace.interpretations.get(
                 "conversation_context",
                 {},
