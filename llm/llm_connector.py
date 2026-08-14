@@ -816,9 +816,31 @@ class LLMConnector:
                 f'{mecroyance.get("zone", "unavailable")}'
             )
 
+            bar_position = (
+                mecroyance.get(
+                    "bar_position"
+                )
+            )
+
+            if isinstance(
+                bar_position,
+                (int, float),
+            ):
+                lines.append(
+                    "- graphical bar position: "
+                    f"{bar_position:.4f}"
+                )
+
+                lines.append(
+                    "- graphical bar percentage: "
+                    f"{bar_position * 100:.1f}%"
+                )
+
             lines.append(
-                "- bar position: "
-                f'{mecroyance.get("bar_position", "unavailable")}'
+                "IMPORTANT: graphical bar position is only the "
+                "normalized visual coordinate of M on the spectrum "
+                "from -10 to 20. It is not the Mécroyance value. "
+                "The cognitive value is M itself."
             )
 
             mecroyance_interpretation = str(
@@ -946,10 +968,13 @@ class LLMConnector:
             )
 
             lines.append(
-                "If the user asks directly about the bar, explain "
-                "the current G, N, D and M values, the current zone "
-                "and, when available, the change from the previous "
-                "therapy state."
+                "If the user asks directly about the bar, always "
+                "state M first as the actual cognitive value. "
+                "Then, if useful, state the graphical position as "
+                "a percentage of the visual spectrum from -10 to 20. "
+                "Never say that Mécroyance itself equals the normalized "
+                "bar position. Also explain the current zone and, when "
+                "available, the change from the previous therapy state."
             )
 
             lines.append("")
