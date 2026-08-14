@@ -102,60 +102,116 @@ from dialogue.conversation_manager import ConversationManager
 from dialogue.conversation_reasoner import ConversationReasoner
 from dialogue.dialogue_profile import DialogueProfile
 
-document_context = (
+from llm.llm_connector import LLMConnector
+from llm.llm_response_interpreter import LLMResponseInterpreter
+from llm.llm_bridge import LLMBridge
+
+from committee.cognitive_committee import CognitiveCommittee
+
+from core.daimon_filter import DaimonFilter
+from governance.cognitive_governor import CognitiveGovernor
+
+from formulas.doxa_formula_engine import DoxaFormulaEngine
+
+from agents.nous_agent import NousAgent
+from agents.doxa_agent import DoxaAgent
+from agents.reduction_agent import ReductionAgent
+from agents.nouscope_agent import NOUSCOPEAgent
+from agents.cognitive_therapy_agent import CognitiveTherapyAgent
+
+from analysis.text_analysis_engine import TextAnalysisEngine
+from analysis.cognitive_comparator import CognitiveComparator
+from analysis.source_analysis_engine import SourceAnalysisEngine
+
+
+class DoxaEnginePhase2:
+    """
+    Main orchestrator for DeDe Phase 2.
+
+    This class coordinates all symbolic, semantic, cognitive,
+    inferential and LLM-preparation layers.
+    """
+
+    def __init__(
+        self,
+        user_id: str = "default_user",
+    ):
+        # --------------------------------------------------
+        # Knowledge and semantic layers
+        # --------------------------------------------------
+
         self.knowledge = KnowledgeAgent()
         self.url_reader = URLReader()
         self.concept_extractor = ConceptExtractor()
         self.philosophical_retriever = PhilosophicalRetriever()
+
         self.historical_counterpoint_retriever = (
             HistoricalCounterpointRetriever()
         )
+
         self.semantic_engine = SemanticEngine()
         self.semantic_reasoner = SemanticReasoner()
         self.semantic_graph = SemanticGraph()
+
         self.onboarding = Onboarding()
         self.user_memory = UserMemory()
         self.memory_governor = MemoryGovernor()
+
         self.persistent_memory = PersistentMemory(
             user_id=user_id,
         )
+
         self.image_memory = ImageMemory(
             user_id=user_id,
         )
-        self._initialize_owner_profile(user_id)
+
+        self._initialize_owner_profile(
+            user_id
+        )
+
         self.memory_retriever = MemoryRetriever()
         self.autobiographical_memory = AutobiographicalMemory()
         self.autobiographical_reasoner = AutobiographicalReasoner()
+
         self.dede_identity = DeDeIdentity()
         self.dede_state = DeDeState()
+
         self.daimon_filter = DaimonFilter()
         self.cognitive_governor = CognitiveGovernor()
-        
+
         # --------------------------------------------------
         # Estimation layer
         # --------------------------------------------------
+
         self.estimator_engine = EstimatorEngine()
 
         # --------------------------------------------------
         # Graph and reasoning layers
         # --------------------------------------------------
+
         self.graph_query_engine = GraphQueryEngine()
         self.inference_engine = InferenceEngine()
         self.cognitive_compiler = CognitiveCompiler()
         self.cognitive_reasoner = CognitiveReasoner()
         self.committee_reasoner = CommitteeReasoner()
         self.cognitive_feedback = CognitiveFeedback()
+
         self.dialogue_manager = DialogueManager()
-        self.cognitive_dialogue_manager = CognitiveDialogueManager()
+        self.cognitive_dialogue_manager = (
+            CognitiveDialogueManager()
+        )
+
         self.response_builder = ResponseBuilder()
         self.dialogue_governor = DialogueGovernor()
         self.conversation_manager = ConversationManager()
         self.conversation_reasoner = ConversationReasoner()
         self.dialogue_profile = DialogueProfile()
+
         self.search_engine = SearchEngine()
         self.search_validator = SearchValidator()
         self.search_query_builder = SearchQueryBuilder()
         self.search_summarizer = SearchSummarizer()
+
         self.text_analysis_engine = TextAnalysisEngine()
         self.cognitive_comparator = CognitiveComparator()
         self.source_analysis_engine = SourceAnalysisEngine()
@@ -163,20 +219,26 @@ document_context = (
         # --------------------------------------------------
         # LLM preparation layers
         # --------------------------------------------------
+
         self.llm_connector = LLMConnector()
         self.llm_bridge = LLMBridge()
-        self.llm_response_interpreter = LLMResponseInterpreter()
+        self.llm_response_interpreter = (
+            LLMResponseInterpreter()
+        )
+
         self.llm_engine = LLMEngine()
 
         # --------------------------------------------------
         # Committee and formula layers
         # --------------------------------------------------
+
         self.committee = CognitiveCommittee()
         self.formula_engine = DoxaFormulaEngine()
 
         # --------------------------------------------------
         # Cognitive agents
         # --------------------------------------------------
+
         self.agents = [
             NousAgent(),
             DoxaAgent(),
