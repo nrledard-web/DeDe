@@ -711,10 +711,14 @@ class CognitiveTherapyAgent:
 
             "direction": therapy_direction,
 
+            "orientation": therapy_orientation,
+
             "principle": (
-                "Temporal movement describes variation "
-                "within Mécroyance. Increasing or decreasing "
-                "does not automatically mean better or worse."
+                "Temporal movement describes a change of position "
+                "within the Mécroyance spectrum. A positive delta_M "
+                "moves cognition toward greater revisability on this "
+                "spectrum. A negative delta_M moves cognition toward "
+                "cognitive closure. Mécroyance itself does not disappear."
             ),
         }
         # -------------------------------------------------
