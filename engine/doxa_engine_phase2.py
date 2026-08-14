@@ -1280,6 +1280,10 @@ document_context = (
             dialogue_decision,
         )
 
+        mark_performance(
+            "graph_agents_reasoning"
+        )
+
         # --------------------------------------------------
         # Phase 4.11
         # LLM Connector
