@@ -14,32 +14,34 @@ from estimators.reduction_estimator import ReductionEstimator
 from estimators.consensus_trend_estimator import (
     ConsensusTrendEstimator,
 )
-self.estimators = [
-    GroundingEstimator(),
-    IntegrationEstimator(),
-    ClosureEstimator(),
-    ReductionEstimator(),
-    ConsensusTrendEstimator(),
-]
+
 
 class EstimatorEngine:
     """
     Executes the estimation layer.
 
-    Estimators are language-dependent.
-    The variables they produce are universal.
+    Estimators may use different detection methods.
+    The cognitive variables they produce are stored
+    in a common universal workspace.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.estimators = [
             GroundingEstimator(),
             IntegrationEstimator(),
             ClosureEstimator(),
             ReductionEstimator(),
+            ConsensusTrendEstimator(),
         ]
 
-    def run(self, workspace: CognitiveWorkspace) -> CognitiveWorkspace:
+    def run(
+        self,
+        workspace: CognitiveWorkspace,
+    ) -> CognitiveWorkspace:
+
         for estimator in self.estimators:
-            workspace = estimator.run(workspace)
+            workspace = estimator.run(
+                workspace
+            )
 
         return workspace
