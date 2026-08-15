@@ -828,10 +828,57 @@ class LLMConnector:
                 ),
             }
 
+            # --------------------------------------------------
+            # Dissonance / Consensus Therapy State
+            # --------------------------------------------------
+
+            dissonance_state = {
+                "dissonance_detected": (
+                    cognitive_therapy_context.get(
+                        "dissonance_detected",
+                        False,
+                    )
+                ),
+
+                "dissonance_score": (
+                    cognitive_therapy_context.get(
+                        "dissonance_score",
+                        0.0,
+                    )
+                ),
+
+                "contradiction_pressure": (
+                    cognitive_therapy_context.get(
+                        "contradiction_pressure",
+                        0.0,
+                    )
+                ),
+
+                "revision_resistance": (
+                    cognitive_therapy_context.get(
+                        "revision_resistance",
+                        0.0,
+                    )
+                ),
+
+                "collective_stabilization_pressure": (
+                    cognitive_therapy_context.get(
+                        "collective_stabilization_pressure",
+                        0.0,
+                    )
+                ),
+
+                "consensus_dependency": (
+                    cognitive_therapy_context.get(
+                        "consensus_dependency",
+                        0.0,
+                    )
+                ),
+            }
+
             lines.append(
                 "COGNITIVE THERAPY CONTEXT"
             )
-
             lines.append("")
 
             lines.append(
