@@ -245,6 +245,7 @@ class DoxaEnginePhase2:
             DoxaAgent(),
             ReductionAgent(),
             NOUSCOPEAgent(),
+            DissonanceAgent(),
             CognitiveTherapyAgent(),
         ]
         
