@@ -421,6 +421,7 @@ class CognitiveGovernor:
         allowed_counterpoints = {
             "islamic_thought",
             "great_replacement",
+            "french_foreign_policy",
         }
 
         counterpoint_ids = [
