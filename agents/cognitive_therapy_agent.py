@@ -978,6 +978,30 @@ class CognitiveTherapyAgent:
                 forgotten_reduction
             ),
 
+            "dissonance_detected": (
+                dissonance_detected
+            ),
+
+            "dissonance_score": (
+                dissonance_score
+            ),
+
+            "contradiction_pressure": (
+                contradiction_pressure
+            ),
+
+            "revision_resistance": (
+                revision_resistance
+            ),
+
+            "collective_stabilization_pressure": (
+                collective_stabilization_pressure
+            ),
+
+            "consensus_dependency": (
+                consensus_dependency
+            ),
+
             "cognitive_filter_level": (
                 cognitive_filter_level
             ),
