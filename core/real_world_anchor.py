@@ -712,25 +712,6 @@ class RealWorldAnchor:
         except (TypeError, ValueError):
             return 0
 
-    def _score_markers(
-        self,
-        text: str,
-        markers: list[str],
-    ) -> float:
-        matches = [
-            marker
-            for marker in markers
-            if marker in text
-        ]
-
-        if not markers:
-            return 0.0
-
-        return min(
-            1.0,
-            len(matches) / 4,
-        )
-
     def _compute_epistemic_confidence(
         self,
         anchor_score: float,
