@@ -3,13 +3,22 @@ DeDe - Cognitive Feedback
 
 Extracts structured cognitive feedback from an LLM response.
 
-This component prepares the future feedback loop:
+Preferred architecture:
+
 LLM Response
     ↓
-Structured cognitive feedback
+Structured JSON
     ↓
-Future graph enrichment
+Cognitive feedback
+
+When structured JSON is unavailable, the fallback remains
+deliberately conservative and language-neutral.
+
+The fallback does not attempt to infer cognitive concepts,
+hypotheses or counterfactuals from language-specific markers.
 """
+
+from __future__ import annotations
 
 from typing import Any
 
@@ -27,319 +36,279 @@ class CognitiveFeedback:
         # --------------------------------------------------
         # Preferred path: structured JSON from the LLM
         # --------------------------------------------------
-        if parsed_json:
+
+        if isinstance(
+            parsed_json,
+            dict,
+        ) and parsed_json:
+
             return {
                 "engine": self.name,
                 "status": "ready_from_json",
-                "new_concepts": parsed_json.get("concepts", []),
-                "new_relations": parsed_json.get("relations", []),
-                "new_hypotheses": parsed_json.get("hypotheses", []),
-                "new_questions": parsed_json.get("questions", []),
-                "new_missing_dimensions": parsed_json.get(
-                    "missing_dimensions",
-                    [],
+
+                "new_concepts": self._safe_list(
+                    parsed_json.get(
+                        "concepts",
+                        [],
+                    )
                 ),
-                "new_counterfactuals": parsed_json.get(
-                    "counterfactuals",
-                    [],
+
+                "new_relations": self._safe_list(
+                    parsed_json.get(
+                        "relations",
+                        [],
+                    )
                 ),
-                "confidence": parsed_json.get("confidence", 0.0),
-                "summary": parsed_json.get(
-                    "summary",
-                    "Structured LLM feedback extracted from JSON.",
+
+                "new_hypotheses": self._safe_list(
+                    parsed_json.get(
+                        "hypotheses",
+                        [],
+                    )
                 ),
-                "recommendations": parsed_json.get("recommendations", []),
-                "contradictions": parsed_json.get("contradictions", []),
+
+                "new_questions": self._safe_list(
+                    parsed_json.get(
+                        "questions",
+                        [],
+                    )
+                ),
+
+                "new_missing_dimensions": self._safe_list(
+                    parsed_json.get(
+                        "missing_dimensions",
+                        [],
+                    )
+                ),
+
+                "new_counterfactuals": self._safe_list(
+                    parsed_json.get(
+                        "counterfactuals",
+                        [],
+                    )
+                ),
+
+                "confidence": self._safe_level(
+                    parsed_json.get(
+                        "confidence",
+                        0.0,
+                    )
+                ),
+
+                "summary": str(
+                    parsed_json.get(
+                        "summary",
+                        "Structured LLM feedback extracted from JSON.",
+                    )
+                    or "Structured LLM feedback extracted from JSON."
+                ),
+
+                "recommendations": self._safe_list(
+                    parsed_json.get(
+                        "recommendations",
+                        [],
+                    )
+                ),
+
+                "contradictions": self._safe_list(
+                    parsed_json.get(
+                        "contradictions",
+                        [],
+                    )
+                ),
+
                 "source": "llm_json",
+
+                "language_specific_markers": False,
             }
 
         # --------------------------------------------------
-        # Fallback path: no LLM response available
+        # No response
         # --------------------------------------------------
+
         if not llm_response:
-            return {
-                "engine": self.name,
-                "status": "no_llm_response",
-                "new_concepts": [],
-                "new_relations": [],
-                "new_hypotheses": [],
-                "new_questions": [],
-                "new_missing_dimensions": [],
-                "new_counterfactuals": [],
-                "confidence": 0.0,
-                "summary": "No LLM response available for feedback extraction.",
-                "recommendations": [],
-                "contradictions": [],
-                "source": "none",
-            }
+
+            return self._empty_result(
+                status="no_llm_response",
+                summary=(
+                    "No LLM response available "
+                    "for feedback extraction."
+                ),
+                source="none",
+            )
 
         # --------------------------------------------------
-        # Fallback path: heuristic extraction from text
+        # Language-neutral fallback
         # --------------------------------------------------
-        text = llm_response.lower()
+        #
+        # We deliberately do NOT infer:
+        #
+        # - concepts from words such as "certainty"
+        # - hypotheses from "may", "might", "could"
+        # - missing dimensions from English phrases
+        # - counterfactuals from "if", "unless", "would"
+        #
+        # Without structured JSON, these distinctions cannot
+        # be extracted reliably across arbitrary languages.
+        #
+        # The raw response is preserved for later semantic
+        # processing, but no cognitive inference is invented.
+        # --------------------------------------------------
 
-        new_concepts = self._extract_concepts(text)
-        new_hypotheses = self._extract_hypotheses(llm_response)
-        new_questions = self._extract_questions(llm_response)
-        new_missing_dimensions = self._extract_missing_dimensions(llm_response)
-        new_counterfactuals = self._extract_counterfactuals(llm_response)
+        cleaned_response = str(
+            llm_response
+        ).strip()
 
-        new_relations = self._build_relations(new_concepts)
+        sentence_count = self._estimate_sentence_count(
+            cleaned_response
+        )
 
-        confidence = self._estimate_confidence(
-            new_concepts,
-            new_hypotheses,
-            new_missing_dimensions,
-            new_counterfactuals,
+        structural_confidence = min(
+            0.25,
+            sentence_count * 0.03,
         )
 
         return {
             "engine": self.name,
-            "status": "ready_from_text",
-            "new_concepts": new_concepts,
-            "new_relations": new_relations,
-            "new_hypotheses": new_hypotheses,
-            "new_questions": new_questions,
-            "new_missing_dimensions": new_missing_dimensions,
-            "new_counterfactuals": new_counterfactuals,
-            "confidence": confidence,
-            "summary": self._build_summary(
-                new_concepts,
-                new_relations,
-                new_hypotheses,
-                new_missing_dimensions,
-                new_counterfactuals,
-                confidence,
+            "status": "fallback_unstructured",
+
+            "new_concepts": [],
+            "new_relations": [],
+            "new_hypotheses": [],
+            "new_questions": [],
+            "new_missing_dimensions": [],
+            "new_counterfactuals": [],
+
+            "confidence": round(
+                structural_confidence,
+                3,
             ),
+
+            "summary": (
+                "Unstructured LLM feedback is available, "
+                "but no language-specific cognitive inference "
+                "was performed."
+            ),
+
             "recommendations": [],
             "contradictions": [],
-            "source": "llm_text_fallback",
+
+            "source": "llm_text_unstructured",
+
+            "raw_feedback": (
+                cleaned_response
+            ),
+
+            "sentence_count": (
+                sentence_count
+            ),
+
+            "language_specific_markers": False,
+
+            "structured_feedback_required": True,
         }
 
-    def _extract_concepts(
-        self,
-        text: str,
-    ) -> list[str]:
+    # ======================================================
+    # Helpers
+    # ======================================================
 
-        candidates = [
-            "certainty",
-            "understanding",
-            "reduction",
-            "closure",
-            "revisability",
-            "cognitive_filter",
-            "grounding",
-            "belief",
-            "belief_state",
-            "misconfiguration",
-            "social_reinforcement",
-            "authority",
-            "experience",
-            "integration",
-        ]
+    @staticmethod
+    def _safe_list(
+        value: Any,
+    ) -> list[Any]:
 
-        concepts = []
+        if isinstance(
+            value,
+            list,
+        ):
+            return value
 
-        for concept in candidates:
-            marker = concept.replace("_", " ")
+        return []
 
-            if marker in text or concept in text:
-                concepts.append(concept)
-
-        return self._unique(concepts)
-
-    def _extract_hypotheses(
-        self,
-        text: str,
-    ) -> list[str]:
-
-        hypotheses = []
-
-        markers = [
-            "may ",
-            "might ",
-            "could ",
-            "seems to",
-            "appears to",
-        ]
-
-        for sentence in self._sentences(text):
-            lowered = sentence.lower()
-
-            if any(marker in lowered for marker in markers):
-                hypotheses.append(sentence.strip())
-
-        return self._unique(hypotheses[:6])
-
-    def _extract_questions(
-        self,
-        text: str,
-    ) -> list[str]:
-
-        questions = []
-
-        for sentence in self._sentences(text):
-            if "?" in sentence:
-                questions.append(sentence.strip())
-
-        return self._unique(questions[:6])
-
-    def _extract_missing_dimensions(
-        self,
-        text: str,
-    ) -> list[str]:
-
-        missing = []
-
-        markers = [
-            "missing dimensions",
-            "what grounds",
-            "is the reduction",
-            "which cognitive filters",
-            "remain important",
-        ]
-
-        for sentence in self._sentences(text):
-            lowered = sentence.lower()
-
-            if any(marker in lowered for marker in markers):
-                missing.append(sentence.strip())
-
-        return self._unique(missing[:6])
-
-    def _extract_counterfactuals(
-        self,
-        text: str,
-    ) -> list[str]:
-
-        counterfactuals = []
-
-        markers = [
-            "if ",
-            "unless ",
-            "would ",
-            "could become",
-        ]
-
-        for sentence in self._sentences(text):
-            lowered = sentence.lower()
-
-            if any(marker in lowered for marker in markers):
-                counterfactuals.append(sentence.strip())
-
-        return self._unique(counterfactuals[:6])
-
-    def _build_relations(
-        self,
-        concepts: list[str],
-    ) -> list[dict[str, Any]]:
-
-        relations = []
-
-        if "certainty" in concepts and "understanding" in concepts:
-            relations.append(
-                {
-                    "source": "certainty",
-                    "relation": "may_exceed",
-                    "target": "understanding",
-                    "source_layer": "llm_feedback",
-                }
-            )
-
-        if "reduction" in concepts and "closure" in concepts:
-            relations.append(
-                {
-                    "source": "reduction",
-                    "relation": "may_produce",
-                    "target": "closure",
-                    "source_layer": "llm_feedback",
-                }
-            )
-
-        if "revisability" in concepts and "closure" in concepts:
-            relations.append(
-                {
-                    "source": "revisability",
-                    "relation": "may_prevent",
-                    "target": "closure",
-                    "source_layer": "llm_feedback",
-                }
-            )
-
-        if "cognitive_filter" in concepts and "understanding" in concepts:
-            relations.append(
-                {
-                    "source": "cognitive_filter",
-                    "relation": "may_shape",
-                    "target": "understanding",
-                    "source_layer": "llm_feedback",
-                }
-            )
-
-        return relations
-
-    def _estimate_confidence(
-        self,
-        concepts: list[str],
-        hypotheses: list[str],
-        missing_dimensions: list[str],
-        counterfactuals: list[str],
+    @staticmethod
+    def _safe_level(
+        value: Any,
     ) -> float:
 
-        score = 0.0
+        try:
+            level = float(
+                value
+            )
 
-        score += min(len(concepts) * 0.05, 0.35)
-        score += min(len(hypotheses) * 0.08, 0.25)
-        score += min(len(missing_dimensions) * 0.08, 0.20)
-        score += min(len(counterfactuals) * 0.05, 0.20)
+        except (
+            TypeError,
+            ValueError,
+        ):
+            return 0.0
 
-        return round(min(score, 1.0), 3)
+        if level > 1.0:
+            level = (
+                level / 100.0
+            )
 
-    def _build_summary(
-        self,
-        concepts: list[str],
-        relations: list[dict[str, Any]],
-        hypotheses: list[str],
-        missing_dimensions: list[str],
-        counterfactuals: list[str],
-        confidence: float,
-    ) -> str:
-
-        return (
-            "LLM cognitive feedback extracted: "
-            f"{len(concepts)} concepts, "
-            f"{len(relations)} relations, "
-            f"{len(hypotheses)} hypotheses, "
-            f"{len(missing_dimensions)} missing dimensions, "
-            f"{len(counterfactuals)} counterfactuals. "
-            f"Confidence: {round(confidence * 100)}%."
+        return max(
+            0.0,
+            min(
+                1.0,
+                level,
+            ),
         )
 
-    def _sentences(
-        self,
+    @staticmethod
+    def _estimate_sentence_count(
         text: str,
-    ) -> list[str]:
+    ) -> int:
+        """
+        Estimate textual segmentation structurally.
 
-        normalized = text.replace("\n", " ")
-        parts = normalized.split(".")
+        This is not semantic inference.
+        It only provides a conservative measure of response size.
+        """
 
-        return [
-            part.strip()
-            for part in parts
-            if part.strip()
-        ]
+        if not text:
+            return 0
 
-    def _unique(
+        separators = (
+            ".",
+            "!",
+            "?",
+            "。",
+            "！",
+            "？",
+        )
+
+        count = sum(
+            text.count(
+                separator
+            )
+            for separator in separators
+        )
+
+        if count <= 0:
+            return 1
+
+        return count
+
+    def _empty_result(
         self,
-        values: list[str],
-    ) -> list[str]:
+        status: str,
+        summary: str,
+        source: str,
+    ) -> dict[str, Any]:
 
-        seen = set()
-        unique_values = []
-
-        for value in values:
-            if value not in seen:
-                seen.add(value)
-                unique_values.append(value)
-
-        return unique_values
+        return {
+            "engine": self.name,
+            "status": status,
+            "new_concepts": [],
+            "new_relations": [],
+            "new_hypotheses": [],
+            "new_questions": [],
+            "new_missing_dimensions": [],
+            "new_counterfactuals": [],
+            "confidence": 0.0,
+            "summary": summary,
+            "recommendations": [],
+            "contradictions": [],
+            "source": source,
+            "language_specific_markers": False,
+        }
