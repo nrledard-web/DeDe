@@ -1100,6 +1100,87 @@ class LLMConnector:
                     "certainty that it is the only possible explanation."
                 )
 
+            # --------------------------------------------------
+            # Dissonance / Consensus Analysis
+            # --------------------------------------------------
+
+            if dissonance_state:
+
+                lines.append("")
+                lines.append(
+                    "Dissonance and consensus analysis:"
+                )
+
+                lines.append(
+                    "- dissonance detected: "
+                    f'{dissonance_state.get("dissonance_detected", False)}'
+                )
+
+                lines.append(
+                    "- dissonance score: "
+                    f'{dissonance_state.get("dissonance_score", 0.0)}'
+                )
+
+                lines.append(
+                    "- contradiction pressure: "
+                    f'{dissonance_state.get("contradiction_pressure", 0.0)}'
+                )
+
+                lines.append(
+                    "- revision resistance: "
+                    f'{dissonance_state.get("revision_resistance", 0.0)}'
+                )
+
+                lines.append(
+                    "- collective stabilization pressure: "
+                    f'{dissonance_state.get("collective_stabilization_pressure", 0.0)}'
+                )
+
+                lines.append(
+                    "- consensus dependency: "
+                    f'{dissonance_state.get("consensus_dependency", 0.0)}'
+                )
+
+                lines.append("")
+
+                lines.append(
+                    "DISSONANCE PRINCIPLE:"
+                )
+
+                lines.append(
+                    "Cognitive dissonance is treated as a tension between "
+                    "cognitive commitments, not as pathology and not as proof "
+                    "that a belief is false."
+                )
+
+                lines.append(
+                    "When dissonance is elevated, identify the tension between "
+                    "claims, assumptions, certainty, reduction and available "
+                    "alternatives. Help separate those dimensions rather than "
+                    "simply contradicting the user."
+                )
+
+                lines.append(
+                    "CONSENSUS PRINCIPLE:"
+                )
+
+                lines.append(
+                    "Consensus does not determine truth. Collective agreement "
+                    "may stabilize a belief, but repeated or dependent agreement "
+                    "must not be treated as independent evidence."
+                )
+
+                lines.append(
+                    "When consensus dependency is high, distinguish social or "
+                    "institutional stabilization from empirical grounding."
+                )
+
+                lines.append(
+                    "Do not assume that a minority view is false because it is "
+                    "minority, and do not assume that a dominant view is true "
+                    "because it is dominant."
+                )
+
             if temporal_analysis:
 
                 lines.append("")
