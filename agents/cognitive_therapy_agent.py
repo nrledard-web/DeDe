@@ -344,6 +344,32 @@ class CognitiveTherapyAgent:
             )
         )
 
+        consensus_trend = self._safe_level(
+            dissonance_view.get(
+                "consensus_trend"
+            )
+        )
+
+        consensus_available = bool(
+            dissonance_view.get(
+                "consensus_available",
+                False,
+            )
+        )
+
+        independent_convergence = self._safe_level(
+            dissonance_view.get(
+                "independent_convergence"
+            )
+        )
+
+        consensus_epistemic_relation = str(
+            dissonance_view.get(
+                "consensus_epistemic_relation",
+                "consensus_not_established",
+            )
+        )
+
         dissonance_detected = bool(
             dissonance_view.get(
                 "dissonance_detected",
