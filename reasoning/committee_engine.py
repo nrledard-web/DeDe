@@ -60,43 +60,143 @@ class CommitteeEngine:
             previous_speaker = obs.agent
 
             if obs.confidence >= 0.70:
-                strong_agreements.append(obs.agent)
+                strong_agreements.append(
+                    obs.agent
+                )
 
             if obs.confidence <= 0.40:
-                concerns.append(obs.agent)
+                concerns.append(
+                    obs.agent
+                )
 
-            text = statement.lower()
+            # --------------------------------------------------
+            # Structured recommendations
+            # --------------------------------------------------
+            #
+            # Recommendations come from structured cognitive
+            # signals rather than wording contained in
+            # committee statements.
+            # --------------------------------------------------
 
-            if "grounding" in text:
+            grounding = signals.get(
+                "grounding"
+            )
+
+            integration = signals.get(
+                "integration"
+            )
+
+            reduction = signals.get(
+                "reduction"
+            )
+
+            recalibration_needed = signals.get(
+                "recalibration_needed"
+            )
+
+            revisability_level = signals.get(
+                "revisability_level"
+            )
+
+            forgotten_reduction = signals.get(
+                "forgotten_reduction"
+            )
+
+            excessive_reduction = signals.get(
+                "excessive_reduction"
+            )
+
+            # ----------------------------------------------
+            # Grounding
+            # ----------------------------------------------
+
+            if (
+                isinstance(
+                    grounding,
+                    (int, float),
+                )
+                and grounding < 0.40
+            ):
                 recommendations.append(
                     "Increase factual grounding."
                 )
 
-            if (
-                "revision" in text
-                or "recalibration" in text
-            ):
-                recommendations.append(
-                    "Consider cognitive recalibration."
-                )
-
-            if "reduction" in text:
-                recommendations.append(
-                    "Check for possible forgotten reductions."
-                )
+            # ----------------------------------------------
+            # Integration
+            # ----------------------------------------------
 
             if (
-                "integration remains partial" in text
-                or "integration remains limited" in text
-                or "strengthen conceptual integration" in text
+                isinstance(
+                    integration,
+                    (int, float),
+                )
+                and integration < 0.45
             ):
                 recommendations.append(
                     "Strengthen conceptual integration."
                 )
 
+            # ----------------------------------------------
+            # Reduction
+            # ----------------------------------------------
+
+            if (
+                forgotten_reduction is True
+                or excessive_reduction is True
+            ):
+                recommendations.append(
+                    "Check for possible excessive "
+                    "or forgotten reductions."
+                )
+
+            elif (
+                isinstance(
+                    reduction,
+                    (int, float),
+                )
+                and reduction >= 0.60
+            ):
+                recommendations.append(
+                    "Check reduction pressure."
+                )
+
+            # ----------------------------------------------
+            # Revisability / recalibration
+            # ----------------------------------------------
+
+            if recalibration_needed is True:
+                recommendations.append(
+                    "Consider cognitive recalibration."
+                )
+
+            elif (
+                isinstance(
+                    revisability_level,
+                    (int, float),
+                )
+                and revisability_level < 0.50
+            ):
+                recommendations.append(
+                    "Strengthen revisability."
+                )
+
+        # --------------------------------------------------
+        # Committee summary
+        # --------------------------------------------------
+        #
+        # IMPORTANT:
+        # This block belongs AFTER the observation loop.
+        # --------------------------------------------------
+
         committee_confidence = (
-            sum(obs.confidence for obs in observations)
-            / max(1, len(observations))
+            sum(
+                obs.confidence
+                for obs in observations
+            )
+            / max(
+                1,
+                len(observations),
+            )
         )
 
         summary = (
@@ -108,15 +208,31 @@ class CommitteeEngine:
         )
 
         return {
-            "committee_size": len(observations),
-            "agent_positions": agent_positions,
-            "discussion": discussion,
-            "round_table": round_table,
-            "strong_agreements": strong_agreements,
-            "concerns": concerns,
-            "recommendations": sorted(
-                set(recommendations)
+            "committee_size": len(
+                observations
             ),
-            "committee_confidence": committee_confidence,
+            "agent_positions": (
+                agent_positions
+            ),
+            "discussion": (
+                discussion
+            ),
+            "round_table": (
+                round_table
+            ),
+            "strong_agreements": (
+                strong_agreements
+            ),
+            "concerns": (
+                concerns
+            ),
+            "recommendations": sorted(
+                set(
+                    recommendations
+                )
+            ),
+            "committee_confidence": (
+                committee_confidence
+            ),
             "summary": summary,
         }
