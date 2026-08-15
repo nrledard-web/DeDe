@@ -29,316 +29,330 @@ class RealWorldAnchor:
         cognitive_comparison: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
-        Analyze linguistic anchoring and, when available,
-        anchoring supplied by external sources.
+        Estimate epistemic anchoring from actually available evidence.
+
+        RealWorldAnchor deliberately avoids language-specific
+        lexical markers.
+
+        Mentioning words equivalent to "study", "proof", "certain",
+        "expert" or "data" must not by itself increase or decrease
+        epistemic anchoring.
+
+        When external evidence exists, anchoring is derived primarily
+        from source evidence, relevance, independence, validation
+        and cognitive comparison.
+
+        When no external evidence exists, the result remains
+        deliberately conservative rather than inventing grounding
+        from the vocabulary of the discourse.
         """
 
-        source_analysis = source_analysis or {}
-        search_validation = search_validation or {}
-        cognitive_comparison = cognitive_comparison or {}
+        source_analysis = (
+            source_analysis
+            or {}
+        )
 
-        cleaned = text.lower().strip()
+        search_validation = (
+            search_validation
+            or {}
+        )
+
+        cognitive_comparison = (
+            cognitive_comparison
+            or {}
+        )
+
+        cleaned = str(
+            text
+            or ""
+        ).strip()
 
         if not cleaned:
             return self._empty_result()
 
-        components = {
-            "empirie": self._score_markers(
-                cleaned,
-                [
-                    "étude",
-                    "rapport",
-                    "données",
-                    "chiffres",
-                    "mesure",
-                    "observation",
-                    "expérience",
-                    "selon",
-                    "analyse",
-                    "résultat",
-                ],
-            ),
-            "reproductibilite": self._score_markers(
-                cleaned,
-                [
-                    "reproductible",
-                    "réplicable",
-                    "répété",
-                    "confirmé par",
-                    "testé plusieurs fois",
-                    "même résultat",
-                ],
-            ),
-            "falsifiabilite": self._score_markers(
-                cleaned,
-                [
-                    "falsifiable",
-                    "réfutable",
-                    "vérifiable",
-                    "peut être testé",
-                    "hypothèse testable",
-                    "preuve contraire",
-                ],
-            ),
-            "limites": self._score_markers(
-                cleaned,
-                [
-                    "limite",
-                    "limites",
-                    "incertain",
-                    "incertitude",
-                    "nous ne savons pas",
-                    "il manque",
-                    "reste à vérifier",
-                    "prudence",
-                    "à confirmer",
-                ],
-            ),
-            "revisabilite": self._score_markers(
-                cleaned,
-                [
-                    "pourrait",
-                    "pourraient",
-                    "semble",
-                    "il faut nuancer",
-                    "nuancer",
-                    "cependant",
-                    "certains",
-                    "dans l'état actuel",
-                    "révisable",
-                    "hypothèse",
-                ],
-            ),
-            "references_concretes": self._score_markers(
-                cleaned,
-                [
-                    "institution",
-                    "université",
-                    "chercheurs",
-                    "experts",
-                    "économistes",
-                    "laboratoire",
-                    "revue",
-                    "publication",
-                    "source",
-                    "référence",
-                ],
-            ),
-            "technicite_realiste": self._score_markers(
-                cleaned,
-                [
-                    "méthode",
-                    "protocole",
-                    "échantillon",
-                    "variable",
-                    "modèle",
-                    "marge d'erreur",
-                    "intervalle",
-                    "corrélation",
-                    "causalité",
-                ],
-            ),
-            "comparaisons_concretes": self._score_markers(
-                cleaned,
-                [
-                    "comparé à",
-                    "par rapport à",
-                    "en moyenne",
-                    "pourcentage",
-                    "%",
-                    "fois plus",
-                    "fois moins",
-                    "avant/après",
-                ],
-            ),
-            "robustesse_quantitative": self._score_markers(
-                cleaned,
-                [
-                    "statistique",
-                    "quantitatif",
-                    "échantillon",
-                    "population",
-                    "taux",
-                    "médiane",
-                    "moyenne",
-                    "écart-type",
-                    "intervalle de confiance",
-                ],
-            ),
-        }
+        # --------------------------------------------------
+        # External epistemic anchor
+        # --------------------------------------------------
 
-        speculation = self._score_markers(
-            cleaned,
-            [
-                "va remplacer",
-                "il est absolument certain",
-                "sans aucun doute",
-                "crise sociale majeure",
-                "si rien n'est fait immédiatement",
-                "révolution sans précédent",
-                "étude choc",
-                "tout le monde sait",
-                "preuve définitive",
-                "inévitable",
-            ],
-        )
-
-        doxa_pressure = self._score_markers(
-            cleaned,
-            [
-                "évident",
-                "indiscutable",
-                "certain",
-                "forcément",
-                "jamais",
-                "toujours",
-                "personne ne peut nier",
-                "la vérité est",
-            ],
-        )
-
-        positive_values = list(components.values())
-
-        positive_anchor = (
-            sum(positive_values) / len(positive_values)
-            if positive_values
-            else 0.0
-        )
-
-        penalty = (
-            speculation * 0.65
-            + doxa_pressure * 0.35
-        )
-
-        textual_anchor = max(
-            0.0,
-            min(
-                1.0,
-                positive_anchor - (penalty * 0.45),
-            ),
-        )
-
-        external_anchor = self._compute_external_anchor(
-            source_analysis=source_analysis,
-            search_validation=search_validation,
-            cognitive_comparison=cognitive_comparison,
+        external_anchor = (
+            self._compute_external_anchor(
+                source_analysis=source_analysis,
+                search_validation=search_validation,
+                cognitive_comparison=cognitive_comparison,
+            )
         )
 
         external_evidence_available = (
-            external_anchor["source_count"] > 0
+            external_anchor.get(
+                "source_count",
+                0,
+            )
+            > 0
         )
 
+        # --------------------------------------------------
+        # Language-neutral structural state
+        # --------------------------------------------------
+        #
+        # The current RealWorldAnchor interface does not yet
+        # receive the CognitiveWorkspace or SemanticReasoner.
+        #
+        # Therefore it must NOT invent textual grounding from
+        # language-specific expressions.
+        #
+        # Until semantic signals are explicitly supplied,
+        # textual anchoring remains conservative.
+        # --------------------------------------------------
+
+        textual_anchor = 0.10
+
+        textual_confidence = 0.10
+
+        # These fields are retained for backward compatibility
+        # with dashboards and downstream consumers.
+        #
+        # They are no longer inferred from French vocabulary.
+
+        components = {
+            "empirie": 0.0,
+            "reproductibilite": 0.0,
+            "falsifiabilite": 0.0,
+            "limites": 0.0,
+            "revisabilite": 0.0,
+            "references_concretes": 0.0,
+            "technicite_realiste": 0.0,
+            "comparaisons_concretes": 0.0,
+            "robustesse_quantitative": 0.0,
+        }
+
+        speculation = 0.0
+        doxa_pressure = 0.0
+
+        # --------------------------------------------------
+        # Final anchor
+        # --------------------------------------------------
+
         if external_evidence_available:
-            anchor_score = external_anchor["score"]
-            
+
+            anchor_score = self._normalize_score(
+                external_anchor.get(
+                    "score",
+                    0.0,
+                )
+            )
+
+            epistemic_confidence = self._normalize_score(
+                external_anchor.get(
+                    "confidence",
+                    0.0,
+                )
+            )
+
         else:
+
             anchor_score = textual_anchor
+            epistemic_confidence = (
+                textual_confidence
+            )
 
         anchor_score = max(
             0.0,
-            min(1.0, anchor_score),
+            min(
+                1.0,
+                anchor_score,
+            ),
         )
-
-        epistemic_confidence = (
-            self._compute_epistemic_confidence(
-                anchor_score=anchor_score,
-                components=components,
-            )
-        )
-
-        if external_evidence_available:
-            epistemic_confidence = (
-                epistemic_confidence * 0.40
-                + external_anchor["confidence"] * 0.60
-            )
 
         epistemic_confidence = max(
             0.0,
-            min(1.0, epistemic_confidence),
+            min(
+                1.0,
+                epistemic_confidence,
+            ),
         )
 
-        hallucination_risk = (
-            self._compute_hallucination_risk(
-                anchor_score=anchor_score,
-                doxa_pressure=doxa_pressure,
-                speculation=speculation,
+        # --------------------------------------------------
+        # Hallucination / unsupported-extension risk
+        # --------------------------------------------------
+        #
+        # Without lexical markers, risk is based on the
+        # absence or weakness of grounding and on cognitive
+        # comparison warnings when they exist.
+        # --------------------------------------------------
+
+        comparison_risk = self._normalize_score(
+            external_anchor.get(
+                "comparison_risk",
+                0.0,
             )
         )
 
         if external_evidence_available:
+
             hallucination_risk = (
-                hallucination_risk * 0.50
-                + external_anchor["comparison_risk"] * 0.50
+                (1.0 - anchor_score) * 0.65
+                + comparison_risk * 0.35
             )
+
+        else:
+
+            # No external grounding means DeDe should remain
+            # epistemically cautious, but absence of evidence
+            # is not proof that the claim is false.
+            hallucination_risk = 0.60
 
         hallucination_risk = max(
             0.0,
-            min(1.0, hallucination_risk),
+            min(
+                1.0,
+                hallucination_risk,
+            ),
         )
 
-        label, color, interpretation = self._classify(
-            anchor_score
+        # --------------------------------------------------
+        # Classification
+        # --------------------------------------------------
+
+        label, color, interpretation = (
+            self._classify(
+                anchor_score
+            )
         )
+
+        # --------------------------------------------------
+        # Result
+        # --------------------------------------------------
 
         return {
             "profile": self.name,
             "status": "ready",
-            "score": round(anchor_score, 3),
+
+            "score": round(
+                anchor_score,
+                3,
+            ),
+
             "label": label,
             "color": color,
-            "interpretation": interpretation,
+
+            "interpretation": (
+                interpretation
+            ),
+
             "components": {
-                **{
-                    key: round(value, 3)
-                    for key, value in components.items()
-                },
-                "speculation": round(speculation, 3),
-                "doxa_pressure": round(doxa_pressure, 3),
+                **components,
+
+                "speculation": (
+                    speculation
+                ),
+
+                "doxa_pressure": (
+                    doxa_pressure
+                ),
+
                 "textual_anchor": round(
                     textual_anchor,
                     3,
                 ),
+
                 "external_anchor": round(
-                    external_anchor["score"],
+                    self._normalize_score(
+                        external_anchor.get(
+                            "score",
+                            0.0,
+                        )
+                    ),
                     3,
                 ),
+
                 "source_evidence": round(
-                    external_anchor["evidence"],
+                    self._normalize_score(
+                        external_anchor.get(
+                            "evidence",
+                            0.0,
+                        )
+                    ),
                     3,
                 ),
+
                 "source_relevance": round(
-                    external_anchor["relevance"],
+                    self._normalize_score(
+                        external_anchor.get(
+                            "relevance",
+                            0.0,
+                        )
+                    ),
                     3,
                 ),
+
+                "source_independence": round(
+                    self._normalize_score(
+                        external_anchor.get(
+                            "independence",
+                            0.0,
+                        )
+                    ),
+                    3,
+                ),
+
                 "source_quantity": round(
-                    external_anchor["quantity"],
+                    self._normalize_score(
+                        external_anchor.get(
+                            "quantity",
+                            0.0,
+                        )
+                    ),
                     3,
                 ),
+
                 "response_alignment": round(
-                    external_anchor["comparison_score"],
+                    self._normalize_score(
+                        external_anchor.get(
+                            "comparison_score",
+                            0.0,
+                        )
+                    ),
                     3,
+                ),
+
+                "language_specific_markers": (
+                    False
                 ),
             },
-            "external_evidence": external_anchor,
+
+            "external_evidence": (
+                external_anchor
+            ),
+
+            "external_evidence_available": (
+                external_evidence_available
+            ),
+
             "epistemic_confidence": round(
                 epistemic_confidence,
                 3,
             ),
+
             "hallucination_risk": round(
                 hallucination_risk,
                 3,
             ),
+
             "governor_action": (
                 self._suggest_governor_action(
                     anchor_score=anchor_score,
-                    hallucination_risk=hallucination_risk,
+                    hallucination_risk=(
+                        hallucination_risk
+                    ),
                 )
             ),
+
             "warning": (
-                "Un score élevé ne signifie pas que le texte est vrai. "
-                "Il indique seulement que le discours semble davantage "
-                "contraint par l'expérience, la vérifiabilité et la "
-                "reconnaissance de ses limites."
+                "A high score does not mean that a claim is true. "
+                "RealWorldAnchor measures available epistemic anchoring. "
+                "When external evidence is unavailable, DeDe deliberately "
+                "keeps the anchor conservative instead of inferring grounding "
+                "from language-specific vocabulary."
             ),
         }
 
