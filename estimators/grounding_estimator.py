@@ -1,6 +1,19 @@
 """
 DeDe - Grounding Estimator
+
+Estimates factual grounding from available cognitive evidence.
+
+Grounding must not depend on language-specific words used by
+the speaker. Mentioning "proof", "study", "source" or equivalent
+terms does not itself constitute grounding.
+
+The estimator therefore uses available knowledge and evaluated
+source material when present.
 """
+
+from __future__ import annotations
+
+from typing import Any
 
 from core.cognitive_workspace import CognitiveWorkspace
 
@@ -9,94 +22,180 @@ class GroundingEstimator:
     """
     Estimates factual grounding.
 
-    Grounding combines:
-
-    - linguistic evidence markers
-    - available knowledge
-    - source confidence
-
-    Future versions will also integrate:
-    - Web search
-    - LLM providers
-    - PDF knowledge
-    - Scientific databases
+    Grounding represents available evidential support,
+    not the vocabulary used by the speaker.
     """
 
     name = "grounding"
 
-    def run(self, workspace: CognitiveWorkspace) -> CognitiveWorkspace:
+    def run(
+        self,
+        workspace: CognitiveWorkspace,
+    ) -> CognitiveWorkspace:
 
-        text = workspace.text.lower()
-
-        markers = [
-            "source",
-            "preuve",
-            "preuves",
-            "donnée",
-            "données",
-            "étude",
-            "études",
-            "document",
-            "documents",
-            "selon",
-            "vérifier",
-            "vérification",
-            "factuel",
-            "factuelle",
-            "citation",
-            "exemple",
-            "exemples",
-            "observation",
-            "observations",
-            "mesure",
-            "mesures",
-            "statistique",
-            "statistiques",
-        ]
-
-        hits = [
-            marker
-            for marker in markers
-            if marker in text
-        ]
-
-        linguistic_score = min(
-            1.0,
-            0.20 + len(hits) * 0.08,
-        )
-
-        # ----------------------------------------
+        # --------------------------------------------------
         # Knowledge contribution
-        # ----------------------------------------
+        # --------------------------------------------------
 
         knowledge = workspace.interpretations.get(
             "knowledge",
             {},
         )
 
-        knowledge_found = knowledge.get(
-            "found",
-            False,
+        if not isinstance(
+            knowledge,
+            dict,
+        ):
+            knowledge = {}
+
+        knowledge_found = bool(
+            knowledge.get(
+                "found",
+                False,
+            )
         )
 
-        knowledge_confidence = knowledge.get(
-            "confidence",
-            0.0,
+        knowledge_confidence = self._safe_level(
+            knowledge.get(
+                "confidence",
+                0.0,
+            )
         )
 
         if knowledge_found:
+            knowledge_grounding = (
+                0.20
+                + knowledge_confidence * 0.35
+            )
+        else:
+            knowledge_grounding = 0.0
 
-            knowledge_bonus = (
-                0.25 * knowledge_confidence
+        # --------------------------------------------------
+        # Source-analysis contribution
+        # --------------------------------------------------
+
+        source_analysis = workspace.interpretations.get(
+            "source_analysis",
+            {},
+        )
+
+        if not isinstance(
+            source_analysis,
+            dict,
+        ):
+            source_analysis = {}
+
+        sources = source_analysis.get(
+            "sources",
+            [],
+        )
+
+        if not isinstance(
+            sources,
+            list,
+        ):
+            sources = []
+
+        evidence_values = []
+        relevance_values = []
+        independence_values = []
+
+        for source in sources:
+
+            if not isinstance(
+                source,
+                dict,
+            ):
+                continue
+
+            analysis = source.get(
+                "analysis",
+                {},
             )
 
-        else:
+            if not isinstance(
+                analysis,
+                dict,
+            ):
+                continue
 
-            knowledge_bonus = 0.0
+            evidence_values.append(
+                self._safe_level(
+                    analysis.get(
+                        "evidence_level",
+                        0.0,
+                    )
+                )
+            )
 
-        score = min(
+            relevance_values.append(
+                self._safe_level(
+                    analysis.get(
+                        "relevance",
+                        0.0,
+                    )
+                )
+            )
+
+            independence_values.append(
+                self._safe_level(
+                    analysis.get(
+                        "independence",
+                        0.0,
+                    )
+                )
+            )
+
+        evidence = self._average(
+            evidence_values
+        )
+
+        relevance = self._average(
+            relevance_values
+        )
+
+        independence = self._average(
+            independence_values
+        )
+
+        source_count = len(
+            evidence_values
+        )
+
+        source_presence = min(
             1.0,
-            linguistic_score + knowledge_bonus,
+            source_count / 4.0,
+        )
+
+        source_grounding = (
+            evidence * 0.45
+            + relevance * 0.20
+            + independence * 0.20
+            + source_presence * 0.15
+        )
+
+        # --------------------------------------------------
+        # Final grounding
+        # --------------------------------------------------
+        #
+        # A small neutral floor means "not yet grounded",
+        # not "false".
+        # --------------------------------------------------
+
+        neutral_floor = 0.10
+
+        score = max(
+            neutral_floor,
+            knowledge_grounding,
+            source_grounding,
+        )
+
+        score = max(
+            0.0,
+            min(
+                1.0,
+                score,
+            ),
         )
 
         workspace.set(
@@ -105,24 +204,92 @@ class GroundingEstimator:
             {
                 "estimator": self.name,
 
-                "hits": hits,
+                "knowledge_found": (
+                    knowledge_found
+                ),
 
-                "hit_count": len(hits),
+                "knowledge_confidence": (
+                    knowledge_confidence
+                ),
 
-                "linguistic_score": linguistic_score,
+                "knowledge_grounding": round(
+                    knowledge_grounding,
+                    3,
+                ),
 
-                "knowledge_found": knowledge_found,
+                "source_count": (
+                    source_count
+                ),
 
-                "knowledge_confidence": knowledge_confidence,
+                "visible_evidence": round(
+                    evidence,
+                    3,
+                ),
 
-                "knowledge_bonus": knowledge_bonus,
+                "source_relevance": round(
+                    relevance,
+                    3,
+                ),
 
-                "summary":
-                    (
-                        "Grounding estimated from linguistic "
-                        "markers and available knowledge."
-                    ),
+                "source_independence": round(
+                    independence,
+                    3,
+                ),
+
+                "source_grounding": round(
+                    source_grounding,
+                    3,
+                ),
+
+                "summary": (
+                    "Grounding estimated from available knowledge "
+                    "and evaluated evidence, independently of the "
+                    "language used by the speaker."
+                ),
             },
         )
 
         return workspace
+
+    @staticmethod
+    def _average(
+        values: list[float],
+    ) -> float:
+
+        if not values:
+            return 0.0
+
+        return sum(
+            values
+        ) / len(
+            values
+        )
+
+    @staticmethod
+    def _safe_level(
+        value: Any,
+    ) -> float:
+
+        try:
+            level = float(
+                value
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+            return 0.0
+
+        if level > 1.0:
+            level = (
+                level / 100.0
+            )
+
+        return max(
+            0.0,
+            min(
+                1.0,
+                level,
+            ),
+        )
