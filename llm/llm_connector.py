@@ -259,6 +259,48 @@ class LLMConnector:
                 + "the dominant qualification several times.\n"
             )
 
+        # --------------------------------------------------
+        # Great Replacement Epistemic Gate
+        # --------------------------------------------------
+
+        matched_counterpoints = (
+            historical_counterpoint_context.get(
+                "matched_counterpoints",
+                [],
+            )
+        )
+
+        if "great_replacement" in matched_counterpoints:
+            user_prompt = (
+                user_prompt
+                + "\n\n"
+                + "MANDATORY GREAT-REPLACEMENT EPISTEMIC GATE:\n"
+                + "This is a controversial subject, but controversy "
+                + "alone is not a reason to refuse the request. "
+                + "Answer directly and in the user's language.\n"
+                + "1. Explain that the expression may join several "
+                + "distinct claims rather than treating them as one "
+                + "indivisible claim.\n"
+                + "2. Separate observable demographic facts, political "
+                + "or cultural interpretation, causal attribution, and "
+                + "attribution of deliberate coordination or intention.\n"
+                + "3. Calibrate each level independently. Evidence for "
+                + "population change is not by itself evidence of an "
+                + "organized plan; lack of evidence for a plan does not "
+                + "erase measured population change.\n"
+                + "4. Attribute contested labels to the sources using "
+                + "them. Do not substitute a categorical label for "
+                + "explanation or evidence.\n"
+                + "5. When the user asks for links, preserve useful "
+                + "verified URLs from the retrieved results and identify "
+                + "what each source can and cannot establish.\n"
+                + "6. Never use a generic safety refusal merely because "
+                + "the topic is politically sensitive. Refuse only a "
+                + "genuinely disallowed request, not an informational "
+                + "or analytical question.\n"
+            )
+
+
         full_prompt = (
             "SYSTEM:\n\n"
             f"{system_prompt}\n\n"
