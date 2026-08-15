@@ -18,6 +18,9 @@ from knowledge.historical_counterpoints.islamic_thought import (
 from knowledge.historical_counterpoints.great_replacement import (
     GREAT_REPLACEMENT_COUNTERPOINT,
 )
+from knowledge.historical_counterpoints.french_foreign_policy import (
+    FRENCH_FOREIGN_POLICY_COUNTERPOINT,
+)
 
 
 class HistoricalCounterpointRetriever:
