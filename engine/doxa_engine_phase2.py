@@ -117,6 +117,7 @@ from agents.nous_agent import NousAgent
 from agents.doxa_agent import DoxaAgent
 from agents.reduction_agent import ReductionAgent
 from agents.nouscope_agent import NOUSCOPEAgent
+from agents.dissonance_agent import DissonanceAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
 
 from analysis.text_analysis_engine import TextAnalysisEngine
