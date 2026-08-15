@@ -235,6 +235,17 @@ class CognitiveTherapyAgent:
             {},
         )
 
+        dissonance_view = interpretations.get(
+            "dissonance",
+            {},
+        )
+
+        if not isinstance(
+            dissonance_view,
+            dict,
+        ):
+            dissonance_view = {}
+
         semantic_reasoner = interpretations.get(
             "semantic_reasoner",
             {},
@@ -295,6 +306,47 @@ class CognitiveTherapyAgent:
         forgotten_reduction = bool(
             reduction_view.get(
                 "forgotten_reduction",
+                False,
+            )
+        )
+
+        # -------------------------------------------------
+        # DISSONANCE MECHANICS
+        # -------------------------------------------------
+
+        dissonance_score = self._safe_level(
+            dissonance_view.get(
+                "dissonance_score"
+            )
+        )
+
+        contradiction_pressure = self._safe_level(
+            dissonance_view.get(
+                "contradiction_pressure"
+            )
+        )
+
+        revision_resistance = self._safe_level(
+            dissonance_view.get(
+                "revision_resistance"
+            )
+        )
+
+        collective_stabilization_pressure = self._safe_level(
+            dissonance_view.get(
+                "collective_stabilization_pressure"
+            )
+        )
+
+        consensus_dependency = self._safe_level(
+            dissonance_view.get(
+                "consensus_dependency"
+            )
+        )
+
+        dissonance_detected = bool(
+            dissonance_view.get(
+                "dissonance_detected",
                 False,
             )
         )
