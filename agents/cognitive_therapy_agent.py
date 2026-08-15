@@ -1028,6 +1028,22 @@ class CognitiveTherapyAgent:
                 consensus_dependency
             ),
 
+            "consensus_trend": (
+                consensus_trend
+            ),
+
+            "consensus_available": (
+                consensus_available
+            ),
+
+            "independent_convergence": (
+                independent_convergence
+            ),
+
+            "consensus_epistemic_relation": (
+                consensus_epistemic_relation
+            ),
+
             "cognitive_filter_level": (
                 cognitive_filter_level
             ),
