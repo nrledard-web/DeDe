@@ -1,7 +1,7 @@
 """
 DeDe - Semantic Reasoner
 
-Symbolic semantic reasoning component.
+Language-neutral symbolic semantic reasoning component.
 
 The SemanticReasoner enriches the semantic representation by deriving:
 - assumptions
@@ -11,7 +11,8 @@ The SemanticReasoner enriches the semantic representation by deriving:
 - causal links
 - reasoning notes
 
-It is the first step from semantic description toward semantic reasoning.
+It operates from semantic structure rather than language-specific
+keywords.
 """
 
 from typing import Any
@@ -21,20 +22,71 @@ from core.cognitive_workspace import CognitiveWorkspace
 
 class SemanticReasoner:
     """
-    Produces first-level semantic reasoning from claims and concepts.
+    Produces first-level semantic reasoning from claims,
+    concepts and relations.
     """
 
     name = "semantic_reasoner"
 
-    def run(self, workspace: CognitiveWorkspace) -> CognitiveWorkspace:
-        semantic = workspace.interpretations.get("semantic", {})
-        knowledge = workspace.interpretations.get("knowledge", {})
+    def run(
+        self,
+        workspace: CognitiveWorkspace,
+    ) -> CognitiveWorkspace:
 
-        claims = semantic.get("claims", [])
-        concepts = semantic.get("main_concepts", [])
-        relations = semantic.get("relations", [])
+        semantic = workspace.interpretations.get(
+            "semantic",
+            {},
+        )
 
-        concept_set = set(concepts)
+        knowledge = workspace.interpretations.get(
+            "knowledge",
+            {},
+        )
+
+        if not isinstance(
+            semantic,
+            dict,
+        ):
+            semantic = {}
+
+        if not isinstance(
+            knowledge,
+            dict,
+        ):
+            knowledge = {}
+
+        claims = semantic.get(
+            "claims",
+            [],
+        )
+
+        concepts = semantic.get(
+            "main_concepts",
+            [],
+        )
+
+        relations = semantic.get(
+            "relations",
+            [],
+        )
+
+        if not isinstance(
+            claims,
+            list,
+        ):
+            claims = []
+
+        if not isinstance(
+            concepts,
+            list,
+        ):
+            concepts = []
+
+        if not isinstance(
+            relations,
+            list,
+        ):
+            relations = []
 
         assumptions = []
         uncertainties = []
@@ -44,60 +96,111 @@ class SemanticReasoner:
         reasoning_notes = []
 
         # -------------------------------------------------
+        # Structural indicators
+        # -------------------------------------------------
+
+        claim_count = len(
+            claims
+        )
+
+        concept_count = len(
+            concepts
+        )
+
+        relation_count = len(
+            relations
+        )
+
+        relation_density = min(
+            1.0,
+            relation_count
+            / max(
+                1,
+                concept_count,
+            ),
+        )
+
+        knowledge_sources = knowledge.get(
+            "sources",
+            [],
+        )
+
+        if not isinstance(
+            knowledge_sources,
+            list,
+        ):
+            knowledge_sources = []
+
+        source_count = len(
+            knowledge_sources
+        )
+
+        # -------------------------------------------------
         # Assumptions
         # -------------------------------------------------
 
-        if "certainty" in concept_set and "understanding" in concept_set:
+        if (
+            claim_count > 0
+            and relation_density < 0.50
+        ):
             assumptions.append(
-                "Certainty and understanding can evolve independently."
+                "The current interpretation may depend on implicit "
+                "relations that are not yet represented explicitly."
             )
 
-            causal_links.append(
-                {
-                    "source": "certainty",
-                    "relation": "can_stabilize_faster_than",
-                    "target": "understanding",
-                }
-            )
-
-            alternative_hypotheses.append(
-                "Mecroyance may also emerge from emotional pressure, social reinforcement or contextual reduction."
-            )
-
-        if "cognitive" in concept_set and "condition" in concept_set:
+        if (
+            claim_count > 1
+            and relation_count < claim_count
+        ):
             assumptions.append(
-                "Mecroyance is treated as a cognitive condition rather than a moral fault."
+                "Multiple claims are present but their relationships "
+                "are not yet fully articulated."
             )
 
         # -------------------------------------------------
         # Missing dimensions
         # -------------------------------------------------
 
-        if "certainty" in concept_set and "source" not in concept_set:
+        if (
+            claim_count > 0
+            and source_count == 0
+        ):
             missing_dimensions.append(
-                "The source or validation path of certainty is not yet explicit."
+                "The validation path of the current claim is not yet explicit."
             )
 
-        if "understanding" in concept_set and "context" not in concept_set:
+        if (
+            concept_count > 0
+            and relation_density < 0.35
+        ):
             missing_dimensions.append(
-                "The contextual conditions shaping understanding are not yet explicit."
+                "The contextual and relational structure remains incomplete."
             )
 
-        if "mecroyance" in concept_set and "reduction" not in concept_set:
+        if (
+            claim_count > 0
+            and concept_count <= 2
+        ):
             missing_dimensions.append(
-                "The role of reduction in mecroyance is not yet represented."
+                "The current representation contains few explicit dimensions."
             )
 
         # -------------------------------------------------
         # Uncertainties
         # -------------------------------------------------
 
-        if claims and not knowledge.get("sources"):
+        if (
+            claim_count > 0
+            and source_count == 0
+        ):
             uncertainties.append(
                 "The claim is not connected to an explicit source."
             )
 
-        if claims and len(relations) < 2:
+        if (
+            claim_count > 0
+            and relation_count < 2
+        ):
             uncertainties.append(
                 "The semantic relation structure is weak or underdeveloped."
             )
@@ -111,10 +214,38 @@ class SemanticReasoner:
         # Alternative hypotheses
         # -------------------------------------------------
 
-        if not alternative_hypotheses:
+        if claim_count > 0:
             alternative_hypotheses.append(
-                "Alternative explanations should be explored if the claim becomes central to the diagnosis."
+                "Alternative explanations should remain available "
+                "until the current interpretation is sufficiently grounded."
             )
+
+        # -------------------------------------------------
+        # Causal links
+        # -------------------------------------------------
+
+        for relation in relations:
+
+            if not isinstance(
+                relation,
+                dict,
+            ):
+                continue
+
+            relation_type = str(
+                relation.get(
+                    "relation",
+                    relation.get(
+                        "type",
+                        "",
+                    ),
+                )
+            )
+
+            if relation_type and relation_type != "adjacent_concept":
+                causal_links.append(
+                    relation
+                )
 
         # -------------------------------------------------
         # Reasoning notes
@@ -122,17 +253,20 @@ class SemanticReasoner:
 
         if assumptions:
             reasoning_notes.append(
-                "The semantic layer inferred implicit assumptions from concept co-presence."
+                "Implicit assumptions were inferred from structural gaps "
+                "between claims and relations."
             )
 
         if missing_dimensions:
             reasoning_notes.append(
-                "Some dimensions appear absent from the current semantic representation."
+                "Some dimensions appear absent from the current "
+                "semantic representation."
             )
 
         if alternative_hypotheses:
             reasoning_notes.append(
-                "At least one alternative hypothesis is available for revisability."
+                "At least one alternative hypothesis is preserved "
+                "for revisability."
             )
 
         result = {
@@ -143,63 +277,98 @@ class SemanticReasoner:
             "missing_dimensions": missing_dimensions,
             "causal_links": causal_links,
             "reasoning_notes": reasoning_notes,
-            "assumption_count": len(assumptions),
-            "uncertainty_count": len(uncertainties),
-            "alternative_count": len(alternative_hypotheses),
-            "missing_dimension_count": len(missing_dimensions),
-            "causal_link_count": len(causal_links),
-            "reasoning_note_count": len(reasoning_notes),
+            "assumption_count": len(
+                assumptions
+            ),
+            "uncertainty_count": len(
+                uncertainties
+            ),
+            "alternative_count": len(
+                alternative_hypotheses
+            ),
+            "missing_dimension_count": len(
+                missing_dimensions
+            ),
+            "causal_link_count": len(
+                causal_links
+            ),
+            "reasoning_note_count": len(
+                reasoning_notes
+            ),
             "source_semantic_claims": claims,
             "source_concepts": concepts,
             "source_relations": relations,
+            "relation_density": relation_density,
+            "source_count": source_count,
             "summary": (
                 "Semantic reasoning derived assumptions, uncertainties, "
-                "alternatives, missing dimensions and causal links."
+                "alternatives and missing dimensions from language-neutral "
+                "semantic structure."
             ),
         }
 
         workspace.set_raw(
             "assumption_count",
-            len(assumptions),
+            len(
+                assumptions
+            ),
             {
                 "engine": self.name,
-                "summary": "Number of inferred semantic assumptions.",
+                "summary": (
+                    "Number of inferred semantic assumptions."
+                ),
             },
         )
 
         workspace.set_raw(
             "alternative_count",
-            len(alternative_hypotheses),
+            len(
+                alternative_hypotheses
+            ),
             {
                 "engine": self.name,
-                "summary": "Number of generated alternative hypotheses.",
+                "summary": (
+                    "Number of generated alternative hypotheses."
+                ),
             },
         )
 
         workspace.set_raw(
             "reasoning_uncertainty_count",
-            len(uncertainties),
+            len(
+                uncertainties
+            ),
             {
                 "engine": self.name,
-                "summary": "Number of reasoning uncertainties.",
+                "summary": (
+                    "Number of reasoning uncertainties."
+                ),
             },
         )
 
         workspace.set_raw(
             "missing_dimension_count",
-            len(missing_dimensions),
+            len(
+                missing_dimensions
+            ),
             {
                 "engine": self.name,
-                "summary": "Number of missing semantic dimensions.",
+                "summary": (
+                    "Number of missing semantic dimensions."
+                ),
             },
         )
 
         workspace.set_raw(
             "causal_link_count",
-            len(causal_links),
+            len(
+                causal_links
+            ),
             {
                 "engine": self.name,
-                "summary": "Number of inferred causal links.",
+                "summary": (
+                    "Number of inferred causal links."
+                ),
             },
         )
 
