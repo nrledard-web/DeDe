@@ -260,7 +260,7 @@ class LanguageEstimator:
         ):
             scores[
                 preferred_language
-            ] += 1.25
+            ] += 0.75
 
         # --------------------------------------------------
         # Conversation continuity
@@ -272,7 +272,7 @@ class LanguageEstimator:
         ):
             scores[
                 last_language
-            ] += 0.75
+            ] += 0.50
 
         # --------------------------------------------------
         # Known ambiguity correction
