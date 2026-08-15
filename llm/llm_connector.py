@@ -333,6 +333,12 @@ class LLMConnector:
                 + "does not necessarily constitute independent confirmation.\n"
                 + "6. Prefer a short, cautious synthesis. Do not repeat "
                 + "the dominant qualification several times.\n"
+                + "7. The coherence-loop risk concerns the structure "
+                + "of the retrieved source corpus, not the historical "
+                + "events themselves. Never say that historical facts "
+                + "create a coherence loop because they repeat. Explain "
+                + "instead that several search results may reproduce "
+                + "the same source, evidence or interpretive framing.\n"
             )
 
         # --------------------------------------------------
