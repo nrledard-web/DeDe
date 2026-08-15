@@ -506,6 +506,36 @@ class CognitiveTherapyAgent:
                 "allowing the interpretation to stabilize."
             )
 
+        if dissonance_detected:
+            strategies.append(
+                "Examine whether current beliefs, assumptions or principles "
+                "are creating unresolved cognitive tension."
+            )
+
+        if contradiction_pressure >= 0.50:
+            strategies.append(
+                "Separate potentially conflicting claims and examine "
+                "whether they can be reconciled without changing criteria."
+            )
+
+        if revision_resistance >= 0.60:
+            strategies.append(
+                "Reduce resistance to revision before stabilizing "
+                "the current interpretation."
+            )
+
+        if collective_stabilization_pressure >= 0.60:
+            strategies.append(
+                "Distinguish collective agreement from independent evidence "
+                "before using consensus to reinforce certainty."
+            )
+
+        if consensus_dependency >= 0.60:
+            strategies.append(
+                "Check whether repetition or shared group framing is "
+                "stabilizing the belief beyond its independent grounding."
+            )
+
         if assumptions:
             strategies.append(
                 "Make implicit assumptions explicit before "
