@@ -15,6 +15,9 @@ from typing import Any
 from knowledge.historical_counterpoints.islamic_thought import (
     ISLAMIC_THOUGHT_COUNTERPOINT,
 )
+from knowledge.historical_counterpoints.great_replacement import (
+    GREAT_REPLACEMENT_COUNTERPOINT,
+)
 
 
 class HistoricalCounterpointRetriever:
