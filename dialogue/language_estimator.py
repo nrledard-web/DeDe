@@ -163,18 +163,43 @@ class LanguageEstimator:
         # --------------------------------------------------
         # Universal detector score
         # --------------------------------------------------
-
+        #
+        # The language detected from the CURRENT message
+        # must remain the dominant signal.
+        #
+        # Conversation history and memory may stabilize
+        # ambiguous messages, but must not prevent the user
+        # from switching languages between turns.
+        # --------------------------------------------------
+        
         if detected:
-
+        
             detected = self._normalize_code(
                 detected
             )
-
+        
             ensure_language(
                 detected
             )
-
-            scores[detected] += 4.0
+        
+            word_count = len(
+                cleaned.split()
+            )
+        
+            # Stronger current-message priority once enough
+            # linguistic material is available.
+            if word_count >= 4:
+                detector_weight = 7.0
+        
+            elif word_count >= 2:
+                detector_weight = 5.0
+        
+            else:
+                detector_weight = 3.0
+        
+            scores[detected] += (
+                detector_weight
+            )
 
         # --------------------------------------------------
         # Limited lexical corrections
