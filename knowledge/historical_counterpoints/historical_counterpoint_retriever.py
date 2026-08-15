@@ -38,6 +38,9 @@ class HistoricalCounterpointRetriever:
         self.counterpoints = {
             "islamic_thought": ISLAMIC_THOUGHT_COUNTERPOINT,
             "great_replacement": GREAT_REPLACEMENT_COUNTERPOINT,
+            "french_foreign_policy": (
+                FRENCH_FOREIGN_POLICY_COUNTERPOINT
+            ),
         }
 
     def retrieve(
