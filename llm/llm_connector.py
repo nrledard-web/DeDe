@@ -1168,6 +1168,26 @@ class LLMConnector:
                     f'{dissonance_state.get("consensus_dependency", 0.0)}'
                 )
 
+                lines.append(
+                    "- consensus trend: "
+                    f'{dissonance_state.get("consensus_trend", 0.0)}'
+                )
+
+                lines.append(
+                    "- consensus available: "
+                    f'{dissonance_state.get("consensus_available", False)}'
+                )
+
+                lines.append(
+                    "- independent convergence: "
+                    f'{dissonance_state.get("independent_convergence", 0.0)}'
+                )
+
+                lines.append(
+                    "- consensus epistemic relation: "
+                    f'{dissonance_state.get("consensus_epistemic_relation", "consensus_not_established")}'
+                )
+
                 lines.append("")
 
                 lines.append(
