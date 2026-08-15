@@ -190,6 +190,82 @@ class LLMConnector:
                 "Do not expose internal analysis unless it is useful.\n\n"
                 f"User message:\n{text}"
             )
+
+        # --------------------------------------------------
+        # Short Elliptical Follow-Up Protection
+        # --------------------------------------------------
+
+        recent_conversation_turns = (
+            conversation_context.get(
+                "recent_turns",
+                [],
+            )
+        )
+
+        current_word_count = len(
+            str(text or "").split()
+        )
+
+        if (
+            recent_conversation_turns
+            and current_word_count <= 10
+        ):
+            previous_turn = (
+                recent_conversation_turns[-1]
+            )
+
+            if not isinstance(
+                previous_turn,
+                dict,
+            ):
+                previous_turn = {}
+
+            previous_user_message = str(
+                previous_turn.get(
+                    "user_input",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            previous_dede_answer = str(
+                previous_turn.get(
+                    "answer",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            if len(previous_dede_answer) > 2500:
+                previous_dede_answer = (
+                    previous_dede_answer[:2500]
+                    .rstrip()
+                    + "..."
+                )
+
+            if previous_dede_answer:
+                user_prompt = (
+                    "MANDATORY CONVERSATION CONTINUITY:\n"
+                    "The current message is short. First determine "
+                    "whether it is an independent greeting or a genuinely "
+                    "new subject. If it is not, interpret pronouns, omitted "
+                    "objects and expressions equivalent to 'like what?', "
+                    "'which ones?' or 'what do you mean?' from the "
+                    "immediately preceding exchange.\n"
+                    "Do not answer with DeDe's general identity, mission "
+                    "or cognitive formula when the previous exchange "
+                    "supplies a clear referent.\n"
+                    "Continue the precise previous reasoning and answer "
+                    "the implied request directly.\n\n"
+                    "Previous user message:\n"
+                    f"{previous_user_message}\n\n"
+                    "Previous DeDe answer:\n"
+                    f"{previous_dede_answer}\n\n"
+                    "Current user message:\n"
+                    f"{text}\n\n"
+                    + user_prompt
+                )
+
             
         document_is_active = bool(
             document_context.get(
