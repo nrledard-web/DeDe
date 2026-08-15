@@ -283,7 +283,7 @@ class CognitiveGovernor:
             "{\n"
             '  "decision": "SEARCH",\n'
             '  "canonical_concepts": ["concept"],\n'
-            '  "counterpoint_ids": ["islamic_thought"]\n'
+            '  "counterpoint_ids": ["great_replacement"]\n'
             "}\n\n"
 
             f"Conversation context:\n{context_summary}\n\n"
@@ -413,6 +413,7 @@ class CognitiveGovernor:
 
         allowed_counterpoints = {
             "islamic_thought",
+            "great_replacement",
         }
 
         counterpoint_ids = [
