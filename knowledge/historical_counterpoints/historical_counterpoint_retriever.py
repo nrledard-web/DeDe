@@ -34,6 +34,7 @@ class HistoricalCounterpointRetriever:
     def __init__(self) -> None:
         self.counterpoints = {
             "islamic_thought": ISLAMIC_THOUGHT_COUNTERPOINT,
+            "great_replacement": GREAT_REPLACEMENT_COUNTERPOINT,
         }
 
     def retrieve(
