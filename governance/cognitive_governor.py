@@ -262,7 +262,11 @@ class CognitiveGovernor:
             "- islamic_thought: use when the message materially concerns Islam, "
             "Muslim faith, Islamic theology or philosophy, political Islam, "
             "Islamism, jihadism, Sharia, Falsafa, Kalam, Mu'tazilism or closely "
-            "related Islamic intellectual and historical questions.\n\n"
+            "related Islamic intellectual and historical questions.\n"
+            "- great_replacement: use when the message materially concerns the "
+            "Great Replacement, replacement theory, demographic replacement, "
+            "or disputes connecting immigration and population change to claims "
+            "of cultural replacement or deliberate political coordination.\n\n"
 
             "Use only identifiers from the available list. "
             "Return an empty counterpoint_ids list when none is relevant.\n\n"
