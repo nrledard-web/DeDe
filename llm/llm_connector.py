@@ -874,6 +874,33 @@ class LLMConnector:
                         0.0,
                     )
                 ),
+                "consensus_trend": (
+                    cognitive_therapy_context.get(
+                        "consensus_trend",
+                        0.0,
+                    )
+                ),
+
+                "consensus_available": (
+                    cognitive_therapy_context.get(
+                        "consensus_available",
+                        False,
+                    )
+                ),
+
+                "independent_convergence": (
+                    cognitive_therapy_context.get(
+                        "independent_convergence",
+                        0.0,
+                    )
+                ),
+
+                "consensus_epistemic_relation": (
+                    cognitive_therapy_context.get(
+                        "consensus_epistemic_relation",
+                        "consensus_not_established",
+                    )
+                ),
             }
 
             lines.append(
