@@ -3746,10 +3746,6 @@ if text:
             "external_search_required",
             False,
         ):
-            effective_search_mode = (
-                "manual"
-            )
-
             effective_explicit_search_request = (
                 True
             )
