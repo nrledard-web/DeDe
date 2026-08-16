@@ -56,9 +56,16 @@ class PhilosophicalRetriever:
         self,
         text: str,
         concept_data: dict[str, Any] | None = None,
+        canonical_concepts: list[str] | None = None,
         max_nodes: int = 8,
     ) -> dict[str, Any]:
+
         concept_data = concept_data or {}
+
+        canonical_concepts = (
+            canonical_concepts
+            or []
+        )
 
         normalized_text = self._normalize(text)
 
