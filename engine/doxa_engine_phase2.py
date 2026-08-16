@@ -580,18 +580,6 @@ class DoxaEnginePhase2:
             {},
         )
 
-        philosophical_context = (
-            self.philosophical_retriever.retrieve(
-                text=text,
-                concept_data=concept_data,
-            )
-        )
-
-        workspace.add_interpretation(
-            "philosophical_context",
-            philosophical_context,
-        )
-
         mark_performance(
             "knowledge_semantic"
         )
@@ -672,6 +660,19 @@ class DoxaEnginePhase2:
                 "canonical_concepts",
                 [],
             )
+        )
+
+        philosophical_context = (
+            self.philosophical_retriever.retrieve(
+                text=text,
+                concept_data=concept_data,
+                canonical_concepts=canonical_concepts,
+            )
+        )
+        
+        workspace.add_interpretation(
+            "philosophical_context",
+            philosophical_context,
         )
 
         selected_counterpoint_ids = (
