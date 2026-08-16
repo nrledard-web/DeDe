@@ -245,6 +245,20 @@ A direct statement describing:
 must produce a structured memory_candidate when it may remain
 useful in a later conversation.
 
+Treat explicit statements of personal likes, dislikes,
+favorites, recurring preferences and stable tastes as
+lasting preferences when they are presented as information
+about the user rather than as a temporary request.
+
+For example, if the meaning of the user's statement is that
+the user likes, dislikes or prefers something, classify the
+information semantically as a preference regardless of the
+language used.
+
+Do not require the user to explicitly ask DeDe to remember it.
+The MemoryGovernor will decide whether confirmation is needed
+before durable storage.
+
 A statement describing how the user wants the assistant to
 answer, communicate or behave is a durable preference, not a
 temporary instruction, unless the user explicitly limits it
