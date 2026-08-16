@@ -36,6 +36,7 @@ from tools.tool_factory import build_tool_manager
 
 from tools.cloudflare_vision import CloudflareVision
 from tools.cloudflare_reference_image import CloudflareReferenceImage
+from tools.visual_prompt_compiler import VisualPromptCompiler
 
 def pct(value):
     if value is None:
