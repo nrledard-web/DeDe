@@ -157,6 +157,7 @@ class PhilosophicalRetriever:
                 else "not_relevant"
             ),
             "query": text,
+            "canonical_concepts": canonical_concepts,
             "matched_concepts": selected_ids,
             "node_count": len(selected_nodes),
             "nodes": selected_nodes,
