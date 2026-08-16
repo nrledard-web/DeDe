@@ -3482,12 +3482,20 @@ if text:
                     "cloudflare_image_generator"
                 )
 
-            image_prompt = str(
+            routed_image_prompt = str(
                 selected_arguments.get(
                     "prompt",
                     text,
                 )
             ).strip()
+
+            image_prompt = (
+                st.session_state.visual_prompt_compiler
+                .compile_generation(
+                    user_request=original_user_text,
+                    routed_prompt=routed_image_prompt,
+                )
+            )
 
             if selected_tool == "cloudflare_image_generator":
                 selected_arguments = {
