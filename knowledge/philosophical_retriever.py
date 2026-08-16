@@ -216,6 +216,7 @@ class PhilosophicalRetriever:
         node: dict[str, Any],
         normalized_text: str,
         normalized_concepts: set[str],
+        normalized_canonical_concepts: set[str],
     ) -> float:
         score = 0.0
 
