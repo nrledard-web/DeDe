@@ -226,12 +226,34 @@ class PersistentMemory:
     
                 return self.data
     
+        existing_ids = {
+            str(
+                item.get(
+                    "memory_id",
+                    "",
+                )
+            ).strip()
+            for item in memory_items
+            if isinstance(
+                item,
+                dict,
+            )
+        }
+        
+        memory_number = 1
+        
+        while (
+            f"memory_{memory_number}"
+            in existing_ids
+        ):
+            memory_number += 1
+        
         created_at = self._now()
-    
+        
         memory_items.append(
             {
                 "memory_id": (
-                    f"memory_{len(memory_items) + 1}"
+                    f"memory_{memory_number}"
                 ),
                 "content": content,
                 "memory_type": memory_type,
