@@ -190,12 +190,15 @@ class LanguageEstimator:
             # linguistic material is available.
             if word_count >= 4:
                 detector_weight = 7.0
-        
-            elif word_count >= 2:
-                detector_weight = 5.0
-        
-            else:
+            
+            elif word_count == 3:
                 detector_weight = 3.0
+            
+            elif word_count == 2:
+                detector_weight = 0.75
+            
+            else:
+                detector_weight = 0.50
         
             scores[detected] += (
                 detector_weight
