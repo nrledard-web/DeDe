@@ -94,6 +94,9 @@ class PhilosophicalRetriever:
                 node=node,
                 normalized_text=normalized_text,
                 normalized_concepts=normalized_concepts,
+                normalized_canonical_concepts=(
+                    normalized_canonical_concepts
+                ),
             )
 
             if score > 0:
