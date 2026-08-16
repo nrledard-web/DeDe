@@ -1478,23 +1478,6 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
-        # Refresh Autobiographical Reasoning
-        # --------------------------------------------------
-
-        autobiographical_reasoning = (
-            self.autobiographical_reasoner.reason(
-                persistent_memory=(
-                    updated_persistent_memory
-                ),
-            )
-        )
-
-        workspace.add_interpretation(
-            "autobiographical_reasoning",
-            autobiographical_reasoning,
-        )
-
-        # --------------------------------------------------
         # Phase 4.14
         # Cognitive Feedback
         # --------------------------------------------------
@@ -1556,6 +1539,23 @@ class DoxaEnginePhase2:
                 "autobiography",
                 {},
             ),
+        )
+
+        # --------------------------------------------------
+        # Refresh Autobiographical Reasoning
+        # --------------------------------------------------
+
+        autobiographical_reasoning = (
+            self.autobiographical_reasoner.reason(
+                persistent_memory=(
+                    updated_persistent_memory
+                ),
+            )
+        )
+
+        workspace.add_interpretation(
+            "autobiographical_reasoning",
+            autobiographical_reasoning,
         )
 
         # --------------------------------------------------
