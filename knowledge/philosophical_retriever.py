@@ -292,6 +292,12 @@ class PhilosophicalRetriever:
             )
         )
 
+        if (
+            label
+            in normalized_canonical_concepts
+        ):
+            score += 4.0
+
         if label in normalized_concepts:
             score += 1.5
 
