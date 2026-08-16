@@ -4,11 +4,13 @@ DeDe - Dialogue Governor
 Protects cognitive autonomy.
 
 DeDe normally provides a complete answer and stops.
-Closing questions and conversational invitations are preserved
-only when the surrounding dialogue explicitly permits them.
-"""
 
-import re
+The LLM is responsible for understanding conversational intent
+semantically and independently of language.
+
+The DialogueGovernor acts only as a final structural safeguard.
+It does not rely on language-specific expressions.
+"""
 
 
 class DialogueGovernor:
@@ -20,11 +22,22 @@ class DialogueGovernor:
         text: str,
         allow_closing_question: bool = False,
     ) -> str:
+        """
+        Apply the final dialogue safeguard.
+
+        Semantic conversational behavior is governed upstream
+        by DeDe's LLM instructions.
+
+        This component deliberately avoids language-specific
+        lexical rules.
+        """
 
         if not text:
             return text
 
-        cleaned_text = str(text).strip()
+        cleaned_text = str(
+            text
+        ).strip()
 
         if not cleaned_text:
             return cleaned_text
@@ -33,160 +46,64 @@ class DialogueGovernor:
             return cleaned_text
 
         # --------------------------------------------------
-        # Split the response into sentences
+        # Structural final-question safeguard
+        # --------------------------------------------------
+        #
+        # DeDe normally answers and stops.
+        #
+        # If the final paragraph consists entirely of a
+        # question, remove that paragraph.
+        #
+        # This is language-neutral because it relies only
+        # on punctuation structure.
+        #
+        # Questions that are necessary for clarification
+        # must be explicitly permitted upstream through
+        # allow_closing_question=True.
         # --------------------------------------------------
 
-        sentences = re.split(
-            r"(?<=[.!?…])\s+|\n+",
-            cleaned_text,
-        )
-
-        sentences = [
-            sentence.strip()
-            for sentence in sentences
-            if sentence.strip()
+        paragraphs = [
+            paragraph.strip()
+            for paragraph in cleaned_text.splitlines()
+            if paragraph.strip()
         ]
 
-        if not sentences:
+        if len(paragraphs) <= 1:
             return cleaned_text
 
-        original_sentence_count = len(
-            sentences
-        )
+        final_paragraph = paragraphs[-1]
 
-        # --------------------------------------------------
-        # Remove unnecessary closing questions
-        # --------------------------------------------------
-
-        while (
-            sentences
-            and self._is_closing_question(
-                sentences[-1]
-            )
+        if self._is_question(
+            final_paragraph
         ):
-            sentences.pop()
+            paragraphs.pop()
 
-        # --------------------------------------------------
-        # Remove indirect conversational invitations
-        # --------------------------------------------------
+            return "\n\n".join(
+                paragraphs
+            ).strip()
 
-        while (
-            sentences
-            and self._is_conversational_invitation(
-                sentences[-1]
-            )
-        ):
-            sentences.pop()
+        return cleaned_text
 
-        if len(sentences) == original_sentence_count:
-            return cleaned_text
+    def _is_question(
+        self,
+        text: str,
+    ) -> bool:
+        """
+        Detect whether a text structurally ends as a question.
 
-        return " ".join(
-            sentences
+        No vocabulary or language-specific markers are used.
+        """
+
+        normalized = str(
+            text or ""
         ).strip()
 
-    def _is_closing_question(
-        self,
-        sentence: str,
-    ) -> bool:
-
-        normalized = sentence.strip()
+        if not normalized:
+            return False
 
         return normalized.endswith(
             (
                 "?",
                 "？",
-                "¿",
             )
         )
-
-    def _is_conversational_invitation(
-        self,
-        sentence: str,
-    ) -> bool:
-
-        normalized = self._normalize(
-            sentence
-        )
-
-        invitation_patterns = [
-            # French
-            r"\bje (?:serais|suis) (?:heureux|heureuse|interesse|interessee|ravi|ravie) "
-            r"(?:d[' ]|de |a )?(?:en discuter|approfondir|connaitre|entendre)\b",
-
-            r"\bdis[- ]moi si\b",
-            r"\bindique[- ]moi si\b",
-            r"\bn[' ]hesite pas a\b",
-            r"\bsi tu (?:veux|souhaites|desires)\b",
-            r"\bsi vous (?:voulez|souhaitez|desirez)\b",
-
-            # English
-            r"\bi (?:would be|am) (?:happy|interested|glad) "
-            r"(?:to discuss|to explore|to hear|in discussing)\b",
-
-            r"\blet me know if\b",
-            r"\bfeel free to\b",
-            r"\bif you (?:want|wish|would like)\b",
-
-            # Spanish
-            r"\b(?:estaria|estoy) (?:encantado|encantada|interesado|interesada) "
-            r"(?:de|en) (?:hablar|discutir|profundizar|conocer)\b",
-
-            r"\bdime si\b",
-            r"\bsi quieres\b",
-            r"\bsi desea(?:s)?\b",
-            r"\bno dudes en\b",
-
-            # Filipino / Tagalog
-            r"\bkung gusto mo\b",
-            r"\bsabihin mo sa akin kung\b",
-            r"\bmaaari nating talakayin\b",
-        ]
-
-        return any(
-            re.search(
-                pattern,
-                normalized,
-            )
-            for pattern in invitation_patterns
-        )
-
-    def _normalize(
-        self,
-        text: str,
-    ) -> str:
-
-        normalized = text.lower().strip()
-
-        replacements = {
-            "à": "a",
-            "â": "a",
-            "ä": "a",
-            "á": "a",
-            "ã": "a",
-            "ç": "c",
-            "é": "e",
-            "è": "e",
-            "ê": "e",
-            "ë": "e",
-            "í": "i",
-            "î": "i",
-            "ï": "i",
-            "ñ": "n",
-            "ó": "o",
-            "ô": "o",
-            "ö": "o",
-            "õ": "o",
-            "ú": "u",
-            "ù": "u",
-            "û": "u",
-            "ü": "u",
-        }
-
-        for source, target in replacements.items():
-            normalized = normalized.replace(
-                source,
-                target,
-            )
-
-        return normalized
