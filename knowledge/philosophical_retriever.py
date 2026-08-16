@@ -80,6 +80,12 @@ class PhilosophicalRetriever:
             if concept
         }
 
+        normalized_canonical_concepts = {
+            self._normalize(str(concept))
+            for concept in canonical_concepts
+            if concept
+        }
+
         scored_nodes: list[tuple[str, float]] = []
 
         for node_id, node in PHILOSOPHICAL_ONTOLOGY.items():
