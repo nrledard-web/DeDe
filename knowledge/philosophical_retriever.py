@@ -260,6 +260,12 @@ class PhilosophicalRetriever:
             if not normalized_alias:
                 continue
 
+            if (
+                normalized_alias
+                in normalized_canonical_concepts
+            ):
+                score += 4.0
+
             if self._contains_term(
                 normalized_text,
                 normalized_alias,
