@@ -224,6 +224,23 @@ class PhilosophicalRetriever:
             node_id
         )
 
+        # --------------------------------------------------
+        # Canonical semantic concepts
+        # --------------------------------------------------
+        #
+        # These concepts come from the multilingual semantic
+        # classification layer.
+        #
+        # They have priority over direct lexical matching
+        # against the user's original wording.
+        # --------------------------------------------------
+
+        if (
+            normalized_node_id
+            in normalized_canonical_concepts
+        ):
+            score += 5.0
+
         if self._contains_term(
             normalized_text,
             normalized_node_id,
