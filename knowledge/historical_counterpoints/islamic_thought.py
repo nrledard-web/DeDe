@@ -35,7 +35,7 @@ ISLAMIC_THOUGHT_COUNTERPOINT: dict[str, Any] = {
         "da'wa",
         "Sharia",
         "taqiya",
-        "taqiyya"
+        "taqiyya",
         "Falsafa",
         "Falasifa",
         "Kalam",
