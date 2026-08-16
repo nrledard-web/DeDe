@@ -195,6 +195,17 @@ def _generate_image(
         )
         return
 
+    arguments = dict(
+        arguments
+    )
+
+    arguments["prompt"] = (
+        VisualPromptCompiler()
+        .compile_generation(
+            user_request=prompt,
+        )
+    )
+
     if (
         provider == "openai"
         and "OPENAI_API_KEY" not in st.secrets
