@@ -3069,22 +3069,16 @@ if text:
         )
 
         reference_prompt = (
-            "Use the supplied image as the "
-            "visual reference.\n\n"
-            "Preserve the relevant person's visible "
-            "identity and facial characteristics as "
-            "closely as the reference allows.\n\n"
-            "If the user identifies a particular person "
-            "within the reference image, use that person "
-            "rather than another visible person.\n\n"
-            "Do not copy the original background unless "
-            "the user asks for it.\n\n"
-            f"Visual analysis of the reference:\n"
-            f"{visual_reference_analysis}\n\n"
-            f"Recent conversational context:\n"
-            f"{previous_context_text}\n\n"
-            f"Current user request:\n"
-            f"{original_user_text}"
+            st.session_state.visual_prompt_compiler
+            .compile_reference_generation(
+                user_request=original_user_text,
+                visual_analysis=(
+                    visual_reference_analysis
+                ),
+                conversation_context=(
+                    previous_context_text
+                ),
+            )
         )
 
         with st.chat_message("user"):
