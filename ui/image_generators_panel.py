@@ -11,6 +11,7 @@ import hashlib
 from typing import Any
 
 import streamlit as st
+from tools.visual_prompt_compiler import VisualPromptCompiler
 
 
 MOVIE_MAKER_LIBRARY_KEY = (
