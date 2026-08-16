@@ -1478,6 +1478,37 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
+        # Refresh Autobiographical Reasoning
+        # --------------------------------------------------
+
+        autobiographical_reasoning = (
+            self.autobiographical_reasoner.reason(
+                persistent_memory=(
+                    updated_persistent_memory
+                ),
+            )
+        )
+
+        workspace.add_interpretation(
+            "autobiographical_reasoning",
+            autobiographical_reasoning,
+        )
+
+        # --------------------------------------------------
+        # Phase 4.14
+        # Cognitive Feedback
+        # --------------------------------------------------
+        cognitive_feedback = self.cognitive_feedback.analyze(
+            llm_response=llm_interpretation.get("raw_response"),
+            parsed_json=llm_interpretation.get("parsed_json"),
+        )
+
+        workspace.add_interpretation(
+            "cognitive_feedback",
+            cognitive_feedback,
+        )
+
+        # --------------------------------------------------
         # Autobiographical Memory Update
         # --------------------------------------------------
 
@@ -1525,37 +1556,6 @@ class DoxaEnginePhase2:
                 "autobiography",
                 {},
             ),
-        )
-
-        # --------------------------------------------------
-        # Refresh Autobiographical Reasoning
-        # --------------------------------------------------
-
-        autobiographical_reasoning = (
-            self.autobiographical_reasoner.reason(
-                persistent_memory=(
-                    updated_persistent_memory
-                ),
-            )
-        )
-
-        workspace.add_interpretation(
-            "autobiographical_reasoning",
-            autobiographical_reasoning,
-        )
-
-        # --------------------------------------------------
-        # Phase 4.14
-        # Cognitive Feedback
-        # --------------------------------------------------
-        cognitive_feedback = self.cognitive_feedback.analyze(
-            llm_response=llm_interpretation.get("raw_response"),
-            parsed_json=llm_interpretation.get("parsed_json"),
-        )
-
-        workspace.add_interpretation(
-            "cognitive_feedback",
-            cognitive_feedback,
         )
 
         # --------------------------------------------------
