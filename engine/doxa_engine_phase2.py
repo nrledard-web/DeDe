@@ -1478,6 +1478,56 @@ class DoxaEnginePhase2:
         )
 
         # --------------------------------------------------
+        # Autobiographical Memory Update
+        # --------------------------------------------------
+
+        current_persistent_memory = (
+            self.persistent_memory.get_memory()
+        )
+
+        memory_candidate = {}
+
+        if isinstance(
+            memory_governance,
+            dict,
+        ):
+            candidate = memory_governance.get(
+                "candidate",
+                {},
+            )
+
+            if isinstance(
+                candidate,
+                dict,
+            ):
+                memory_candidate = candidate
+
+        updated_persistent_memory = (
+            self.autobiographical_memory.update(
+                text=text,
+                persistent_memory=current_persistent_memory,
+                canonical_concepts=canonical_concepts,
+                dialogue_profile=dialogue_profile,
+                memory_candidate=memory_candidate,
+                cognitive_feedback=cognitive_feedback,
+            )
+        )
+
+        self.persistent_memory.data = (
+            updated_persistent_memory
+        )
+
+        self.persistent_memory.save()
+
+        workspace.add_interpretation(
+            "autobiography",
+            updated_persistent_memory.get(
+                "autobiography",
+                {},
+            ),
+        )
+
+        # --------------------------------------------------
         # Phase 4.14
         # Cognitive Feedback
         # --------------------------------------------------
