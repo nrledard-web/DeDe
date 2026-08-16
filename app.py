@@ -3256,6 +3256,82 @@ if text:
     ):
         memory_candidate = {}
 
+    # --------------------------------------------------
+    # Durable Memory Duplicate Protection
+    # --------------------------------------------------
+
+    candidate_content = str(
+        memory_candidate.get(
+            "content",
+            "",
+        )
+        or ""
+    ).strip().casefold()
+
+    candidate_type = str(
+        memory_candidate.get(
+            "memory_type",
+            "",
+        )
+        or ""
+    ).strip().casefold()
+
+    existing_memory_items = (
+        persistent_memory_context.get(
+            "memory_items",
+            [],
+        )
+    )
+
+    if not isinstance(
+        existing_memory_items,
+        list,
+    ):
+        existing_memory_items = []
+
+    memory_already_exists = False
+
+    if candidate_content:
+        for existing_memory in existing_memory_items:
+
+            if not isinstance(
+                existing_memory,
+                dict,
+            ):
+                continue
+
+            existing_content = str(
+                existing_memory.get(
+                    "content",
+                    "",
+                )
+                or ""
+            ).strip().casefold()
+
+            existing_type = str(
+                existing_memory.get(
+                    "memory_type",
+                    "",
+                )
+                or ""
+            ).strip().casefold()
+
+            if (
+                existing_content
+                == candidate_content
+                and existing_type
+                == candidate_type
+            ):
+                memory_already_exists = True
+                break
+
+    if memory_already_exists:
+        memory_candidate = {}
+
+        tool_decision[
+            "memory_candidate"
+        ] = {}
+
     memory_storage_mode = st.session_state.get(
         "memory_storage_mode",
         "selective",
