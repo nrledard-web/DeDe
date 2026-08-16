@@ -2779,6 +2779,11 @@ if "cloudflare_reference_image" not in st.session_state:
     st.session_state.cloudflare_reference_image = (
         CloudflareReferenceImage()
     )
+
+if "visual_prompt_compiler" not in st.session_state:
+    st.session_state.visual_prompt_compiler = (
+        VisualPromptCompiler()
+    )
     
 # --------------------------------------------------
 # Chat Input
