@@ -758,14 +758,6 @@ class PersistentMemory:
                 "memory_id": cleaned_memory_id,
             }
 
-        for index, item in enumerate(
-            remaining_items,
-            start=1,
-        ):
-            item["memory_id"] = (
-                f"memory_{index}"
-            )
-
         self.data[
             "memory_items"
         ] = remaining_items
