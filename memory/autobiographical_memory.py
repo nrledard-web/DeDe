@@ -4,17 +4,20 @@ DeDe - Autobiographical Memory
 Builds a long-term cognitive profile of the relationship
 between DeDe and the user.
 
-This memory does not store everything.
-It tracks recurring structures:
-- cognitive profile
-- user projects
-- interests
-- dialogue style
-- long-term evolution
+AutobiographicalMemory does not perform language-specific
+semantic detection.
+
+It receives structured observations produced by upstream
+cognitive components and integrates them over time.
+
+This separation allows autobiographical memory to remain
+multilingual by architecture rather than by lexical markers.
 """
 
-from typing import Any
+from __future__ import annotations
+
 from datetime import datetime, timezone
+from typing import Any
 
 
 class AutobiographicalMemory:
@@ -25,429 +28,641 @@ class AutobiographicalMemory:
         self,
         text: str,
         persistent_memory: dict[str, Any],
+        canonical_concepts: list[str] | None = None,
+        dialogue_profile: dict[str, Any] | None = None,
+        memory_candidate: dict[str, Any] | None = None,
+        cognitive_feedback: dict[str, Any] | None = None,
+        project_signals: list[str] | None = None,
+        interest_signals: list[str] | None = None,
+        evolution_event: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        """
+        Integrate structured autobiographical observations.
+
+        The original text is preserved only as provenance.
+        It is not searched for language-specific markers.
+
+        All semantic classification should occur upstream.
+        """
+
+        persistent_memory = (
+            persistent_memory
+            if isinstance(
+                persistent_memory,
+                dict,
+            )
+            else {}
+        )
 
         autobiography = persistent_memory.get(
             "autobiography",
             {},
         )
 
-        default = self._default_autobiography()
-        default.update(autobiography)
-        autobiography = default
+        if not isinstance(
+            autobiography,
+            dict,
+        ):
+            autobiography = {}
 
-        lowered = text.lower()
+        autobiography = self._merge_defaults(
+            autobiography
+        )
+
+        canonical_concepts = self._clean_strings(
+            canonical_concepts
+        )
+
+        project_signals = self._clean_strings(
+            project_signals
+        )
+
+        interest_signals = self._clean_strings(
+            interest_signals
+        )
+
+        dialogue_profile = (
+            dialogue_profile
+            if isinstance(
+                dialogue_profile,
+                dict,
+            )
+            else {}
+        )
+
+        memory_candidate = (
+            memory_candidate
+            if isinstance(
+                memory_candidate,
+                dict,
+            )
+            else {}
+        )
+
+        cognitive_feedback = (
+            cognitive_feedback
+            if isinstance(
+                cognitive_feedback,
+                dict,
+            )
+            else {}
+        )
+
+        # --------------------------------------------------
+        # Structured cognitive observations
+        # --------------------------------------------------
 
         self._track_cognitive_profile(
-            autobiography,
-            lowered,
+            autobiography=autobiography,
+            canonical_concepts=canonical_concepts,
+            cognitive_feedback=cognitive_feedback,
         )
 
-        self._track_projects(
-            autobiography,
-            lowered,
+        # --------------------------------------------------
+        # Structured projects
+        # --------------------------------------------------
+
+        self._track_named_signals(
+            store=autobiography["projects"],
+            signals=project_signals,
         )
 
-        self._track_interests(
-            autobiography,
-            lowered,
+        # --------------------------------------------------
+        # Structured interests
+        # --------------------------------------------------
+
+        self._track_named_signals(
+            store=autobiography["interests"],
+            signals=interest_signals,
         )
+
+        # --------------------------------------------------
+        # Dialogue observations
+        # --------------------------------------------------
 
         self._track_dialogue_style(
-            autobiography,
-            text,
-            lowered,
+            autobiography=autobiography,
+            dialogue_profile=dialogue_profile,
         )
 
-        self._track_evolution(
-            autobiography,
-            lowered,
+        # --------------------------------------------------
+        # Memory-derived autobiographical information
+        # --------------------------------------------------
+
+        self._track_memory_candidate(
+            autobiography=autobiography,
+            memory_candidate=memory_candidate,
         )
 
-        autobiography["interaction_count"] += 1
-        autobiography["last_updated"] = self._now()
+        # --------------------------------------------------
+        # Long-term evolution
+        # --------------------------------------------------
 
-        persistent_memory["autobiography"] = autobiography
+        if isinstance(
+            evolution_event,
+            dict,
+        ):
+            self._track_evolution(
+                autobiography=autobiography,
+                event=evolution_event,
+            )
+
+        # --------------------------------------------------
+        # Provenance
+        # --------------------------------------------------
+
+        autobiography[
+            "interaction_count"
+        ] += 1
+
+        autobiography[
+            "last_updated"
+        ] = self._now()
+
+        autobiography[
+            "last_observation"
+        ] = {
+            "timestamp": self._now(),
+            "text_present": bool(
+                str(text or "").strip()
+            ),
+            "canonical_concepts": (
+                canonical_concepts[:20]
+            ),
+        }
+
+        persistent_memory[
+            "autobiography"
+        ] = autobiography
 
         return persistent_memory
 
-    def _default_autobiography(self) -> dict[str, Any]:
+    # ======================================================
+    # Defaults
+    # ======================================================
+
+    def _default_autobiography(
+        self,
+    ) -> dict[str, Any]:
 
         return {
             "interaction_count": 0,
-            "cognitive_profile": {
-                "revisability_focus": 0,
-                "systems_thinking": 0,
-                "concept_creation": 0,
-                "philosophical_reasoning": 0,
-                "technical_building": 0,
-                "epistemic_caution": 0,
-            },
+
+            "cognitive_profile": {},
+
             "projects": {},
+
             "interests": {},
-            "dialogue_style": {
-                "prefers_step_by_step": 0,
-                "prefers_copy_paste_code": 0,
-                "asks_for_architecture": 0,
-                "tests_by_reboot": 0,
-                "uses_multilingual_context": 0,
-            },
+
+            "dialogue_style": {},
+
+            "memory_types": {},
+
             "evolution": [],
+
+            "last_observation": {},
+
             "last_updated": None,
         }
 
-    # --------------------------------------------------
+    def _merge_defaults(
+        self,
+        autobiography: dict[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Preserve existing autobiography while ensuring
+        that all expected structures exist.
+        """
+
+        default = self._default_autobiography()
+
+        for key, default_value in default.items():
+
+            if key not in autobiography:
+                autobiography[key] = default_value
+
+        for key in [
+            "cognitive_profile",
+            "projects",
+            "interests",
+            "dialogue_style",
+            "memory_types",
+            "last_observation",
+        ]:
+            if not isinstance(
+                autobiography.get(key),
+                dict,
+            ):
+                autobiography[key] = {}
+
+        if not isinstance(
+            autobiography.get(
+                "evolution"
+            ),
+            list,
+        ):
+            autobiography[
+                "evolution"
+            ] = []
+
+        try:
+            autobiography[
+                "interaction_count"
+            ] = int(
+                autobiography.get(
+                    "interaction_count",
+                    0,
+                )
+                or 0
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+            autobiography[
+                "interaction_count"
+            ] = 0
+
+        return autobiography
+
+    # ======================================================
     # Cognitive Profile
-    # --------------------------------------------------
+    # ======================================================
 
     def _track_cognitive_profile(
         self,
         autobiography: dict[str, Any],
-        lowered: str,
+        canonical_concepts: list[str],
+        cognitive_feedback: dict[str, Any],
     ) -> None:
+        """
+        Aggregate semantic concepts and cognitive observations.
 
-        markers = {
-            "revisability_focus": [
-                "révisabilité",
-                "revisability",
-                "révisable",
-                "revisable",
-            ],
-            "systems_thinking": [
-                "architecture",
-                "pipeline",
-                "système",
-                "system",
-                "module",
-                "orchestrateur",
-            ],
-            "concept_creation": [
-                "concept",
-                "formule",
-                "mécroyance",
-                "mecroyance",
-                "nouscope",
-                "doxa",
-                "gnosis",
-            ],
-            "philosophical_reasoning": [
-                "philosophie",
-                "philosophical",
-                "ontologie",
-                "réel",
-                "cognition",
-                "croyance",
-            ],
-            "technical_building": [
-                "code",
-                "implémentation",
-                "implementation",
-                "github",
-                "streamlit",
-                "python",
-            ],
-            "epistemic_caution": [
-                "source",
-                "preuve",
-                "vérifier",
-                "verify",
-                "incertitude",
-                "nuance",
-                "hallucination",
-            ],
-        }
+        No language-specific lexical classification occurs here.
+        """
 
-        self._increment_markers(
-            autobiography["cognitive_profile"],
-            lowered,
-            markers,
+        profile = autobiography[
+            "cognitive_profile"
+        ]
+
+        for concept in canonical_concepts:
+            self._increment(
+                store=profile,
+                key=concept,
+            )
+
+        observations = cognitive_feedback.get(
+            "observations",
+            [],
         )
 
-    # --------------------------------------------------
-    # Projects
-    # --------------------------------------------------
+        if isinstance(
+            observations,
+            dict,
+        ):
+            observations = list(
+                observations.keys()
+            )
 
-    def _track_projects(
+        if isinstance(
+            observations,
+            list,
+        ):
+            for observation in observations:
+
+                if isinstance(
+                    observation,
+                    str,
+                ):
+                    normalized = (
+                        observation.strip()
+                    )
+
+                    if normalized:
+                        self._increment(
+                            store=profile,
+                            key=normalized,
+                        )
+
+                elif isinstance(
+                    observation,
+                    dict,
+                ):
+                    observation_type = str(
+                        observation.get(
+                            "type",
+                            "",
+                        )
+                    ).strip()
+
+                    if observation_type:
+                        self._increment(
+                            store=profile,
+                            key=observation_type,
+                        )
+
+    # ======================================================
+    # Projects and Interests
+    # ======================================================
+
+    def _track_named_signals(
         self,
-        autobiography: dict[str, Any],
-        lowered: str,
+        store: dict[str, int],
+        signals: list[str],
     ) -> None:
+        """
+        Aggregate canonical semantic labels produced upstream.
+        """
 
-        markers = {
-            "DeDe": [
-                "dede",
-                "daimon",
-                "daïmon",
-                "compagnon cognitif",
-            ],
-            "Doxa Detector": [
-                "doxa detector",
-                "doxa-detector",
-                "détecteur",
-                "detector",
-            ],
-            "Cognitive Mechanics": [
-                "mécanique cognitive",
-                "cognitive mechanics",
-                "m=(g+n)-d",
-            ],
-            "NOUSCOPE": [
-                "nouscope",
-                "filtre cognitif",
-                "cognitive filter",
-            ],
-            "Autobiographical Memory": [
-                "mémoire autobiographique",
-                "autobiographical memory",
-                "mémoire persistante",
-                "persistent memory",
-            ],
-            "Multi LLM Architecture": [
-                "multi-llm",
-                "plusieurs llm",
-                "gpt",
-                "claude",
-                "gemini",
-                "nemotron",
-            ],
-            "Search Engine Connection": [
-                "moteur de recherche",
-                "internet",
-                "web search",
-                "recherche web",
-                "tavily",
-                "brave search",
-            ],
-        }
+        for signal in signals:
+            self._increment(
+                store=store,
+                key=signal,
+            )
 
-        self._increment_markers(
-            autobiography["projects"],
-            lowered,
-            markers,
-        )
-
-    # --------------------------------------------------
-    # Interests
-    # --------------------------------------------------
-
-    def _track_interests(
-        self,
-        autobiography: dict[str, Any],
-        lowered: str,
-    ) -> None:
-
-        markers = {
-            "AI": [
-                "ia",
-                "ai",
-                "llm",
-                "intelligence artificielle",
-            ],
-            "Philosophy": [
-                "philosophie",
-                "ontologie",
-                "vérité",
-                "réel",
-                "croyance",
-            ],
-            "Science": [
-                "science",
-                "scientifique",
-                "relativité",
-                "climat",
-                "physique",
-            ],
-            "Politics": [
-                "politique",
-                "patriotisme",
-                "communisme",
-                "nazisme",
-            ],
-            "Religion": [
-                "religion",
-                "foi",
-                "croyance religieuse",
-                "relihiyon",
-            ],
-            "Language": [
-                "langue",
-                "anglais",
-                "français",
-                "filipino",
-                "tagalog",
-                "traduction",
-            ],
-            "Memory": [
-                "mémoire",
-                "memory",
-                "souvenir",
-                "persistante",
-            ],
-        }
-
-        self._increment_markers(
-            autobiography["interests"],
-            lowered,
-            markers,
-        )
-
-    # --------------------------------------------------
+    # ======================================================
     # Dialogue Style
-    # --------------------------------------------------
+    # ======================================================
 
     def _track_dialogue_style(
         self,
         autobiography: dict[str, Any],
-        text: str,
-        lowered: str,
+        dialogue_profile: dict[str, Any],
     ) -> None:
+        """
+        Aggregate explicit dialogue-profile observations.
 
-        style = autobiography["dialogue_style"]
+        DialogueProfile or another upstream component decides
+        what the observation means.
+        """
 
-        if any(
-            marker in lowered
-            for marker in [
-                "pas à pas",
-                "étape",
-                "explique",
-                "explique moi",
-                "step by step",
-            ]
-        ):
-            self._increment(style, "prefers_step_by_step")
-
-        if any(
-            marker in lowered
-            for marker in [
-                "copier collé",
-                "copier-coller",
-                "remplace tout",
-                "fais moi le code",
-                "go code",
-            ]
-        ):
-            self._increment(style, "prefers_copy_paste_code")
-
-        if any(
-            marker in lowered
-            for marker in [
-                "architecture",
-                "pipeline",
-                "module",
-                "orchestrateur",
-                "structure",
-            ]
-        ):
-            self._increment(style, "asks_for_architecture")
-
-        if any(
-            marker in lowered
-            for marker in [
-                "reboot",
-                "rafraichissement",
-                "refresh",
-                "redémarrage",
-            ]
-        ):
-            self._increment(style, "tests_by_reboot")
-
-        multilingual_markers = [
-            "english",
-            "anglais",
-            "français",
-            "filipino",
-            "tagalog",
-            "spanish",
-            "espagnol",
+        style_store = autobiography[
+            "dialogue_style"
         ]
 
-        if any(marker in lowered for marker in multilingual_markers):
-            self._increment(style, "uses_multilingual_context")
+        style_signals = dialogue_profile.get(
+            "style_signals",
+            [],
+        )
 
-        if len(text) > 1500:
-            self._increment(style, "prefers_step_by_step")
+        if isinstance(
+            style_signals,
+            dict,
+        ):
+            style_signals = [
+                key
+                for key, value
+                in style_signals.items()
+                if value
+            ]
 
-    # --------------------------------------------------
+        if isinstance(
+            style_signals,
+            list,
+        ):
+            for signal in style_signals:
+
+                normalized = str(
+                    signal or ""
+                ).strip()
+
+                if normalized:
+                    self._increment(
+                        store=style_store,
+                        key=normalized,
+                    )
+
+        tone = str(
+            dialogue_profile.get(
+                "tone",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if (
+            tone
+            and tone != "unknown"
+        ):
+            self._increment(
+                store=style_store,
+                key=f"tone:{tone}",
+            )
+
+        verbosity = str(
+            dialogue_profile.get(
+                "verbosity",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if (
+            verbosity
+            and verbosity != "unknown"
+        ):
+            self._increment(
+                store=style_store,
+                key=f"verbosity:{verbosity}",
+            )
+
+        language = str(
+            dialogue_profile.get(
+                "language",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if (
+            language
+            and language != "unknown"
+        ):
+            self._increment(
+                store=style_store,
+                key=f"language:{language}",
+            )
+
+    # ======================================================
+    # Memory Candidate
+    # ======================================================
+
+    def _track_memory_candidate(
+        self,
+        autobiography: dict[str, Any],
+        memory_candidate: dict[str, Any],
+    ) -> None:
+        """
+        Track the categories of durable information observed.
+
+        The autobiographical layer does not decide whether
+        information is allowed to be stored.
+        MemoryGovernor remains responsible for permission.
+        """
+
+        if not memory_candidate:
+            return
+
+        memory_type = str(
+            memory_candidate.get(
+                "memory_type",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if not memory_type:
+            return
+
+        self._increment(
+            store=autobiography[
+                "memory_types"
+            ],
+            key=memory_type,
+        )
+
+    # ======================================================
     # Evolution
-    # --------------------------------------------------
+    # ======================================================
 
     def _track_evolution(
         self,
         autobiography: dict[str, Any],
-        lowered: str,
+        event: dict[str, Any],
     ) -> None:
+        """
+        Store an explicitly classified evolution event.
 
-        important_markers = [
-            "ça fonctionne",
-            "test réussi",
-            "c'est bon",
-            "super",
-            "magnifique",
-            "phase",
-            "nouvelle étape",
-            "prochaine étape",
-            "on a trouvé",
-            "ça marche",
-        ]
+        The event must already have been identified upstream.
+        """
 
-        if not any(marker in lowered for marker in important_markers):
+        event_type = str(
+            event.get(
+                "type",
+                "",
+            )
+            or ""
+        ).strip()
+
+        note = str(
+            event.get(
+                "note",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if not event_type and not note:
             return
 
-        event = {
-            "timestamp": self._now(),
-            "note": self._summarize_event(lowered),
+        normalized_event = {
+            "timestamp": (
+                event.get(
+                    "timestamp"
+                )
+                or self._now()
+            ),
+            "type": (
+                event_type
+                or "observation"
+            ),
+            "note": note,
         }
 
-        evolution = autobiography["evolution"]
+        metadata = event.get(
+            "metadata"
+        )
 
-        if event["note"] not in [
-            item.get("note")
+        if isinstance(
+            metadata,
+            dict,
+        ):
+            normalized_event[
+                "metadata"
+            ] = metadata
+
+        evolution = autobiography[
+            "evolution"
+        ]
+
+        signature = (
+            normalized_event["type"],
+            normalized_event["note"],
+        )
+
+        recent_signatures = {
+            (
+                str(
+                    item.get(
+                        "type",
+                        ""
+                    )
+                ),
+                str(
+                    item.get(
+                        "note",
+                        ""
+                    )
+                ),
+            )
             for item in evolution[-10:]
-        ]:
-            evolution.append(event)
+            if isinstance(
+                item,
+                dict,
+            )
+        }
+
+        if signature not in recent_signatures:
+            evolution.append(
+                normalized_event
+            )
 
         if len(evolution) > 50:
-            autobiography["evolution"] = evolution[-50:]
+            autobiography[
+                "evolution"
+            ] = evolution[-50:]
 
-    def _summarize_event(
-        self,
-        lowered: str,
-    ) -> str:
-
-        if "test réussi" in lowered:
-            return "A test was reported as successful."
-
-        if "ça fonctionne" in lowered or "ça marche" in lowered:
-            return "A functional milestone was reached."
-
-        if "magnifique" in lowered or "super" in lowered:
-            return "The user expressed strong satisfaction with progress."
-
-        if "phase" in lowered:
-            return "A project phase or transition was discussed."
-
-        if "on a trouvé" in lowered:
-            return "A bug or architectural issue was identified."
-
-        return "A meaningful project evolution was mentioned."
-
-    # --------------------------------------------------
+    # ======================================================
     # Helpers
-    # --------------------------------------------------
+    # ======================================================
 
-    def _increment_markers(
+    def _clean_strings(
         self,
-        store: dict[str, int],
-        lowered: str,
-        markers: dict[str, list[str]],
-    ) -> None:
+        values: list[str] | None,
+    ) -> list[str]:
 
-        for key, marker_list in markers.items():
-            if any(marker in lowered for marker in marker_list):
-                self._increment(
-                    store,
-                    key,
-                )
+        if not isinstance(
+            values,
+            list,
+        ):
+            return []
+
+        cleaned = []
+
+        seen = set()
+
+        for value in values:
+
+            normalized = str(
+                value or ""
+            ).strip()
+
+            if (
+                not normalized
+                or normalized in seen
+            ):
+                continue
+
+            seen.add(
+                normalized
+            )
+
+            cleaned.append(
+                normalized
+            )
+
+        return cleaned
 
     def _increment(
         self,
@@ -455,9 +670,35 @@ class AutobiographicalMemory:
         key: str,
     ) -> None:
 
-        store[key] = store.get(key, 0) + 1
+        normalized_key = str(
+            key or ""
+        ).strip()
 
-    def _now(self) -> str:
+        if not normalized_key:
+            return
+
+        try:
+            current_value = int(
+                store.get(
+                    normalized_key,
+                    0,
+                )
+                or 0
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+            current_value = 0
+
+        store[
+            normalized_key
+        ] = current_value + 1
+
+    def _now(
+        self,
+    ) -> str:
 
         return datetime.now(
             timezone.utc,
