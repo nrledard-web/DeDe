@@ -12,13 +12,6 @@ Current scope:
 from typing import Any
 from dialogue.language_estimator import LanguageEstimator
 
-"""
-DeDe - Dialogue Profile
-"""
-
-from typing import Any
-from dialogue.language_estimator import LanguageEstimator
-
 
 class DialogueProfile:
 
