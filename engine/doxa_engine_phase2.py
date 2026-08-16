@@ -1522,16 +1522,10 @@ class DoxaEnginePhase2:
                 persistent_memory=current_persistent_memory,
                 canonical_concepts=canonical_concepts,
                 dialogue_profile=dialogue_profile,
-                memory_candidate=memory_candidate,
+                memory_candidate={},
                 cognitive_feedback=cognitive_feedback,
             )
         )
-
-        self.persistent_memory.data = (
-            updated_persistent_memory
-        )
-
-        self.persistent_memory.save()
 
         workspace.add_interpretation(
             "autobiography",
