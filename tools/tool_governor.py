@@ -1182,6 +1182,7 @@ Return only valid JSON with this exact structure:
                 "tool_name": "",
                 "confidence": confidence,
                 "arguments": {},
+                "detected_language": detected_language,
                 "image_intent": image_intent,
                 "direct_answer": (
                     direct_answer
