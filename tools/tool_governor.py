@@ -698,19 +698,31 @@ Return only valid JSON with this exact structure:
             ):
                 continue
 
-            prepared_core_memories.append(
-                {
-                    "memory_type": item.get(
-                        "memory_type"
+        prepared_core_memories.append(
+            {
+                "memory_type": item.get(
+                    "memory_type"
+                ),
+                "content": self._limit_text(
+                    item.get(
+                        "content"
                     ),
-                    "content": self._limit_text(
-                        item.get(
-                            "content"
-                        ),
-                        800,
-                    ),
-                }
-            )
+                    800,
+                ),
+                "subject": item.get(
+                    "subject"
+                ),
+                "attribute": item.get(
+                    "attribute"
+                ),
+                "value": item.get(
+                    "value"
+                ),
+                "selection_origin": item.get(
+                    "selection_origin"
+                ),
+            }
+        )
 
         prepared_relevant_memories = []
 
