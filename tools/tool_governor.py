@@ -401,7 +401,14 @@ Return only valid JSON with this exact structure:
 """.strip()
 
         user_instruction = (
-            "REGISTERED TOOLS:\n"
+            "CURRENT USER MESSAGE — AUTHORITATIVE FOR LANGUAGE:\n"
+            + cleaned_text
+            + "\n\n"
+            + "The detected_language field must describe ONLY the "
+            "language of the CURRENT USER MESSAGE above. "
+            "Working memory and all following context are forbidden "
+            "as evidence for detected_language.\n\n"
+            + "REGISTERED TOOLS:\n"
             + json.dumps(
                 tool_descriptions,
                 ensure_ascii=False,
