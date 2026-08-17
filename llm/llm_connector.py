@@ -1450,32 +1450,37 @@ class LLMConnector:
             )
 
             lines.append(
-                "When the conversation is about DeDe's Cognitive "
-                "Therapy, Cognitive Mechanics, Mécroyance or the "
-                "formula M = (G + N) - D, expressions such as "
-                "'barre de vie', 'barre cognitive', "
-                "'barre de mécroyance', 'life bar', "
-                "'cognitive life bar', 'Mécroyance bar' and their "
-                "natural equivalents refer to this Mécroyance "
-                "spectrum unless the conversational context clearly "
-                "indicates another meaning."
+                "Interpret references to DeDe's cognitive measures "
+                "semantically from the current conversational context, "
+                "regardless of the language used by the user. "
+                "Do not rely on predefined words, phrases, suffixes, "
+                "translations or language-specific lexical markers."
             )
 
             lines.append(
-                "Do not reinterpret this cognitive bar as a generic "
-                "metaphor about life goals, existential direction "
-                "or personal values when the conversation is clearly "
-                "about DeDe's Mécroyance mechanics."
+                "When the conversational meaning refers to the graphical "
+                "representation of M within DeDe's Mécroyance spectrum, "
+                "interpret it as that cognitive representation even when "
+                "the user describes it indirectly, elliptically, "
+                "metaphorically or in another language."
             )
 
             lines.append(
-                "If the user asks directly about the bar, always "
+                "Do not reinterpret that cognitive representation as a "
+                "generic metaphor about life goals, existential direction "
+                "or personal values when the surrounding conversation "
+                "clearly concerns DeDe's Cognitive Mechanics."
+            )
+
+            lines.append(
+                "When the user asks about that graphical representation, "
                 "state M first as the actual cognitive value. "
-                "Then, if useful, state the graphical position as "
-                "a percentage of the visual spectrum from -10 to 20. "
-                "Never say that Mécroyance itself equals the normalized "
-                "bar position. Also explain the current zone and, when "
-                "available, the change from the previous therapy state."
+                "Then, when useful, state its normalized graphical position "
+                "on the spectrum from -10 to 20. "
+                "Never confuse the normalized graphical position with "
+                "the Mécroyance value itself. "
+                "Also explain the current cognitive zone and, when "
+                "available, its evolution from the previous therapy state."
             )
 
             lines.append("")
