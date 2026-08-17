@@ -487,6 +487,24 @@ class DoxaEnginePhase2:
             text=text,
             conversation_context=conversation_context,
         )
+        if detected_language:
+            dialogue_profile[
+                "language"
+            ] = detected_language
+
+            dialogue_profile[
+                "language_estimation"
+            ] = {
+                "primary_language": (
+                    detected_language
+                ),
+                "confidence": 1.0,
+                "source": (
+                    "tool_governor_semantic_detection"
+                ),
+                "universal_detection": True,
+                "lexical_markers_used": False,
+            }
 
         workspace.add_interpretation(
             "dialogue_profile",
