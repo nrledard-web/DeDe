@@ -1099,6 +1099,7 @@ Return only valid JSON with this exact structure:
                     memory_candidate=(
                         memory_candidate
                     ),
+                    detected_language=detected_language,
                 )
 
             return {
@@ -1169,6 +1170,7 @@ Return only valid JSON with this exact structure:
                     memory_candidate=(
                         memory_candidate
                     ),
+                    detected_language=detected_language,
                 )
 
             return {
@@ -1212,6 +1214,7 @@ Return only valid JSON with this exact structure:
                     memory_candidate=(
                         memory_candidate
                     ),
+                    detected_language=detected_language,
                 )
 
             return {
