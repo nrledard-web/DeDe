@@ -662,6 +662,38 @@ class DoxaEnginePhase2:
             )
         )
 
+        # --------------------------------------------------
+        # Canonical Foundational Knowledge Enrichment
+        # --------------------------------------------------
+
+        if canonical_concepts:
+
+            foundational_result = (
+                self.knowledge.search(
+                    query=text,
+                    selected_providers=[
+                        "foundational"
+                    ],
+                    mode="best",
+                    canonical_concepts=(
+                        canonical_concepts
+                    ),
+                )
+            )
+
+            if foundational_result.get(
+                "found",
+                False,
+            ):
+                knowledge_result = (
+                    foundational_result
+                )
+
+                workspace.add_interpretation(
+                    "knowledge",
+                    knowledge_result,
+                )
+
         philosophical_context = (
             self.philosophical_retriever.retrieve(
                 text=text,
