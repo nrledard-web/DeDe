@@ -1225,6 +1225,7 @@ Return only valid JSON with this exact structure:
                 "tool_name": tool_name,
                 "confidence": confidence,
                 "arguments": arguments,
+                "detected_language": detected_language,
                 "image_intent": image_intent,
                 "direct_answer": "",
                 "memory_reference": "",
