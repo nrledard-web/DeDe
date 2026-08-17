@@ -483,10 +483,12 @@ class DoxaEnginePhase2:
         # Phase 5.4
         # Dialogue Profile
         # --------------------------------------------------
+
         dialogue_profile = self.dialogue_profile.analyze(
             text=text,
             conversation_context=conversation_context,
         )
+
         if detected_language:
             dialogue_profile[
                 "language"
@@ -505,6 +507,24 @@ class DoxaEnginePhase2:
                 "universal_detection": True,
                 "lexical_markers_used": False,
             }
+
+        print("=" * 80)
+        print(
+            "LANGUAGE DIAGNOSTIC"
+        )
+        print(
+            "TOOL GOVERNOR LANGUAGE :",
+            repr(detected_language),
+        )
+        print(
+            "DIALOGUE PROFILE LANGUAGE :",
+            repr(
+                dialogue_profile.get(
+                    "language"
+                )
+            ),
+        )
+        print("=" * 80)
 
         workspace.add_interpretation(
             "dialogue_profile",
