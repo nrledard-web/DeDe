@@ -1263,6 +1263,7 @@ Return only valid JSON with this exact structure:
             "tool_name": "",
             "confidence": confidence,
             "arguments": {},
+            "detected_language": detected_language,
             "direct_answer": "",
             "memory_reference": "",
             "memory_candidate": (
