@@ -3854,6 +3854,7 @@ if text:
 
     report = engine.analyze(
         text=text,
+        detected_language=detected_language,
         document_context=st.session_state.get(
             "active_document",
             {},
