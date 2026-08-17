@@ -165,6 +165,40 @@ class PersistentMemory:
         project = candidate.get(
             "project"
         )
+
+        subject = str(
+            candidate.get(
+                "subject",
+                "",
+            )
+            or ""
+        ).strip()
+
+        attribute = str(
+            candidate.get(
+                "attribute",
+                "",
+            )
+            or ""
+        ).strip()
+
+        value = candidate.get(
+            "value"
+        )
+
+        if value is not None:
+            value = str(
+                value
+            ).strip() or None
+
+        selection_origin = candidate.get(
+            "selection_origin"
+        )
+
+        if selection_origin is not None:
+            selection_origin = str(
+                selection_origin
+            ).strip() or None
     
         try:
             confidence = float(
