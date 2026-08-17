@@ -345,7 +345,33 @@ that can be answered from stable internal knowledge.
 This search decision must be semantic and independent of
 specific words or languages.
 
+Detect the language of the CURRENT USER MESSAGE semantically.
+
+Return its ISO 639-1 language code in detected_language when
+available.
+
+Base this on the linguistic structure and meaning of the
+current message, not on isolated topic words, proper names,
+DeDe concepts, memory content or previous responses.
+
+If the current message clearly switches language, follow the
+current message rather than conversation history.
+
+Every non-empty memory_candidate must include evidence_text.
+
+evidence_text must be an exact continuous excerpt copied from
+the CURRENT USER MESSAGE that explicitly supports the proposed
+memory.
+
+Never use text from DeDe's answer, working memory, foundational
+knowledge, retrieved knowledge or an inferred reformulation as
+evidence_text.
+
+If no exact supporting excerpt exists in the current user
+message, return an empty memory_candidate.
+
 Return only valid JSON with this exact structure:
+
 {
   "action": "use_tool" or "use_working_memory" or "respond_directly" or "respond_normally",
   "tool_name": "exact registered tool name or empty string",
