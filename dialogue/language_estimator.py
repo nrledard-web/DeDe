@@ -1,27 +1,23 @@
 """
 DeDe - Universal Language Estimator
 
-Estimates the user's language using:
+Estimates the user's current language without relying on
+language-specific lexical marker lists.
 
-- universal language detection
-- conversation continuity
-- user language preference
-- limited lexical corrections for known ambiguous cases
+Principles:
+- the current message is the primary signal;
+- conversation continuity may stabilize ambiguous short messages;
+- an explicit user language preference may stabilize ambiguity;
+- Unicode script structure may strengthen detection;
+- the estimator is not restricted to a predefined language list.
 
-Important principle:
-
-Language-specific markers are NOT the primary detection system.
-
-They are only local correction signals.
-
-The estimator can therefore return any language supported by
-the underlying detection library rather than being restricted
-to a fixed list of languages.
+No vocabulary list is used to identify languages.
 """
 
 from __future__ import annotations
 
 from typing import Any
+import unicodedata
 
 
 class LanguageEstimator:
@@ -61,50 +57,115 @@ class LanguageEstimator:
                 confidence=0.0,
                 scores={},
                 source="empty_text",
+                detected_by_library=None,
             )
 
         # --------------------------------------------------
-        # Universal detector
+        # Universal statistical detection
         # --------------------------------------------------
 
-        detected = self._langdetect(
+        detections = self._langdetect_scores(
             cleaned
         )
 
-        # --------------------------------------------------
-        # Dynamic score map
-        # --------------------------------------------------
-        #
-        # Unlike the previous estimator, languages are not
-        # restricted to a fixed dictionary.
-        # --------------------------------------------------
-
         scores: dict[str, float] = {}
 
-        def ensure_language(
-            language: str | None,
-        ) -> None:
+        for (
+            language,
+            probability,
+        ) in detections.items():
 
-            if not language:
-                return
-
-            language = self._normalize_code(
-                language
+            normalized_language = (
+                self._normalize_code(
+                    language
+                )
             )
 
-            if (
-                language
-                and language != "unknown"
-                and language not in scores
-            ):
-                scores[language] = 0.0
+            if not normalized_language:
+                continue
 
-        ensure_language(
-            detected
+            scores[
+                normalized_language
+            ] = max(
+                scores.get(
+                    normalized_language,
+                    0.0,
+                ),
+                probability,
+            )
+
+        detected_language = (
+            max(
+                scores,
+                key=scores.get,
+            )
+            if scores
+            else None
         )
 
         # --------------------------------------------------
-        # User preference
+        # Current-message strength
+        # --------------------------------------------------
+
+        word_count = len(
+            cleaned.split()
+        )
+
+        character_count = len(
+            cleaned
+        )
+
+        script_profile = (
+            self._script_profile(
+                cleaned
+            )
+        )
+
+        strong_script_signal = bool(
+            script_profile.get(
+                "strong_non_latin_script",
+                False,
+            )
+        )
+
+        if detected_language:
+
+            detector_probability = (
+                scores.get(
+                    detected_language,
+                    0.0,
+                )
+            )
+
+            # Current message remains dominant when it contains
+            # enough linguistic material.
+            if word_count >= 5:
+                current_weight = 5.0
+
+            elif word_count >= 3:
+                current_weight = 3.5
+
+            elif word_count == 2:
+                current_weight = 2.0
+
+            else:
+                current_weight = 1.0
+
+            if character_count >= 20:
+                current_weight += 1.0
+
+            if strong_script_signal:
+                current_weight += 1.5
+
+            scores[
+                detected_language
+            ] = (
+                detector_probability
+                * current_weight
+            )
+
+        # --------------------------------------------------
+        # Explicit user preference
         # --------------------------------------------------
 
         preferred_language = (
@@ -119,9 +180,23 @@ class LanguageEstimator:
             )
         )
 
-        ensure_language(
-            preferred_language
-        )
+        if preferred_language:
+
+            preference_weight = (
+                0.30
+                if word_count >= 3
+                else 0.70
+            )
+
+            scores[
+                preferred_language
+            ] = (
+                scores.get(
+                    preferred_language,
+                    0.0,
+                )
+                + preference_weight
+            )
 
         # --------------------------------------------------
         # Conversation continuity
@@ -139,190 +214,45 @@ class LanguageEstimator:
             )
         )
 
-        ensure_language(
-            last_language
-        )
+        if last_language:
 
-        # --------------------------------------------------
-        # Known correction languages
-        # --------------------------------------------------
-
-        correction_languages = {
-            "fr",
-            "en",
-            "es",
-            "fil",
-            "pt",
-        }
-
-        for language in correction_languages:
-            ensure_language(
-                language
+            continuity_weight = (
+                0.20
+                if word_count >= 3
+                else 0.60
             )
 
-        # --------------------------------------------------
-        # Universal detector score
-        # --------------------------------------------------
-        #
-        # The language detected from the CURRENT message
-        # must remain the dominant signal.
-        #
-        # Conversation history and memory may stabilize
-        # ambiguous messages, but must not prevent the user
-        # from switching languages between turns.
-        # --------------------------------------------------
-        
-        if detected:
-        
-            detected = self._normalize_code(
-                detected
-            )
-        
-            ensure_language(
-                detected
-            )
-        
-            word_count = len(
-                cleaned.split()
-            )
-        
-            # Stronger current-message priority once enough
-            # linguistic material is available.
-            if word_count >= 4:
-                detector_weight = 7.0
-            
-            elif word_count == 3:
-                detector_weight = 3.0
-            
-            elif word_count == 2:
-                detector_weight = 0.75
-            
-            else:
-                detector_weight = 0.50
-        
-            scores[detected] += (
-                detector_weight
-            )
-
-        # --------------------------------------------------
-        # Limited lexical corrections
-        # --------------------------------------------------
-
-        marker_scores = (
-            self._marker_scores(
-                cleaned
-            )
-        )
-
-        for language, marker_score in (
-            marker_scores.items()
-        ):
-
-            ensure_language(
-                language
-            )
-
-            scores[language] += (
-                marker_score
-            )
-
-        # --------------------------------------------------
-        # Script and punctuation corrections
-        # --------------------------------------------------
-
-        script_scores = (
-            self._script_scores(
-                cleaned
-            )
-        )
-
-        for language, script_score in (
-            script_scores.items()
-        ):
-
-            ensure_language(
-                language
-            )
-
-            scores[language] += (
-                script_score
-            )
-
-        # --------------------------------------------------
-        # Memory preference
-        # --------------------------------------------------
-        #
-        # Preference helps stabilize ambiguous short messages.
-        # It must not dominate strong evidence from the
-        # current message.
-        # --------------------------------------------------
-
-        if (
-            preferred_language
-            and preferred_language in scores
-        ):
-            scores[
-                preferred_language
-            ] += 0.75
-
-        # --------------------------------------------------
-        # Conversation continuity
-        # --------------------------------------------------
-
-        if (
-            last_language
-            and last_language in scores
-        ):
             scores[
                 last_language
-            ] += 0.50
-
-        # --------------------------------------------------
-        # Known ambiguity correction
-        # --------------------------------------------------
-        #
-        # langdetect sometimes identifies short French text
-        # as Portuguese.
-        # --------------------------------------------------
-
-        if detected == "pt":
-
-            french_signal = scores.get(
-                "fr",
-                0.0,
-            )
-
-            portuguese_signal = (
-                marker_scores.get(
-                    "pt",
+            ] = (
+                scores.get(
+                    last_language,
                     0.0,
                 )
+                + continuity_weight
             )
 
-            if (
-                french_signal >= 2.0
-                and portuguese_signal <= 1.0
-            ):
+        # --------------------------------------------------
+        # Script-supported detector reinforcement
+        # --------------------------------------------------
 
-                scores["pt"] = max(
+        if (
+            detected_language
+            and strong_script_signal
+        ):
+
+            scores[
+                detected_language
+            ] = (
+                scores.get(
+                    detected_language,
                     0.0,
-                    scores.get(
-                        "pt",
-                        0.0,
-                    )
-                    - 2.0,
                 )
-
-                scores["fr"] = (
-                    scores.get(
-                        "fr",
-                        0.0,
-                    )
-                    + 2.0
-                )
+                + 1.0
+            )
 
         # --------------------------------------------------
-        # Remove completely unsupported zero-score entries
+        # No reliable signal
         # --------------------------------------------------
 
         active_scores = {
@@ -334,27 +264,32 @@ class LanguageEstimator:
 
         if not active_scores:
 
+            fallback_language = (
+                last_language
+                or preferred_language
+                or "unknown"
+            )
+
             return self._result(
-                primary="unknown",
-                confidence=0.0,
-                scores=scores,
-                source=(
-                    "no_reliable_language_signal"
+                primary=fallback_language,
+                confidence=(
+                    0.35
+                    if fallback_language != "unknown"
+                    else 0.0
                 ),
-                detected_by_library=(
-                    detected
-                ),
+                scores={},
+                source="context_fallback",
+                detected_by_library=None,
+                script_profile=script_profile,
             )
 
         # --------------------------------------------------
-        # Decision
+        # Final ranking
         # --------------------------------------------------
 
         ranked = sorted(
             active_scores.items(),
-            key=lambda item: (
-                item[1]
-            ),
+            key=lambda item: item[1],
             reverse=True,
         )
 
@@ -368,37 +303,29 @@ class LanguageEstimator:
             else 0.0
         )
 
-        total = sum(
+        total_score = sum(
             active_scores.values()
         )
 
-        raw_confidence = (
-            top_score / total
-            if total > 0.0
+        proportional_confidence = (
+            top_score / total_score
+            if total_score > 0.0
             else 0.0
         )
 
-        # --------------------------------------------------
-        # Separation confidence
-        # --------------------------------------------------
-        #
-        # A clear gap between first and second candidate
-        # increases confidence.
-        # --------------------------------------------------
-
-        separation = (
-            top_score
-            - second_score
+        separation = max(
+            0.0,
+            top_score - second_score,
         )
 
         separation_bonus = min(
             0.20,
-            separation * 0.04,
+            separation * 0.05,
         )
 
         confidence = min(
             1.0,
-            raw_confidence
+            proportional_confidence
             + separation_bonus,
         )
 
@@ -408,45 +335,97 @@ class LanguageEstimator:
                 confidence,
                 3,
             ),
-            scores=scores,
+            scores=active_scores,
             source=(
                 "universal_detector_with_"
-                "contextual_corrections"
+                "contextual_stabilization"
             ),
             detected_by_library=(
-                detected
+                detected_language
             ),
+            script_profile=script_profile,
         )
 
     # ======================================================
-    # Universal detector
+    # Statistical detector
     # ======================================================
 
-    def _langdetect(
+    def _langdetect_scores(
         self,
         text: str,
-    ) -> str | None:
+    ) -> dict[str, float]:
+        """
+        Return probabilistic language candidates from langdetect.
+
+        No language list is imposed by DeDe.
+        """
 
         try:
 
             from langdetect import (
                 DetectorFactory,
-                detect,
+                detect_langs,
             )
 
             DetectorFactory.seed = 0
 
-            detected = detect(
-                text
+            detected_languages = (
+                detect_langs(
+                    text
+                )
             )
 
-            return self._normalize_code(
-                detected
-            )
+            results: dict[
+                str,
+                float,
+            ] = {}
+
+            for candidate in (
+                detected_languages[:5]
+            ):
+
+                language = (
+                    self._normalize_code(
+                        getattr(
+                            candidate,
+                            "lang",
+                            None,
+                        )
+                    )
+                )
+
+                if not language:
+                    continue
+
+                try:
+                    probability = float(
+                        getattr(
+                            candidate,
+                            "prob",
+                            0.0,
+                        )
+                    )
+
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+                    probability = 0.0
+
+                results[
+                    language
+                ] = max(
+                    results.get(
+                        language,
+                        0.0,
+                    ),
+                    probability,
+                )
+
+            return results
 
         except Exception:
-
-            return None
+            return {}
 
     # ======================================================
     # Language code normalization
@@ -467,17 +446,10 @@ class LanguageEstimator:
         if not code:
             return None
 
-        # Tagalog returned by langdetect
-        if code == "tl":
-            return "fil"
+        # langdetect uses ISO 639 forms.
+        # Normalize locale suffixes without restricting
+        # which languages may be returned.
 
-        # Chinese variants
-        if code.startswith(
-            "zh"
-        ):
-            return "zh"
-
-        # Common locale forms
         if "-" in code:
             code = code.split(
                 "-",
@@ -490,298 +462,172 @@ class LanguageEstimator:
                 1,
             )[0]
 
+        # Tagalog and Filipino are treated as the same
+        # dialogue language inside DeDe.
+
+        if code == "tl":
+            return "fil"
+
+        # Chinese regional detector variants are normalized
+        # to one dialogue code.
+
+        if code.startswith(
+            "zh"
+        ):
+            return "zh"
+
         return code
 
     # ======================================================
-    # Local lexical corrections
-    # ======================================================
-    #
-    # These markers are deliberately limited.
-    #
-    # They do NOT define which languages DeDe supports.
-    #
-    # They only help resolve known ambiguity for a few
-    # frequently used languages.
+    # Unicode script profile
     # ======================================================
 
-    def _marker_scores(
+    def _script_profile(
         self,
         text: str,
-    ) -> dict[str, float]:
+    ) -> dict[str, Any]:
+        """
+        Observe writing-system structure without attempting
+        to identify a language from vocabulary.
 
-        lowered = (
-            str(
-                text
-            )
-            .lower()
-            .strip()
-        )
+        Script information only strengthens statistical
+        detection; it does not replace it.
+        """
 
-        padded = (
-            f" {lowered} "
-        )
-
-        markers = {
-
-            "fr": [
-                " je ",
-                " j'",
-                " toi ",
-                " tu ",
-                " mon ",
-                " ma ",
-                " mes ",
-                " m'appelle ",
-                " bonjour ",
-                " bonsoir ",
-                " salut ",
-                " pourquoi ",
-                " comment ",
-                " c'est ",
-                " ça ",
-                " mécroyance ",
-            ],
-
-            "en": [
-                " what ",
-                " why ",
-                " how ",
-                " hello ",
-                " hi ",
-                " can you ",
-                " explain ",
-                " understanding ",
-                " certainty ",
-            ],
-
-            "es": [
-                " hola ",
-                " qué ",
-                " por qué ",
-                " cómo ",
-                " buenos días ",
-                " buenas tardes ",
-                " buenas noches ",
-                " gracias ",
-                " explícame ",
-            ],
-
-            "fil": [
-                " kumusta ",
-                " kamusta ",
-                " magandang ",
-                " salamat ",
-                " bakit ",
-                " paano ",
-                " ako ",
-                " ikaw ",
-                " tayo ",
-            ],
-
-            "pt": [
-                " olá ",
-                " obrigado ",
-                " obrigada ",
-                " você ",
-                " vocês ",
-            ],
+        profile = {
+            "latin": 0,
+            "cyrillic": 0,
+            "arabic": 0,
+            "hebrew": 0,
+            "greek": 0,
+            "devanagari": 0,
+            "hiragana_katakana": 0,
+            "hangul": 0,
+            "han": 0,
+            "other_letters": 0,
         }
 
-        scores: dict[
-            str,
-            float,
-        ] = {}
+        for character in text:
 
-        for (
-            language,
-            language_markers,
-        ) in markers.items():
+            if not character.isalpha():
+                continue
 
-            score = 0.0
+            codepoint = ord(
+                character
+            )
 
-            for marker in (
-                language_markers
+            if (
+                0x0041
+                <= codepoint
+                <= 0x024F
             ):
+                profile[
+                    "latin"
+                ] += 1
 
-                if marker in padded:
-                    score += 1.0
+            elif (
+                0x0400
+                <= codepoint
+                <= 0x052F
+            ):
+                profile[
+                    "cyrillic"
+                ] += 1
 
-            scores[
-                language
-            ] = score
+            elif (
+                0x0600
+                <= codepoint
+                <= 0x06FF
+            ):
+                profile[
+                    "arabic"
+                ] += 1
 
-        return scores
+            elif (
+                0x0590
+                <= codepoint
+                <= 0x05FF
+            ):
+                profile[
+                    "hebrew"
+                ] += 1
 
-    # ======================================================
-    # Script detection
-    # ======================================================
-    #
-    # Script signals are structural and therefore useful for
-    # languages that use distinct writing systems.
-    #
-    # They do not attempt complete linguistic recognition.
-    # ======================================================
+            elif (
+                0x0370
+                <= codepoint
+                <= 0x03FF
+            ):
+                profile[
+                    "greek"
+                ] += 1
 
-    def _script_scores(
-        self,
-        text: str,
-    ) -> dict[str, float]:
+            elif (
+                0x0900
+                <= codepoint
+                <= 0x097F
+            ):
+                profile[
+                    "devanagari"
+                ] += 1
 
-        scores: dict[
-            str,
-            float,
-        ] = {}
+            elif (
+                0x3040
+                <= codepoint
+                <= 0x30FF
+            ):
+                profile[
+                    "hiragana_katakana"
+                ] += 1
 
-        # --------------------------------------------------
-        # Cyrillic
-        # --------------------------------------------------
+            elif (
+                0xAC00
+                <= codepoint
+                <= 0xD7AF
+            ):
+                profile[
+                    "hangul"
+                ] += 1
 
-        cyrillic_count = sum(
-            1
-            for char in text
-            if (
-                "\u0400"
-                <= char
-                <= "\u04FF"
-            )
-        )
+            elif (
+                0x4E00
+                <= codepoint
+                <= 0x9FFF
+            ):
+                profile[
+                    "han"
+                ] += 1
 
-        if cyrillic_count >= 2:
-
-            # Do not force Russian if langdetect already
-            # identifies another Cyrillic language.
-            detected = self._langdetect(
-                text
-            )
-
-            if detected:
-                scores[
-                    detected
-                ] = 2.0
             else:
-                scores[
-                    "ru"
-                ] = 1.5
 
-        # --------------------------------------------------
-        # Arabic script
-        # --------------------------------------------------
-
-        arabic_count = sum(
-            1
-            for char in text
-            if (
-                "\u0600"
-                <= char
-                <= "\u06FF"
-            )
-        )
-
-        if arabic_count >= 2:
-
-            detected = self._langdetect(
-                text
-            )
-
-            if detected:
-                scores[
-                    detected
-                ] = max(
-                    scores.get(
-                        detected,
-                        0.0,
-                    ),
-                    2.0,
-                )
-
-        # --------------------------------------------------
-        # Japanese Hiragana / Katakana
-        # --------------------------------------------------
-
-        japanese_count = sum(
-            1
-            for char in text
-            if (
-                "\u3040"
-                <= char
-                <= "\u30FF"
-            )
-        )
-
-        if japanese_count >= 2:
-
-            scores[
-                "ja"
-            ] = 3.0
-
-        # --------------------------------------------------
-        # Hangul
-        # --------------------------------------------------
-
-        korean_count = sum(
-            1
-            for char in text
-            if (
-                "\uAC00"
-                <= char
-                <= "\uD7AF"
-            )
-        )
-
-        if korean_count >= 2:
-
-            scores[
-                "ko"
-            ] = 3.0
-
-        # --------------------------------------------------
-        # Chinese Han characters
-        # --------------------------------------------------
-
-        han_count = sum(
-            1
-            for char in text
-            if (
-                "\u4E00"
-                <= char
-                <= "\u9FFF"
-            )
-        )
-
-        if (
-            han_count >= 2
-            and japanese_count == 0
-        ):
-
-            detected = self._langdetect(
-                text
-            )
-
-            if detected:
-
-                detected = (
-                    self._normalize_code(
-                        detected
+                unicode_name = (
+                    unicodedata.name(
+                        character,
+                        "",
                     )
                 )
 
-                scores[
-                    detected
-                ] = max(
-                    scores.get(
-                        detected,
-                        0.0,
-                    ),
-                    2.5,
-                )
+                if unicode_name:
+                    profile[
+                        "other_letters"
+                    ] += 1
 
-            else:
+        non_latin_count = sum(
+            value
+            for key, value
+            in profile.items()
+            if key not in {
+                "latin",
+                "other_letters",
+            }
+        )
 
-                scores[
-                    "zh"
-                ] = 2.0
+        profile[
+            "strong_non_latin_script"
+        ] = (
+            non_latin_count >= 2
+        )
 
-        return scores
+        return profile
 
     # ======================================================
     # Result
@@ -794,13 +640,12 @@ class LanguageEstimator:
         scores: dict[str, float],
         source: str,
         detected_by_library: str | None = None,
+        script_profile: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
         ranked_scores = sorted(
             scores.items(),
-            key=lambda item: (
-                item[1]
-            ),
+            key=lambda item: item[1],
             reverse=True,
         )
 
@@ -852,9 +697,16 @@ class LanguageEstimator:
                 detected_by_library
             ),
 
+            "script_profile": (
+                script_profile
+                or {}
+            ),
+
             "source": source,
 
             "universal_detection": True,
+
+            "lexical_markers_used": False,
 
             "summary": (
                 f"Language estimated as "
