@@ -1250,6 +1250,7 @@ Return only valid JSON with this exact structure:
             memory_candidate=(
                 memory_candidate
             ),
+            detected_language=detected_language,
         )
 
     def _normal_decision(
