@@ -311,6 +311,18 @@ generated content, assumptions, inferred private facts,
 passwords, access tokens, payment information or secrets
 as durable memories.
 
+A question, request for explanation, request for information,
+topic inquiry or temporary conversational interest must not
+be stored as a durable personal fact merely because the user
+asked about it.
+
+Do not infer that asking about a concept means the concept is
+a stable interest, preference, belief or identity attribute.
+
+For example, a question meaning "What is X?" must normally
+produce an empty memory_candidate unless the user separately
+states a durable fact about themselves.
+
 If no durable memory is clearly present, return an empty
 memory_candidate object.
 
