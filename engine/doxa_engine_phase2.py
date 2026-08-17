@@ -1402,6 +1402,7 @@ class DoxaEnginePhase2:
         llm_package = self.llm_connector.build_prompt_package(
             text=text,
             graph_queries=graph_queries,
+            dialogue_profile=dialogue_profile,
             cognitive_state=cognitive_state,
             cognitive_reasoning=cognitive_reasoning,
             user_memory=user_memory,
