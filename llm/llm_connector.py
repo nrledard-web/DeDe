@@ -28,6 +28,7 @@ class LLMConnector:
         self,
         text: str,
         graph_queries: dict[str, Any],
+        dialogue_profile: dict[str, Any] | None = None,
         cognitive_state: dict[str, Any] | None = None,
         cognitive_reasoning: dict[str, Any] | None = None,
         user_memory: dict[str, Any] | None = None,
