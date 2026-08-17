@@ -48,6 +48,15 @@ class LLMConnector:
         cognitive_therapy_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
 
+        dialogue_profile = dialogue_profile or {}
+
+        response_language = str(
+            dialogue_profile.get(
+                "language",
+                "unknown",
+            )
+            or "unknown"
+        ).strip()
         cognitive_state = cognitive_state or {}
         cognitive_reasoning = cognitive_reasoning or {}
         user_memory = user_memory or {}
