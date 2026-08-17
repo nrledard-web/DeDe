@@ -393,6 +393,27 @@ class LLMConnector:
             )
 
 
+        # --------------------------------------------------
+        # Response Language Enforcement
+        # --------------------------------------------------
+
+        if (
+            response_language
+            and response_language != "unknown"
+        ):
+            user_prompt = (
+                "MANDATORY RESPONSE LANGUAGE:\n"
+                f"Respond in the user's detected language: "
+                f"{response_language}.\n"
+                "Do not preserve the language of internal knowledge, "
+                "foundational context, memory or source material when "
+                "that differs from the user's current language.\n"
+                "Translate and reformulate the final user-facing answer "
+                "naturally into the detected language.\n\n"
+                + user_prompt
+            )
+
+
         full_prompt = (
             "SYSTEM:\n\n"
             f"{system_prompt}\n\n"
