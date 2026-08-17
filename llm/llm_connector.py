@@ -622,11 +622,12 @@ class LLMConnector:
             "Do not answer with phrases like 'the input appears' or "
             "'the utterance suggests' in the user-facing response. "
 
-            "If the user writes in French, respond in French. "
-            "If the user writes in English, respond in English. "
-            "If the user writes in Spanish, respond in Spanish. "
-            "If the user writes in Filipino or Tagalog, respond in Filipino. "
-            "If the user switches language, follow the latest user language. "
+            "Always produce the user-facing response in the current "
+            "response language supplied by DeDe's dialogue profile. "
+            "When the user changes language, follow the current turn's "
+            "semantic language decision. "
+            "Never infer response language from topic vocabulary, proper "
+            "names, stored memory or foundational terminology. "
 
             "Respect epistemic provenance. "
             "Distinguish between search snippets, opened documents, memory, "
