@@ -346,11 +346,11 @@ This search decision must be semantic and independent of
 specific words or languages.
 
 Return only valid JSON with this exact structure:
-
 {
   "action": "use_tool" or "use_working_memory" or "respond_directly" or "respond_normally",
   "tool_name": "exact registered tool name or empty string",
   "confidence": 0.0,
+  "detected_language": "",
   "arguments": {},
   "image_intent": "image_analysis" or "reference_image_generation" or "unrelated",
   "direct_answer": "",
