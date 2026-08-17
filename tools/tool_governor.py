@@ -1011,6 +1011,14 @@ Return only valid JSON with this exact structure:
             or ""
         ).strip()
 
+        memory_reference = str(
+            decision.get(
+                "memory_reference",
+                "",
+            )
+            or ""
+        ).strip()
+
         detected_language = str(
             decision.get(
                 "detected_language",
