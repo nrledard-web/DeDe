@@ -2969,15 +2969,6 @@ if text:
                         "",
                     )
                 ),
-                
-                detected_language = str(
-                    tool_decision.get(
-                        "detected_language",
-                        "",
-                    )
-                    or ""
-                ).strip().lower()
-                
                 "mime_type": (
                     active_chat_image.get(
                         "mime_type",
@@ -2996,7 +2987,18 @@ if text:
             },
         )
     )
-    
+
+    detected_language = str(
+        tool_decision.get(
+            "detected_language",
+            "",
+        )
+        or ""
+    ).strip().lower()
+
+    # --------------------------------------------------
+    # Reference Image Generation Route
+    # --------------------------------------------------
     # --------------------------------------------------
     # Reference Image Generation Route
     # --------------------------------------------------
