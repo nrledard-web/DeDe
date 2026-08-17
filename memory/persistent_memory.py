@@ -252,6 +252,10 @@ class PersistentMemory:
                         "source": source,
                         "project": project,
                         "updated_at": self._now(),
+                        "subject": subject,
+                        "attribute": attribute,
+                        "value": value,
+                        "selection_origin": selection_origin,
                     }
                 )
     
@@ -298,6 +302,10 @@ class PersistentMemory:
                 "project": project,
                 "created_at": created_at,
                 "updated_at": created_at,
+                "subject": subject,
+                "attribute": attribute,
+                "value": value,
+                "selection_origin": selection_origin,
             }
         )
     
