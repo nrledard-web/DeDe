@@ -398,9 +398,51 @@ class MemoryGovernor:
                 project
             ).strip() or None
 
+        # --------------------------------------------------
+        # Preserve semantic memory structure
+        # --------------------------------------------------
+
+        subject = str(
+            candidate.get(
+                "subject",
+                "",
+            )
+            or ""
+        ).strip()
+
+        attribute = str(
+            candidate.get(
+                "attribute",
+                "",
+            )
+            or ""
+        ).strip()
+
+        value = candidate.get(
+            "value"
+        )
+
+        if value is not None:
+            value = str(
+                value
+            ).strip() or None
+
+        selection_origin = candidate.get(
+            "selection_origin"
+        )
+
+        if selection_origin is not None:
+            selection_origin = str(
+                selection_origin
+            ).strip() or None
+
         return {
             "content": content,
             "memory_type": memory_type,
+            "subject": subject,
+            "attribute": attribute,
+            "value": value,
+            "selection_origin": selection_origin,
             "proposed_scope": proposed_scope,
             "sensitivity": sensitivity,
             "confidence": confidence,
