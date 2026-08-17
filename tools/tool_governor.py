@@ -1069,13 +1069,12 @@ Return only valid JSON with this exact structure:
                     reason
                     or "Routing confidence is "
                     "insufficient."
-                    detected_language: str = "",
                 ),
-                
                 confidence=confidence,
                 memory_candidate=(
                     memory_candidate
                 ),
+                detected_language=detected_language,
             )
 
         if (
@@ -1248,6 +1247,7 @@ Return only valid JSON with this exact structure:
             dict[str, Any] | None
         ) = None,
         image_intent: str = "unrelated",
+        detected_language: str = "",
     ) -> dict[str, Any]:
 
         if not isinstance(
