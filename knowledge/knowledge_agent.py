@@ -6,6 +6,9 @@ Knowledge orchestrator.
 The KnowledgeAgent delegates retrieval to interchangeable
 and combinable knowledge providers, then writes the selected
 knowledge into the CognitiveWorkspace.
+
+Canonical semantic concepts may be supplied by upstream
+cognitive components and transmitted to compatible providers.
 """
 
 from __future__ import annotations
@@ -32,20 +35,34 @@ class KnowledgeAgent:
         query: str,
         selected_providers: list[str] | None = None,
         mode: str = "best",
+        canonical_concepts: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Search selected knowledge providers.
+
+        canonical_concepts:
+            Structured semantic identifiers produced upstream.
         """
 
         normalized_query = str(
             query or ""
-        ).lower().strip()
+        ).strip()
+
+        canonical_concepts = (
+            canonical_concepts
+            if isinstance(
+                canonical_concepts,
+                list,
+            )
+            else []
+        )
 
         provider_result = (
             self.provider_engine.search(
                 query=normalized_query,
                 selected_providers=selected_providers,
                 mode=mode,
+                canonical_concepts=canonical_concepts,
             )
         )
 
@@ -60,6 +77,9 @@ class KnowledgeAgent:
         return {
             "agent": self.name,
             "query": normalized_query,
+            "canonical_concepts": (
+                canonical_concepts
+            ),
             "mode": provider_result.get(
                 "mode",
                 mode,
@@ -127,6 +147,7 @@ class KnowledgeAgent:
         workspace: Any,
         selected_providers: list[str] | None = None,
         mode: str = "best",
+        canonical_concepts: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Analyze workspace text with selected providers.
@@ -136,6 +157,7 @@ class KnowledgeAgent:
             query=workspace.text,
             selected_providers=selected_providers,
             mode=mode,
+            canonical_concepts=canonical_concepts,
         )
 
         workspace.add_interpretation(
