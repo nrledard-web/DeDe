@@ -363,6 +363,7 @@ Return only valid JSON with this exact structure:
     "attribute": "",
     "value": "",
     "selection_origin": null,
+    "evidence_text": "",
     "proposed_scope": "session",
     "sensitivity": "medium",
     "confidence": 0.0,
