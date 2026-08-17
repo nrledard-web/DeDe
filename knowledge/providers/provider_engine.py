@@ -3,6 +3,9 @@ DeDe - Knowledge Provider Engine
 
 Coordinates interchangeable and combinable
 knowledge providers.
+
+The engine may transmit structured canonical concepts
+to providers that support semantic concept resolution.
 """
 
 from __future__ import annotations
@@ -35,6 +38,7 @@ class ProviderEngine:
         query: str,
         selected_providers: list[str] | None = None,
         mode: str = "best",
+        canonical_concepts: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Search selected providers.
@@ -42,6 +46,10 @@ class ProviderEngine:
         Modes:
         - best: use the result with the highest confidence
         - combine: preserve and combine all successful results
+
+        canonical_concepts:
+            Structured semantic concept identifiers produced
+            upstream. Providers may use them when supported.
         """
 
         provider_names = (
@@ -50,9 +58,19 @@ class ProviderEngine:
             else list(self.providers.keys())
         )
 
+        canonical_concepts = (
+            canonical_concepts
+            if isinstance(
+                canonical_concepts,
+                list,
+            )
+            else []
+        )
+
         results = []
 
         for provider_name in provider_names:
+
             provider = self.providers.get(
                 provider_name
             )
@@ -74,9 +92,19 @@ class ProviderEngine:
                 continue
 
             try:
-                result = provider.search(
-                    query
-                )
+
+                if provider_name == "foundational":
+                    result = provider.search(
+                        query=query,
+                        canonical_concepts=(
+                            canonical_concepts
+                        ),
+                    )
+
+                else:
+                    result = provider.search(
+                        query
+                    )
 
             except Exception as error:
                 result = {
@@ -114,19 +142,28 @@ class ProviderEngine:
         selected_result = (
             combined_result
             if mode == "combine"
-            and combined_result.get("found")
+            and combined_result.get(
+                "found"
+            )
             else best_result
         )
 
         return {
             "engine": self.name,
             "mode": mode,
-            "selected_providers": provider_names,
+            "canonical_concepts": (
+                canonical_concepts
+            ),
+            "selected_providers": (
+                provider_names
+            ),
             "results": results,
             "best_result": best_result,
             "combined_result": combined_result,
             "selected_result": selected_result,
-            "provider_count": len(provider_names),
+            "provider_count": len(
+                provider_names
+            ),
             "successful_provider_count": len(
                 successful_results
             ),
@@ -176,6 +213,7 @@ class ProviderEngine:
         highest_confidence = 0.0
 
         for result in successful_results:
+
             answer = str(
                 result.get(
                     "answer",
@@ -184,7 +222,10 @@ class ProviderEngine:
                 or ""
             ).strip()
 
-            if answer and answer not in answers:
+            if (
+                answer
+                and answer not in answers
+            ):
                 answers.append(
                     answer
                 )
@@ -198,7 +239,8 @@ class ProviderEngine:
 
             if (
                 provider_name
-                and provider_name not in providers
+                and provider_name
+                not in providers
             ):
                 providers.append(
                     provider_name
@@ -225,6 +267,7 @@ class ProviderEngine:
                     )
                     or 0.0
                 )
+
             except (
                 TypeError,
                 ValueError,
@@ -246,7 +289,9 @@ class ProviderEngine:
             "found": bool(
                 answers
             ),
-            "confidence": highest_confidence,
+            "confidence": (
+                highest_confidence
+            ),
             "sources": sources,
         }
 
