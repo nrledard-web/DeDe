@@ -1011,13 +1011,13 @@ Return only valid JSON with this exact structure:
             or ""
         ).strip()
 
-        memory_reference = str(
+        detected_language = str(
             decision.get(
-                "memory_reference",
+                "detected_language",
                 "",
             )
             or ""
-        ).strip()
+        ).strip().lower()
 
         memory_candidate = decision.get(
             "memory_candidate",
@@ -1069,6 +1069,7 @@ Return only valid JSON with this exact structure:
                     reason
                     or "Routing confidence is "
                     "insufficient."
+                    detected_language: str = "",
                 ),
                 
                 confidence=confidence,
@@ -1100,6 +1101,7 @@ Return only valid JSON with this exact structure:
                 "tool_name": "",
                 "confidence": confidence,
                 "arguments": {},
+                "detected_language": detected_language,
                 "image_intent": image_intent,
                 "direct_answer": direct_answer,
                 "memory_reference": "",
