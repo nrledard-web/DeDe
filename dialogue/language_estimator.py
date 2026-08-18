@@ -139,17 +139,17 @@ class LanguageEstimator:
 
             # Current message remains dominant when it contains
             # enough linguistic material.
-            if word_count >= 5:
+            if word_count >= 8:
                 current_weight = 5.0
 
-            elif word_count >= 3:
-                current_weight = 3.5
+            elif word_count >= 5:
+                current_weight = 3.0
 
-            elif word_count == 2:
-                current_weight = 2.0
+            elif word_count >= 3:
+                current_weight = 1.0
 
             else:
-                current_weight = 1.0
+                current_weight = 0.5
 
             if character_count >= 20:
                 current_weight += 1.0
