@@ -145,7 +145,7 @@ class LanguageEstimator:
 
         semantic_resolution = {}
 
-        if word_count <= 4:
+        if word_count <= 5:
 
             semantic_resolution = (
                 self.semantic_resolver.resolve(
