@@ -1126,7 +1126,7 @@ Return only valid JSON with this exact structure:
                         external_search_required
                     ),
                 )
-            }
+                
             return {
                 "governor": self.name,
                 "status": "ready",
