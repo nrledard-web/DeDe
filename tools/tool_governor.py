@@ -1347,6 +1347,7 @@ Return only valid JSON with this exact structure:
         ) = None,
         image_intent: str = "unrelated",
         detected_language: str = "",
+        external_search_required: bool = False,
     ) -> dict[str, Any]:
 
         if not isinstance(
