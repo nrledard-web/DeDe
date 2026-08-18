@@ -585,6 +585,9 @@ class DoxaEnginePhase2:
         if is_first_contact:
             onboarding = self.onboarding.build(
                 dialogue_profile=dialogue_profile,
+                user_name=identity_state.get(
+                    "user_name"
+                ),
             )
 
         workspace.add_interpretation(
