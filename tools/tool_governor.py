@@ -1103,19 +1103,30 @@ Return only valid JSON with this exact structure:
             action
             == "respond_directly"
         ):
+
+            direct_answer = str(
+                decision.get(
+                    "direct_answer",
+                    "",
+                )
+                or ""
+            ).strip()
+
             if not direct_answer:
                 return self._normal_decision(
-                    reason=(
-                        "Direct routing was selected "
-                        "without a usable answer."
-                    ),
                     confidence=confidence,
+                    detected_language=(
+                        detected_language
+                    ),
+                    image_intent=image_intent,
                     memory_candidate=(
                         memory_candidate
                     ),
-                    detected_language=detected_language,
+                    external_search_required=(
+                        external_search_required
+                    ),
                 )
-
+            }
             return {
                 "governor": self.name,
                 "status": "ready",
@@ -1123,19 +1134,17 @@ Return only valid JSON with this exact structure:
                 "tool_name": "",
                 "confidence": confidence,
                 "arguments": {},
-                "detected_language": detected_language,
+                "detected_language": (
+                    detected_language
+                ),
                 "image_intent": image_intent,
                 "direct_answer": direct_answer,
                 "memory_reference": "",
                 "memory_candidate": (
                     memory_candidate
                 ),
-                "reason": (
-                    reason
-                    or (
-                        "A simple social response "
-                        "can be returned directly."
-                    )
+                "external_search_required": (
+                    external_search_required
                 ),
             }
 
