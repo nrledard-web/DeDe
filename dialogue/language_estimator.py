@@ -18,11 +18,35 @@ from __future__ import annotations
 
 from typing import Any
 import unicodedata
+from dialogue.semantic_language_resolver import (
+    SemanticLanguageResolver,
+)
 
 
 class LanguageEstimator:
 
     name = "language_estimator"
+
+    def __init__(
+        self,
+        llm_engine: Any | None = None,
+    ) -> None:
+
+        self.semantic_resolver = (
+            SemanticLanguageResolver(
+                llm_engine=llm_engine,
+            )
+        )
+
+    def set_llm_engine(
+        self,
+        llm_engine: Any,
+    ) -> None:
+
+        self.semantic_resolver.set_llm_engine(
+            llm_engine
+        )
+    
 
     # ======================================================
     # Public API
@@ -114,6 +138,62 @@ class LanguageEstimator:
         character_count = len(
             cleaned
         )
+
+        # --------------------------------------------------
+        # Semantic resolution for short messages
+        # --------------------------------------------------
+
+        semantic_resolution = {}
+
+        if word_count <= 4:
+
+            semantic_resolution = (
+                self.semantic_resolver.resolve(
+                    cleaned
+                )
+            )
+
+            semantic_language = str(
+                semantic_resolution.get(
+                    "language",
+                    "",
+                )
+                or ""
+            ).strip().lower()
+
+            semantic_confidence = float(
+                semantic_resolution.get(
+                    "confidence",
+                    0.0,
+                )
+                or 0.0
+            )
+
+            if (
+                semantic_language
+                and semantic_language != "unknown"
+                and semantic_confidence >= 0.60
+            ):
+                return self._result(
+                    primary=semantic_language,
+                    confidence=semantic_confidence,
+                    scores={
+                        semantic_language: (
+                            semantic_confidence
+                        )
+                    },
+                    source=(
+                        "semantic_short_message_resolution"
+                    ),
+                    detected_by_library=(
+                        detected_language
+                    ),
+                    script_profile=(
+                        self._script_profile(
+                            cleaned
+                        )
+                    ),
+                )
 
         script_profile = (
             self._script_profile(
