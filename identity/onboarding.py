@@ -19,6 +19,7 @@ class Onboarding:
     def build(
         self,
         dialogue_profile: dict[str, Any] | None = None,
+        user_name: str | None = None,
     ) -> dict[str, Any]:
 
         dialogue_profile = dialogue_profile or {}
