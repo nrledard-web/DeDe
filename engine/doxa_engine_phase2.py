@@ -408,12 +408,40 @@ class DoxaEnginePhase2:
             )
         )
 
+        previous_answer = str(
+            conversation_context.get(
+                "last_answer",
+                "",
+            )
+            or ""
+        ).strip()
+
+        previous_answer_urls = (
+            self.url_reader.extract_urls(
+                previous_answer
+            )
+            if previous_answer
+            else []
+        )
+
+        current_word_count = len(
+            str(text or "").split()
+        )
+
+        contextual_url_follow_up = bool(
+            previous_answer_urls
+            and current_word_count <= 12
+        )
+
         if (
             url_read_result.get(
                 "status"
             )
             == "no_url"
-            and explicit_search_request
+            and (
+                explicit_search_request
+                or contextual_url_follow_up
+            )
         ):
             previous_answer = str(
                 conversation_context.get(
