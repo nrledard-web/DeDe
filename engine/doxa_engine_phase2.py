@@ -396,21 +396,55 @@ class DoxaEnginePhase2:
             user_text_analysis,
         )
 
-        url_read_result = self.url_reader.read_first_url(text)
+        conversation_context = (
+            self.conversation_manager.build_context(
+                conversation_history,
+            )
+        )
+
+        url_read_result = (
+            self.url_reader.read_first_url(
+                text
+            )
+        )
+
+        if (
+            url_read_result.get(
+                "status"
+            )
+            == "no_url"
+            and explicit_search_request
+        ):
+            previous_answer = str(
+                conversation_context.get(
+                    "last_answer",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            if previous_answer:
+                previous_url_result = (
+                    self.url_reader.read_first_url(
+                        previous_answer
+                    )
+                )
+
+                if (
+                    previous_url_result.get(
+                        "status"
+                    )
+                    != "no_url"
+                ):
+                    url_read_result = (
+                        previous_url_result
+                    )
 
         workspace.add_interpretation(
             "url_read_result",
             url_read_result,
         )
-
-        conversation_context = self.conversation_manager.build_context(
-            conversation_history,
-        )
         
-        workspace.add_interpretation(
-            "conversation_context",
-            conversation_context,
-        )
         # --------------------------------------------------
         # Phase 5.2
         # User Memory Update
