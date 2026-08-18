@@ -443,13 +443,6 @@ class DoxaEnginePhase2:
                 or contextual_url_follow_up
             )
         ):
-            previous_answer = str(
-                conversation_context.get(
-                    "last_answer",
-                    "",
-                )
-                or ""
-            ).strip()
 
             if previous_answer:
                 previous_url_result = (
