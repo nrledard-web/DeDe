@@ -1193,25 +1193,32 @@ Return only valid JSON with this exact structure:
                     memory_candidate=(
                         memory_candidate
                     ),
-                    detected_language=detected_language,
+                    image_intent=image_intent,
+                    detected_language=(
+                        detected_language
+                    ),
+                    external_search_required=(
+                        external_search_required
+                    ),
                 )
 
             return {
                 "governor": self.name,
                 "status": "ready",
-                "action": (
-                    "use_working_memory"
-                ),
+                "action": "use_working_memory",
                 "tool_name": "",
                 "confidence": confidence,
                 "arguments": {},
-                "detected_language": detected_language,
-                "image_intent": image_intent,
-                "direct_answer": (
-                    direct_answer
+                "detected_language": (
+                    detected_language
                 ),
+                "image_intent": image_intent,
+                "direct_answer": direct_answer,
                 "memory_reference": (
                     memory_reference
+                ),
+                "external_search_required": (
+                    external_search_required
                 ),
                 "memory_candidate": (
                     memory_candidate
@@ -1223,6 +1230,35 @@ Return only valid JSON with this exact structure:
                     "working memory."
                 ),
             }
+
+        if (
+            action
+            == "use_tool"
+        ):
+
+            if (
+                not tool_name
+                or tool_name
+                not in registered_names
+            ):
+                return self._normal_decision(
+                    reason=(
+                        "Tool routing was selected "
+                        "without a valid registered "
+                        "tool."
+                    ),
+                    confidence=confidence,
+                    memory_candidate=(
+                        memory_candidate
+                    ),
+                    image_intent=image_intent,
+                    detected_language=(
+                        detected_language
+                    ),
+                    external_search_required=(
+                        external_search_required
+                    ),
+                )
 
             # ----------------------------------------------
             # Required Tool Argument Protection
@@ -1294,11 +1330,11 @@ Return only valid JSON with this exact structure:
                     argument_name
                 )
 
-                if argument_value in {
-                    None,
-                    "",
-                    b"",
-                }:
+                if (
+                    argument_value is None
+                    or argument_value == ""
+                    or argument_value == b""
+                ):
                     missing_required_arguments.append(
                         argument_name
                     )
@@ -1314,8 +1350,12 @@ Return only valid JSON with this exact structure:
                     memory_candidate=(
                         memory_candidate
                     ),
+                    image_intent=image_intent,
                     detected_language=(
                         detected_language
+                    ),
+                    external_search_required=(
+                        external_search_required
                     ),
                 )
 
@@ -1326,18 +1366,22 @@ Return only valid JSON with this exact structure:
                 "tool_name": tool_name,
                 "confidence": confidence,
                 "arguments": arguments,
-                "detected_language": detected_language,
+                "detected_language": (
+                    detected_language
+                ),
                 "image_intent": image_intent,
                 "direct_answer": "",
                 "memory_reference": "",
+                "external_search_required": (
+                    external_search_required
+                ),
                 "memory_candidate": (
                     memory_candidate
                 ),
                 "reason": (
                     reason
                     or "A registered tool "
-                    "matches the requested "
-                    "action."
+                    "matches the requested action."
                 ),
             }
 
