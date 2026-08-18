@@ -1034,6 +1034,13 @@ Return only valid JSON with this exact structure:
             or ""
         ).strip().lower()
 
+        external_search_required = bool(
+            decision.get(
+                "external_search_required",
+                False,
+            )
+        )
+
         memory_candidate = decision.get(
             "memory_candidate",
             {},
