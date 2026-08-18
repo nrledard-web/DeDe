@@ -1336,6 +1336,12 @@ Return only valid JSON with this exact structure:
                 memory_candidate
             ),
             detected_language=detected_language,
+            external_search_required=bool(
+                decision.get(
+                    "external_search_required",
+                    False,
+                )
+            ),
         )
 
     def _normal_decision(
@@ -1366,6 +1372,9 @@ Return only valid JSON with this exact structure:
             "detected_language": detected_language,
             "direct_answer": "",
             "memory_reference": "",
+            "external_search_required": bool(
+                external_search_required
+            ),
             "memory_candidate": (
                 memory_candidate
             ),
