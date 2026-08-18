@@ -3423,6 +3423,10 @@ if text:
             "use_working_memory",
             "respond_directly",
         }
+        and not tool_decision.get(
+            "external_search_required",
+            False,
+        )
     ):
         direct_answer = str(
             tool_decision.get(
