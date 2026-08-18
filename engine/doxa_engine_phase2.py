@@ -229,6 +229,10 @@ class DoxaEnginePhase2:
 
         self.llm_engine = LLMEngine()
 
+        self.dialogue_profile.set_llm_engine(
+            self.llm_engine
+        )
+
         # --------------------------------------------------
         # Committee and formula layers
         # --------------------------------------------------
