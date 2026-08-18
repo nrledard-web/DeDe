@@ -445,6 +445,11 @@ class DoxaEnginePhase2:
             url_read_result,
         )
         
+        workspace.add_interpretation(
+            "conversation_context",
+            conversation_context,
+        )
+        
         # --------------------------------------------------
         # Phase 5.2
         # User Memory Update
