@@ -489,24 +489,30 @@ class DoxaEnginePhase2:
             conversation_context=conversation_context,
         )
 
-        if detected_language:
+        profile_language = str(
+            dialogue_profile.get(
+                "language",
+                "",
+            )
+            or ""
+        ).strip().lower()
+
+        governor_language = str(
+            detected_language
+            or ""
+        ).strip().lower()
+
+        if (
+            governor_language
+            and not profile_language
+        ):
             dialogue_profile[
                 "language"
-            ] = detected_language
+            ] = governor_language
 
-            dialogue_profile[
-                "language_estimation"
-            ] = {
-                "primary_language": (
-                    detected_language
-                ),
-                "confidence": 1.0,
-                "source": (
-                    "tool_governor_semantic_detection"
-                ),
-                "universal_detection": True,
-                "lexical_markers_used": False,
-            }
+        dialogue_profile[
+            "semantic_language_hint"
+        ] = governor_language
 
         print("=" * 80)
         print(
