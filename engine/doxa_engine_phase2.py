@@ -1134,6 +1134,79 @@ class DoxaEnginePhase2:
                 search_validation=search_validation,
             )
 
+            # --------------------------------------------------
+            # Read first relevant web result
+            # --------------------------------------------------
+
+            if (
+                url_read_result.get(
+                    "status"
+                )
+                in {
+                    "no_url",
+                    "empty",
+                    "disabled",
+                }
+            ):
+                search_results = (
+                    search_result.get(
+                        "results",
+                        [],
+                    )
+                )
+
+                first_result_url = ""
+
+                for search_item in (
+                    search_results
+                    or []
+                ):
+                    if not isinstance(
+                        search_item,
+                        dict,
+                    ):
+                        continue
+
+                    candidate_url = str(
+                        search_item.get(
+                            "url",
+                            "",
+                        )
+                        or ""
+                    ).strip()
+
+                    if candidate_url:
+                        first_result_url = (
+                            candidate_url
+                        )
+                        break
+
+                if first_result_url:
+                    searched_page_result = (
+                        self.url_reader.read_first_url(
+                            first_result_url
+                        )
+                    )
+
+                    if (
+                        searched_page_result.get(
+                            "status"
+                        )
+                        not in {
+                            "no_url",
+                            "error",
+                            "empty",
+                        }
+                    ):
+                        url_read_result = (
+                            searched_page_result
+                        )
+
+                        workspace.add_interpretation(
+                            "url_read_result",
+                            url_read_result,
+                        )
+
         else:
             search_query = text
 
