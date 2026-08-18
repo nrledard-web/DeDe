@@ -1208,21 +1208,99 @@ Return only valid JSON with this exact structure:
                 ),
             }
 
-        if action == "use_tool":
-            if (
-                tool_name
-                not in registered_names
+            # ----------------------------------------------
+            # Required Tool Argument Protection
+            # ----------------------------------------------
+
+            selected_tool_schema = {}
+
+            for registered_tool in (
+                available_tools
+                or []
             ):
+                if not isinstance(
+                    registered_tool,
+                    dict,
+                ):
+                    continue
+
+                registered_tool_name = str(
+                    registered_tool.get(
+                        "name",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                if (
+                    registered_tool_name
+                    == tool_name
+                ):
+                    selected_tool_schema = (
+                        registered_tool.get(
+                            "input_schema",
+                            {},
+                        )
+                    )
+
+                    break
+
+            if not isinstance(
+                selected_tool_schema,
+                dict,
+            ):
+                selected_tool_schema = {}
+
+            missing_required_arguments = []
+
+            for (
+                argument_name,
+                argument_schema,
+            ) in selected_tool_schema.items():
+
+                if not isinstance(
+                    argument_schema,
+                    dict,
+                ):
+                    continue
+
+                argument_required = bool(
+                    argument_schema.get(
+                        "required",
+                        False,
+                    )
+                )
+
+                if not argument_required:
+                    continue
+
+                argument_value = arguments.get(
+                    argument_name
+                )
+
+                if argument_value in {
+                    None,
+                    "",
+                    b"",
+                }:
+                    missing_required_arguments.append(
+                        argument_name
+                    )
+
+            if missing_required_arguments:
                 return self._normal_decision(
                     reason=(
-                        "The selected tool "
-                        "is not registered."
+                        "The selected tool cannot be "
+                        "executed because required "
+                        "arguments are unavailable."
                     ),
                     confidence=confidence,
                     memory_candidate=(
                         memory_candidate
                     ),
-                    detected_language=detected_language,
+                    detected_language=(
+                        detected_language
+                    ),
                 )
 
             return {
