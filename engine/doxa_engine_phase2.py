@@ -1102,7 +1102,7 @@ class DoxaEnginePhase2:
             )
 
             # --------------------------------------------------
-            # Read first relevant web result
+            # Read first accessible relevant web result
             # --------------------------------------------------
 
             if (
@@ -1112,6 +1112,9 @@ class DoxaEnginePhase2:
                 in {
                     "no_url",
                     "empty",
+                    "empty_content",
+                    "http_error",
+                    "error",
                     "disabled",
                 }
             ):
@@ -1122,12 +1125,13 @@ class DoxaEnginePhase2:
                     )
                 )
 
-                first_result_url = ""
+                url_read_attempts = []
 
                 for search_item in (
                     search_results
                     or []
-                ):
+                )[:5]:
+
                     if not isinstance(
                         search_item,
                         dict,
@@ -1142,37 +1146,51 @@ class DoxaEnginePhase2:
                         or ""
                     ).strip()
 
-                    if candidate_url:
-                        first_result_url = (
-                            candidate_url
-                        )
-                        break
+                    if not candidate_url:
+                        continue
 
-                if first_result_url:
-                    searched_page_result = (
+                    candidate_read_result = (
                         self.url_reader.read_first_url(
-                            first_result_url
+                            candidate_url
                         )
                     )
 
+                    url_read_attempts.append(
+                        {
+                            "url": candidate_url,
+                            "status": (
+                                candidate_read_result.get(
+                                    "status",
+                                    "",
+                                )
+                            ),
+                            "http_status": (
+                                candidate_read_result.get(
+                                    "http_status"
+                                )
+                            ),
+                        }
+                    )
+
                     if (
-                        searched_page_result.get(
+                        candidate_read_result.get(
                             "status"
                         )
-                        not in {
-                            "no_url",
-                            "error",
-                            "empty",
-                        }
+                        == "success"
                     ):
                         url_read_result = (
-                            searched_page_result
+                            candidate_read_result
                         )
+                        break
 
-                        workspace.add_interpretation(
-                            "url_read_result",
-                            url_read_result,
-                        )
+                url_read_result[
+                    "attempts"
+                ] = url_read_attempts
+
+                workspace.add_interpretation(
+                    "url_read_result",
+                    url_read_result,
+                )
 
         else:
             search_query = text
