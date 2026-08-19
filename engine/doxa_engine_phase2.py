@@ -1111,7 +1111,7 @@ class DoxaEnginePhase2:
             )
 
             # --------------------------------------------------
-            # Read first accessible relevant web result
+            # Read best accessible relevant web result
             # --------------------------------------------------
 
             if (
@@ -1134,18 +1134,79 @@ class DoxaEnginePhase2:
                     )
                 )
 
-                url_read_attempts = []
+                ranked_search_results = []
 
                 for search_item in (
                     search_results
                     or []
-                )[:5]:
+                ):
 
                     if not isinstance(
                         search_item,
                         dict,
                     ):
                         continue
+
+                    validation = search_item.get(
+                        "validation",
+                        {},
+                    )
+
+                    if not isinstance(
+                        validation,
+                        dict,
+                    ):
+                        validation = {}
+
+                    admissible = bool(
+                        validation.get(
+                            "admissible",
+                            True,
+                        )
+                    )
+
+                    url_valid = bool(
+                        validation.get(
+                            "url_valid",
+                            True,
+                        )
+                    )
+
+                    if (
+                        not admissible
+                        or not url_valid
+                    ):
+                        continue
+
+                    relevance_score = float(
+                        validation.get(
+                            "topical_score",
+                            validation.get(
+                                "relevance",
+                                0.0,
+                            ),
+                        )
+                        or 0.0
+                    )
+
+                    ranked_search_results.append(
+                        (
+                            relevance_score,
+                            search_item,
+                        )
+                    )
+
+                ranked_search_results.sort(
+                    key=lambda item: item[0],
+                    reverse=True,
+                )
+
+                url_read_attempts = []
+
+                for (
+                    relevance_score,
+                    search_item,
+                ) in ranked_search_results[:5]:
 
                     candidate_url = str(
                         search_item.get(
@@ -1167,6 +1228,9 @@ class DoxaEnginePhase2:
                     url_read_attempts.append(
                         {
                             "url": candidate_url,
+                            "relevance": (
+                                relevance_score
+                            ),
                             "status": (
                                 candidate_read_result.get(
                                     "status",
@@ -1190,6 +1254,11 @@ class DoxaEnginePhase2:
                         url_read_result = (
                             candidate_read_result
                         )
+
+                        url_read_result[
+                            "selected_relevance"
+                        ] = relevance_score
+
                         break
 
                 url_read_result[
