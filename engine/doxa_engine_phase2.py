@@ -1044,59 +1044,26 @@ class DoxaEnginePhase2:
             )
 
             # --------------------------------------------------
-            # Optional fallback search
+            # Search fallback
             # --------------------------------------------------
+            # Do not inject a preferred website or source into
+            # the user's query. Low relevance is preserved and
+            # reported transparently.
 
             if not search_validation.get(
                 "is_relevant",
                 False,
             ):
-                fallback_query = (
-                    f"{search_query} wikipedia"
+                search_query_data[
+                    "fallback_used"
+                ] = False
+
+                search_query_data[
+                    "fallback_reason"
+                ] = (
+                    "Initial search relevance was limited. "
+                    "No source-specific fallback was injected."
                 )
-
-                fallback_result = self.search_engine.search(
-                    query=fallback_query,
-                    provider=search_provider,
-                )
-
-                fallback_validation = (
-                    self.search_validator.validate(
-                        query=fallback_query,
-                        search_result=fallback_result,
-                    )
-                )
-
-                original_relevance = float(
-                    search_validation.get(
-                        "relevance",
-                        0.0,
-                    )
-                )
-
-                fallback_relevance = float(
-                    fallback_validation.get(
-                        "relevance",
-                        0.0,
-                    )
-                )
-
-                if fallback_relevance > original_relevance:
-                    initial_query = search_query
-
-                    search_query = fallback_query
-                    search_result = fallback_result
-                    search_validation = fallback_validation
-
-                    search_query_data = {
-                        **search_query_data,
-                        "fallback_used": True,
-                        "initial_query": initial_query,
-                        "query": fallback_query,
-                    }
-
-                else:
-                    search_query_data["fallback_used"] = False
 
             # --------------------------------------------------
             # Preserve results even when relevance is limited
