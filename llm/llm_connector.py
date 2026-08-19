@@ -128,7 +128,14 @@ class LLMConnector:
             False,
         )
 
-        if document_opened:
+        opened_document_primary = (
+            grounding_state.get(
+                "opened_document_primary",
+                False,
+            )
+        )
+
+        if opened_document_primary:
             user_prompt = (
                 "Prepare DeDe's user-facing response to the following message. "
                 "A document or webpage has actually been opened and its extracted "
