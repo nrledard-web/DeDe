@@ -3845,6 +3845,47 @@ if text:
             )
         )
 
+        print("=" * 80)
+    print("SEARCH ROUTING DIAGNOSTIC")
+    print("USER TEXT :", repr(text))
+    print(
+        "TOOL GOVERNOR ACTION :",
+        repr(
+            tool_decision.get(
+                "action"
+            )
+        ),
+    )
+    print(
+        "TOOL GOVERNOR EXTERNAL SEARCH :",
+        repr(
+            tool_decision.get(
+                "external_search_required"
+            )
+        ),
+    )
+    print(
+        "TOOL GOVERNOR REASON :",
+        repr(
+            tool_decision.get(
+                "reason"
+            )
+        ),
+    )
+    print(
+        "EFFECTIVE SEARCH MODE :",
+        repr(
+            effective_search_mode
+        ),
+    )
+    print(
+        "EXPLICIT SEARCH REQUEST :",
+        repr(
+            effective_explicit_search_request
+        ),
+    )
+    print("=" * 80)
+
     engine = st.session_state.engine
 
     cognitive_pipeline_started_at = (
