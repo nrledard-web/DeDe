@@ -868,17 +868,21 @@ print("=" * 80)
                     "decision"
                 )
             ),
-            print("=" * 80)
-            print("FINAL SEARCH DECISION")
-            print(search_decision)
-            print("=" * 80)
-
-            
             semantic_reason=(
                 semantic_search_classification.get(
                     "reason"
                 )
             ),
+        )
+
+        print("=" * 80)
+        print("FINAL SEARCH DECISION")
+        print(search_decision)
+        print("=" * 80)
+
+        should_search = search_decision.get(
+            "should_search",
+            False,
         )
         
         should_search = search_decision.get(
