@@ -756,7 +756,7 @@ class LLMConnector:
             or relevant_notes
         )
 
-        if document_opened:
+        if opened_document_primary:
             strongest_external_evidence = "opened_document"
 
         elif sources_cognitively_evaluated:
