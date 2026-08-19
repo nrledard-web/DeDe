@@ -1136,10 +1136,9 @@ class DoxaEnginePhase2:
 
                 url_read_attempts = []
 
-                for search_item in (
-                    search_results
-                    or []
-                )[:5]:
+                for result_index, search_item in enumerate(
+                    (search_results or [])[:5]
+                ):
 
                     if not isinstance(
                         search_item,
