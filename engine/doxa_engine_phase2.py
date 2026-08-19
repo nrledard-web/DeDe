@@ -741,7 +741,7 @@ class DoxaEnginePhase2:
                     providers=llm_providers,
                     enabled=True,
                 )
-
+                
                 semantic_search_classification = (
                     self.cognitive_governor
                     .parse_search_classification(
@@ -751,6 +751,69 @@ class DoxaEnginePhase2:
                         )
                     )
                 )
+                
+                # --------------------------------------------------
+                # Semantic Search Decision Verification
+                # --------------------------------------------------
+                # A single probabilistic classification must not be
+                # allowed to suppress a potentially necessary search.
+                # When the first decision is SKIP, verify it once.
+                
+                if (
+                    semantic_search_classification.get(
+                        "decision"
+                    )
+                    == "SKIP"
+                ):
+                    verification_prompt = (
+                        classification_prompt
+                        + "\n\n"
+                        + "VERIFY THE SEARCH DECISION.\n"
+                        + "Re-evaluate independently whether answering the "
+                        + "user's actual request requires retrieving external "
+                        + "information.\n"
+                        + "Do not preserve the previous decision merely for "
+                        + "consistency.\n"
+                        + "Return the same required JSON structure."
+                    )
+                
+                    verification_response = (
+                        self.llm_engine.ask(
+                            prompt=verification_prompt,
+                            profile="fast",
+                            providers=llm_providers,
+                            enabled=True,
+                        )
+                    )
+                
+                    verification_classification = (
+                        self.cognitive_governor
+                        .parse_search_classification(
+                            verification_response.get(
+                                "response",
+                                "",
+                            )
+                        )
+                    )
+                
+                    if (
+                        verification_classification.get(
+                            "decision"
+                        )
+                        == "SEARCH"
+                    ):
+                        semantic_search_classification = (
+                            verification_classification
+                        )
+                
+                        semantic_search_classification[
+                            "verification_override"
+                        ] = True
+                
+                    else:
+                        semantic_search_classification[
+                            "verification_override"
+                        ] = False
 
             else:
                 semantic_search_classification = {
