@@ -111,8 +111,32 @@ class SearchValidator:
                 self._validate_url(url)
             )
 
+            specific_query_terms = (
+                self._extract_query_terms(query)
+            )
+
+            normalized_specific_terms = [
+                self._normalize(term)
+                for term in specific_query_terms
+            ]
+
+            matched_specific_terms = [
+                term
+                for term in normalized_specific_terms
+                if term in normalized_text
+            ]
+
+            if len(normalized_specific_terms) >= 2:
+                specific_match_ratio = (
+                    len(matched_specific_terms)
+                    / len(normalized_specific_terms)
+                )
+            else:
+                specific_match_ratio = 1.0
+
             topical_relevance = (
                 topical_score >= 0.20
+                and specific_match_ratio >= 0.50
             )
 
             admissible = (
