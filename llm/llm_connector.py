@@ -734,20 +734,6 @@ class LLMConnector:
             document_text
         )
 
-        opened_search_rank = (
-            url_read_result.get(
-                "search_result_rank"
-            )
-        )
-
-        opened_document_primary = bool(
-            document_opened
-            and (
-                not search_snippets_available
-                or opened_search_rank == 0
-            )
-        )
-
         relevant_facts = retrieved_memory.get(
             "relevant_facts",
             [],
