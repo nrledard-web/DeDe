@@ -109,6 +109,21 @@ class URLReader:
 
             page_text = page_text[:18000]
 
+            if len(page_text.strip()) < 200:
+                return {
+                    "reader": self.name,
+                    "status": "empty_content",
+                    "url": url,
+                    "title": title,
+                    "text": page_text,
+                    "char_count": len(page_text),
+                    "http_status": response.status_code,
+                    "summary": (
+                        "The URL responded, but no substantial "
+                        "readable page content was extracted."
+                    ),
+                }
+
             return {
                 "reader": self.name,
                 "status": "success",
