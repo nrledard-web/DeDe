@@ -898,16 +898,25 @@ class DoxaEnginePhase2:
 
                 query_rewrite_prompt = (
                     "Convert the following user request into a concise "
-                    "web-search query.\n\n"
-
-                    "Preserve the central subject and any necessary names, "
-                    "dates, places or technical qualifiers.\n"
-
-                    "Remove conversational phrasing, politeness and requests "
-                    "to explain, summarize or provide links.\n"
+                    "and neutral web-search query.\n\n"
+                
+                    "Preserve the central subject and every necessary proper "
+                    "name, date, place or technical concept.\n"
+                
+                    "When the subject is a named person, preserve the full "
+                    "name exactly and search broadly for that person's public "
+                    "work, writings, projects and profiles.\n"
+                
+                    "Do not arbitrarily narrow the query to biography, "
+                    "Wikipedia, social media or any particular website.\n"
+                
+                    "Remove only conversational phrasing, politeness and "
+                    "requests to explain, summarize or provide links.\n"
+                
                     "Do not answer the request.\n"
                     "Do not add commentary.\n"
                     "Return only the search query on one line.\n\n"
+                
                     f"User request:\n{original_search_request}"
                 )
 
