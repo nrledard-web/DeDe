@@ -131,6 +131,7 @@ class URLReader:
                 "title": title,
                 "text": page_text,
                 "char_count": len(page_text),
+                "http_status": response.status_code,
                 "summary": (
                     f"URL read successfully. Extracted {len(page_text)} characters."
                 ),
