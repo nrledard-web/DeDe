@@ -751,6 +751,23 @@ class DoxaEnginePhase2:
                         )
                     )
                 )
+                
+                print("=" * 80)
+print("SEMANTIC SEARCH DIAGNOSTIC")
+print(
+    "RAW CLASSIFIER RESPONSE :",
+    repr(
+        classification_response.get(
+            "response",
+            "",
+        )
+    ),
+)
+print(
+    "PARSED CLASSIFICATION :",
+    semantic_search_classification,
+)
+print("=" * 80)
 
             else:
                 semantic_search_classification = {
