@@ -868,6 +868,12 @@ print("=" * 80)
                     "decision"
                 )
             ),
+            print("=" * 80)
+            print("FINAL SEARCH DECISION")
+            print(search_decision)
+            print("=" * 80)
+
+            
             semantic_reason=(
                 semantic_search_classification.get(
                     "reason"
