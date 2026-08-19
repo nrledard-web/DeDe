@@ -1190,21 +1190,6 @@ class DoxaEnginePhase2:
                         url_read_result = (
                             candidate_read_result
                         )
-
-                        url_read_result[
-                            "search_result_rank"
-                        ] = result_index
-
-                        url_read_result[
-                            "search_result_title"
-                        ] = str(
-                            search_item.get(
-                                "title",
-                                "",
-                            )
-                            or ""
-                        ).strip()
-
                         break
 
                 url_read_result[
