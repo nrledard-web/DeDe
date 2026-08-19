@@ -780,6 +780,12 @@ class LLMConnector:
                 sources_cognitively_evaluated
             ),
             "document_opened": document_opened,
+            "opened_document_primary": (
+                opened_document_primary
+            ),
+            "opened_search_rank": (
+                opened_search_rank
+            ),
             "extracted_document_text_available": (
                 extracted_document_text_available
             ),
