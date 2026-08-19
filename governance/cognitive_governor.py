@@ -352,35 +352,15 @@ class CognitiveGovernor:
 
         try:
             parsed = json.loads(cleaned)
-
         except (json.JSONDecodeError, TypeError):
-
-            # --------------------------------------------------
-            # Recover semantic decision from malformed output
-            # --------------------------------------------------
-
-            normalized_response = (
-                raw_response
-                .upper()
-                .strip()
-            )
-
-            if "SEARCH" in normalized_response:
-                recovered_decision = "SEARCH"
-            elif "SKIP" in normalized_response:
-                recovered_decision = "SKIP"
-            else:
-                recovered_decision = ""
-
             return {
-                "status": "classified_recovered",
-                "decision": recovered_decision,
+                "status": "invalid_response",
+                "decision": "SKIP",
                 "canonical_concepts": [],
                 "counterpoint_ids": [],
                 "reason": (
-                    "The semantic classifier returned malformed JSON. "
-                    "The search decision was recovered from its response "
-                    "when possible."
+                    "The semantic classifier returned invalid JSON. "
+                    "Search and counterpoint retrieval were skipped safely."
                 ),
                 "raw_response": raw_response,
             }
