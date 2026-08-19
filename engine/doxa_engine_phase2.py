@@ -879,11 +879,6 @@ print("=" * 80)
         print("FINAL SEARCH DECISION")
         print(search_decision)
         print("=" * 80)
-
-        should_search = search_decision.get(
-            "should_search",
-            False,
-        )
         
         should_search = search_decision.get(
             "should_search",
