@@ -3838,16 +3838,12 @@ if text:
         effective_search_mode
         == "on_request"
     ):
-        if tool_decision.get(
-            "external_search_required",
-            False,
-        ):
-            effective_explicit_search_request = (
-                True
+        effective_explicit_search_request = bool(
+            tool_decision.get(
+                "external_search_required",
+                False,
             )
-
-        else:
-            effective_search_mode = "off"
+        )
 
     engine = st.session_state.engine
 
