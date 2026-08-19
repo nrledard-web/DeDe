@@ -261,6 +261,99 @@ class ResponseBuilder:
                 "user-facing answer could be generated."
             )
 
+        # --------------------------------------------------
+        # Deterministic Web Source Links
+        # --------------------------------------------------
+        # Validated web URLs must not depend on the LLM
+        # remembering to reproduce them in its synthesis.
+
+        web_source_lines = []
+
+        raw_search_results = search_result.get(
+            "results",
+            [],
+        )
+
+        if isinstance(
+            raw_search_results,
+            list,
+        ):
+
+            for item in raw_search_results[:5]:
+
+                if not isinstance(
+                    item,
+                    dict,
+                ):
+                    continue
+
+                validation = item.get(
+                    "validation",
+                    {},
+                )
+
+                if not isinstance(
+                    validation,
+                    dict,
+                ):
+                    validation = {}
+
+                if not validation.get(
+                    "admissible",
+                    True,
+                ):
+                    continue
+
+                if not validation.get(
+                    "url_valid",
+                    True,
+                ):
+                    continue
+
+                title = str(
+                    item.get(
+                        "title",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                url = str(
+                    item.get(
+                        "url",
+                        "",
+                    )
+                    or ""
+                ).strip()
+
+                if not url:
+                    continue
+
+                # Avoid duplicating a URL already reproduced
+                # correctly by the synthesis model.
+                if url in final_answer:
+                    continue
+
+                if title:
+                    web_source_lines.append(
+                        f"- {title}\n  {url}"
+                    )
+                else:
+                    web_source_lines.append(
+                        f"- {url}"
+                    )
+
+        if web_source_lines:
+
+            final_answer = (
+                final_answer.rstrip()
+                + "\n\n"
+                + "Sources:\n"
+                + "\n".join(
+                    web_source_lines
+                )
+            )
+
         coherence_loop_notice = (
             self._build_coherence_loop_notice(
                 coherence_loop=coherence_loop,
