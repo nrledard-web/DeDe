@@ -82,30 +82,68 @@ class MemoryManager(MemoryProvider):
         self.short_term_memory.clear()
         self.long_term_memory.clear()
 
-    def _is_long_term_relevant(self, memory_item: dict[str, Any]) -> bool:
+    def _is_long_term_relevant(
+        self,
+        memory_item: dict[str, Any],
+    ) -> bool:
         """
-        Decide whether an interaction deserves long-term storage.
+        Decide whether an interaction deserves long-term storage
+        from structured cognitive information rather than lexical
+        markers.
 
-        This first version uses simple signals.
-        Later versions will use semantic importance, emotional weight,
-        project relevance and user-specific continuity markers.
+        This legacy MemoryManager should not infer durability from
+        particular words or languages.
         """
 
-        text = str(memory_item).lower()
+        if not isinstance(
+            memory_item,
+            dict,
+        ):
+            return False
 
-        markers = [
-            "project",
-            "dede",
-            "daimon",
-            "memory",
-            "mecroyance",
-            "mécroyance",
-            "doxa",
-            "nouscope",
-            "important",
-            "remember",
-            "long-term",
-            "architecture",
-        ]
+        metadata = memory_item.get(
+            "metadata",
+            {},
+        )
 
-        return any(marker in text for marker in markers)
+        if not isinstance(
+            metadata,
+            dict,
+        ):
+            metadata = {}
+
+        # --------------------------------------------------
+        # Explicit structured persistence signal
+        # --------------------------------------------------
+
+        if bool(
+            metadata.get(
+                "long_term_relevant",
+                False,
+            )
+        ):
+            return True
+
+        if bool(
+            metadata.get(
+                "durable_memory",
+                False,
+            )
+        ):
+            return True
+
+        # --------------------------------------------------
+        # Explicit structured priority signal
+        # --------------------------------------------------
+
+        priority = memory_item.get(
+            "priority"
+        )
+
+        if isinstance(
+            priority,
+            (int, float),
+        ):
+            return priority >= 0.75
+
+        return False
