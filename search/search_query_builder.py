@@ -237,25 +237,33 @@ class SearchQueryBuilder:
                 "summary": "No search query could be built from empty text.",
             }
 
-        natural_query = self._extract_natural_query(original_text)
-        concept_query = self._build_from_concepts(concept_data)
+        natural_query = self._extract_natural_query(
+            original_text
+        )
 
-        query = natural_query
-        source = "natural_language"
+        concept_query = self._build_from_concepts(
+            concept_data
+        )
 
-        # Concepts are a fallback, not the primary source.
-        if not self._is_usable(query) and self._is_usable(concept_query):
+        # --------------------------------------------------
+        # Semantic subject first
+        # --------------------------------------------------
+        # Concepts already extracted by DeDe are safer than
+        # removing words through fixed multilingual markers.
+        #
+        # Natural language remains the fallback when no
+        # usable concept is available.
+        # --------------------------------------------------
+
+        if self._is_usable(
+            concept_query
+        ):
             query = concept_query
             source = "concepts"
 
-        # If the natural extraction is too short, enrich it with
-        # useful concepts without replacing its subject.
-        elif self._should_enrich(query) and concept_query:
-            query = self._merge_queries(
-                query,
-                concept_query,
-            )
-            source = "natural_language_and_concepts"
+        else:
+            query = natural_query
+            source = "natural_language"
 
         # Final safety fallback: preserve the full user request rather
         # than returning an empty or meaningless fragment.
