@@ -292,15 +292,22 @@ class SearchQueryBuilder:
         text: str,
     ) -> str:
         """
-        Remove conversational instructions and retain the topic.
+        Preserve the semantic subject of the user's request.
+
+        This extractor deliberately avoids keyword-by-keyword
+        deletion. Search intent is handled elsewhere by DeDe's
+        governors; the query builder should preserve meaning,
+        not attempt to infer it from marker lists.
         """
 
-        query = text.lower()
+        query = self._clean_whitespace(
+            text
+        )
 
-        query = query.replace("’", "'")
-        query = query.replace("-", " ")
+        if not query:
+            return ""
 
-        # Remove URLs because URL reading is handled elsewhere.
+        # URLs are handled by URLReader.
         query = re.sub(
             r"https?://\S+|www\.\S+",
             " ",
@@ -308,42 +315,19 @@ class SearchQueryBuilder:
             flags=re.IGNORECASE,
         )
 
-        for pattern in self.INSTRUCTION_PATTERNS:
-            query = re.sub(
-                pattern,
-                " ",
-                query,
-                flags=re.IGNORECASE,
-            )
-
-        # Remove punctuation after phrase extraction.
-        query = re.sub(
-            r"[^\wÀ-ÿ'-]+",
-            " ",
-            query,
-            flags=re.UNICODE,
+        query = self._clean_whitespace(
+            query
         )
 
-        tokens = []
+        # --------------------------------------------------
+        # Prefer semantic concepts when they are already
+        # present inside the natural request.
+        #
+        # Do not delete individual words from the sentence:
+        # that can destroy names, relations and context.
+        # --------------------------------------------------
 
-        for token in query.split():
-            normalized = self._normalize_token(token)
-
-            if not normalized:
-                continue
-
-            if normalized in self.STOP_WORDS:
-                continue
-
-            if normalized in self.SEARCH_VERBS:
-                continue
-
-            if len(normalized) < 2:
-                continue
-
-            tokens.append(token.strip("'"))
-
-        return self._deduplicate_tokens(tokens)
+        return query
 
     def _build_from_concepts(
         self,
