@@ -5,6 +5,7 @@ Builds a clear user-facing answer from DeDe's cognitive report.
 """
 
 import json
+import re
 from typing import Any
 
 from dialogue.language_pack import LanguagePack
@@ -70,6 +71,11 @@ class ResponseBuilder:
 
         search_result = report.get(
             "search_result",
+            {},
+        )
+
+        url_read_result = report.get(
+            "url_read_result",
             {},
         )
 
