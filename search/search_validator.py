@@ -582,58 +582,62 @@ class SearchValidator:
             normalized_query,
         )
 
-        generic_search_terms = {
-            # French
-            "lien",
-            "liens",
-            "recherche",
-            "rechercher",
-            "resume",
-            "trouve",
-            "trouver",
-
-            # English
-            "find",
-            "link",
-            "links",
-            "search",
-            "summary",
-
-            # Spanish
-            "buscar",
-            "busca",
-            "enlace",
-            "enlaces",
-            "resumen",
-
-            # Filipino / Tagalog
-            "hanap",
-            "hanapin",
-            "link",
-            "links",
-            "buod",
-            "tungkol",
-            "magbigay",
-            "bigyan",
-        }
-
-        candidates = [
-            word
-            for word in words
-            if len(word) > 3
-            and word not in generic_search_terms
-        ]
-
-        if not candidates:
+        if not words:
             return []
 
-        candidates = sorted(
-            candidates,
-            key=len,
-            reverse=True,
-        )
+        # --------------------------------------------------
+        # Preserve multi-word identity/topic sequences
+        # --------------------------------------------------
+        # Do not reduce every request to isolated keywords.
+        # Consecutive meaningful words are kept together so
+        # names such as "Nicolas René Ledard" can behave as
+        # one strong anchor instead of three weak fragments.
+        # --------------------------------------------------
 
-        return candidates[:5]
+        candidates = []
+
+        for size in (4, 3, 2):
+
+            if len(words) < size:
+                continue
+
+            for index in range(
+                0,
+                len(words) - size + 1,
+            ):
+
+                phrase_words = words[
+                    index:index + size
+                ]
+
+                if any(
+                    len(word) < 2
+                    for word in phrase_words
+                ):
+                    continue
+
+                phrase = " ".join(
+                    phrase_words
+                )
+
+                candidates.append(
+                    phrase
+                )
+
+        # Also retain individual substantial terms as
+        # secondary fallback anchors.
+        for word in words:
+
+            if len(word) < 4:
+                continue
+
+            candidates.append(
+                word
+            )
+
+        return self._deduplicate(
+            candidates
+        )[:8]
 
     # --------------------------------------------------
     # Anchor Validation
