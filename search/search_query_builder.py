@@ -34,116 +34,6 @@ class SearchQueryBuilder:
     # individual stop words are processed.
 
     # Structural terms that generally do not belong in a query.
-    STOP_WORDS = {
-        # French
-        "a",
-        "à",
-        "au",
-        "aux",
-        "avec",
-        "ce",
-        "ces",
-        "cette",
-        "de",
-        "des",
-        "du",
-        "en",
-        "et",
-        "faisant",
-        "la",
-        "le",
-        "les",
-        "lien",
-        "liens",
-        "me",
-        "moi",
-        "mon",
-        "ma",
-        "mes",
-        "pour",
-        "résumé",
-        "resume",
-        "sur",
-        "synthèse",
-        "synthese",
-        "un",
-        "une",
-
-        # English
-        "a",
-        "an",
-        "and",
-        "about",
-        "for",
-        "link",
-        "links",
-        "me",
-        "of",
-        "on",
-        "some",
-        "summary",
-        "the",
-        "with",
-
-        # Spanish
-        "acerca",
-        "con",
-        "de",
-        "del",
-        "en",
-        "enlace",
-        "enlaces",
-        "haz",
-        "los",
-        "las",
-        "me",
-        "resumen",
-        "sobre",
-        "un",
-        "una",
-        "y",
-
-        # Filipino
-        "ako",
-        "ang",
-        "at",
-        "buod",
-        "link",
-        "mga",
-        "mo",
-        "ng",
-        "sa",
-        "tungkol",
-    }
-
-    SEARCH_VERBS = {
-        # French
-        "cherche",
-        "chercher",
-        "trouve",
-        "trouver",
-        "recherche",
-        "rechercher",
-        "donne",
-        "montre",
-
-        # English
-        "find",
-        "search",
-        "look",
-        "give",
-        "show",
-
-        # Spanish
-        "busca",
-        "buscar",
-        "encuentra",
-        "encontrar",
-
-        # Filipino
-        "hanap",
-        "maghanap",
-    }
 
     def build(
         self,
@@ -279,7 +169,7 @@ class SearchQueryBuilder:
         concept_data: dict[str, Any],
     ) -> str:
         """
-        Extract useful semantic concepts as a fallback or enrichment.
+        Extract semantic concepts without language-specific markers.
         """
 
         raw_concepts = (
@@ -295,25 +185,28 @@ class SearchQueryBuilder:
         selected = []
 
         for item in raw_concepts:
-            concept = self._concept_to_text(item)
+
+            concept = self._concept_to_text(
+                item
+            )
 
             if not concept:
                 continue
 
-            normalized = self._normalize_token(concept)
-
-            if normalized in self.STOP_WORDS:
-                continue
-
-            if normalized in self.SEARCH_VERBS:
-                continue
+            normalized = self._normalize_token(
+                concept
+            )
 
             if len(normalized) < 2:
                 continue
 
-            selected.append(concept)
+            selected.append(
+                concept
+            )
 
-        return self._deduplicate_tokens(selected[:8])
+        return self._deduplicate_tokens(
+            selected[:8]
+        )
 
     def _concept_to_text(
         self,
@@ -425,16 +318,12 @@ class SearchQueryBuilder:
         self,
         query: str,
     ) -> bool:
-        if not query:
-            return False
 
-        meaningful_tokens = [
-            token
-            for token in query.split()
-            if self._normalize_token(token) not in self.STOP_WORDS
-        ]
+        cleaned = self._clean_whitespace(
+            query
+        )
 
-        return bool(meaningful_tokens)
+        return bool(cleaned)
 
     def _should_enrich(
         self,
