@@ -270,10 +270,47 @@ class ResponseBuilder:
         # --------------------------------------------------
         # Deterministic Web Source Links
         # --------------------------------------------------
-        # Validated web URLs must not depend on the LLM
-        # remembering to reproduce them in its synthesis.
+        # Preserve validated search results, the page actually
+        # opened by DeDe, and useful URLs discovered inside it.
 
         web_source_lines = []
+        seen_urls = set()
+
+        def add_web_source(
+            title: str,
+            url: str,
+        ) -> None:
+
+            clean_title = str(
+                title or ""
+            ).strip()
+
+            clean_url = str(
+                url or ""
+            ).strip()
+
+            if not clean_url:
+                return
+
+            if clean_url in seen_urls:
+                return
+
+            seen_urls.add(
+                clean_url
+            )
+
+            if clean_title:
+                web_source_lines.append(
+                    f"- {clean_title}\n  {clean_url}"
+                )
+            else:
+                web_source_lines.append(
+                    f"- {clean_url}"
+                )
+
+        # --------------------------------------------------
+        # 1. Validated search results
+        # --------------------------------------------------
 
         raw_search_results = search_result.get(
             "results",
@@ -316,38 +353,95 @@ class ResponseBuilder:
                 ):
                     continue
 
-                title = str(
-                    item.get(
+                add_web_source(
+                    title=item.get(
                         "title",
                         "",
-                    )
-                    or ""
-                ).strip()
-
-                url = str(
-                    item.get(
+                    ),
+                    url=item.get(
                         "url",
                         "",
-                    )
-                    or ""
-                ).strip()
+                    ),
+                )
 
-                if not url:
+        # --------------------------------------------------
+        # 2. Page actually opened by DeDe
+        # --------------------------------------------------
+
+        if (
+            isinstance(
+                url_read_result,
+                dict,
+            )
+            and url_read_result.get(
+                "status"
+            )
+            == "success"
+        ):
+
+            opened_url = str(
+                url_read_result.get(
+                    "url",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            opened_title = str(
+                url_read_result.get(
+                    "title",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            add_web_source(
+                title=opened_title,
+                url=opened_url,
+            )
+
+            # --------------------------------------------------
+            # 3. Useful links discovered inside opened page
+            # --------------------------------------------------
+
+            opened_text = str(
+                url_read_result.get(
+                    "text",
+                    "",
+                )
+                or ""
+            )
+
+            discovered_count = 0
+
+            for discovered_url in re.findall(
+                r"https?://[^\s<>'\"]+",
+                opened_text,
+            ):
+
+                discovered_url = (
+                    discovered_url.rstrip(
+                        ".,);]}"
+                    )
+                )
+
+                if (
+                    not discovered_url
+                    or discovered_url in seen_urls
+                ):
                     continue
 
-                # Avoid duplicating a URL already reproduced
-                # correctly by the synthesis model.
-                if url in final_answer:
-                    continue
+                add_web_source(
+                    title=(
+                        "Referenced link from opened page"
+                    ),
+                    url=discovered_url,
+                )
 
-                if title:
-                    web_source_lines.append(
-                        f"- {title}\n  {url}"
-                    )
-                else:
-                    web_source_lines.append(
-                        f"- {url}"
-                    )
+                discovered_count += 1
+
+                if discovered_count >= 3:
+                    break
 
         if web_source_lines:
 
