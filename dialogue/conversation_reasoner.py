@@ -148,61 +148,7 @@ class ConversationReasoner:
         if word_count <= 6 and reference_topic:
             return True
 
-        if self._has_continuation_marker(text_lower) and reference_topic:
-            return True
-
         return False
-
-    def _has_continuation_marker(
-        self,
-        text_lower: str,
-    ) -> bool:
-
-        markers = [
-            # French
-            "maintenant",
-            "et sur",
-            "et pour",
-            "et contre",
-            "en faveur",
-            "contre",
-            "synthèse",
-            "synthese",
-            "équilibrée",
-            "equilibree",
-            "pareil",
-            "même chose",
-            "meme chose",
-
-            # English
-            "now",
-            "what about",
-            "and about",
-            "in favor",
-            "against",
-            "balanced",
-            "same thing",
-
-            # Spanish
-            "ahora",
-            "y sobre",
-            "a favor",
-            "en contra",
-            "equilibrada",
-            "lo mismo",
-
-            # Filipino / Tagalog
-            "ngayon",
-            "pabor",
-            "laban",
-            "balanse",
-            "pareho",
-        ]
-
-        return any(
-            marker in text_lower
-            for marker in markers
-        )
 
     def _detect_current_topic(
         self,
