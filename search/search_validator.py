@@ -687,6 +687,15 @@ class SearchValidator:
             )
         )
 
+        # Canonical semantic concepts may use underscores
+        # or hyphens while natural web text uses spaces.
+        # Normalize structure without using language markers.
+        without_accents = re.sub(
+            r"[_-]+",
+            " ",
+            without_accents,
+        )
+
         return " ".join(
             without_accents.split()
         )
