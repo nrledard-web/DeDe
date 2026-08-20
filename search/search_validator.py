@@ -582,58 +582,11 @@ class SearchValidator:
             normalized_query,
         )
 
-        if not words:
-            return []
-
-        # --------------------------------------------------
-        # Preserve multi-word identity/topic sequences
-        # --------------------------------------------------
-        # Do not reduce every request to isolated keywords.
-        # Consecutive meaningful words are kept together so
-        # names such as "Nicolas René Ledard" can behave as
-        # one strong anchor instead of three weak fragments.
-        # --------------------------------------------------
-
-        candidates = []
-
-        for size in (4, 3, 2):
-
-            if len(words) < size:
-                continue
-
-            for index in range(
-                0,
-                len(words) - size + 1,
-            ):
-
-                phrase_words = words[
-                    index:index + size
-                ]
-
-                if any(
-                    len(word) < 2
-                    for word in phrase_words
-                ):
-                    continue
-
-                phrase = " ".join(
-                    phrase_words
-                )
-
-                candidates.append(
-                    phrase
-                )
-
-        # Also retain individual substantial terms as
-        # secondary fallback anchors.
-        for word in words:
-
-            if len(word) < 4:
-                continue
-
-            candidates.append(
-                word
-            )
+        candidates = [
+            word
+            for word in words
+            if len(word) >= 3
+        ]
 
         return self._deduplicate(
             candidates
