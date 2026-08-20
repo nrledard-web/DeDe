@@ -255,15 +255,18 @@ class SearchQueryBuilder:
         # usable concept is available.
         # --------------------------------------------------
 
-        if self._is_usable(
-            concept_query
+        # Preserve the user's natural request first.
+        # Semantic concepts are only a fallback.
+
+        query = natural_query
+        source = "natural_language"
+
+        if (
+            not self._is_usable(query)
+            and self._is_usable(concept_query)
         ):
             query = concept_query
             source = "concepts"
-
-        else:
-            query = natural_query
-            source = "natural_language"
 
         # Final safety fallback: preserve the full user request rather
         # than returning an empty or meaningless fragment.
