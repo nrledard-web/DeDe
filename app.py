@@ -3851,8 +3851,6 @@ if image_save_notice:
         image_save_notice
     )
 
-render_image_save_control()
-
 # --------------------------------------------------
 # Chat Input
 # --------------------------------------------------
