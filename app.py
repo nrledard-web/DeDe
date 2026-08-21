@@ -3244,6 +3244,26 @@ if text_creator_request:
             f"{error}"
         )
 
+text_creator_content = str(
+    st.session_state.get(
+        "text_creator_content",
+        "",
+    )
+    or ""
+).strip()
+
+if (
+    st.session_state.get(
+        "text_creator_open",
+        False,
+    )
+    and text_creator_content
+):
+    render_message_save_control(
+        message_text=text_creator_content,
+        control_key="text_creator_content",
+    )
+
 # --------------------------------------------------
 # Chat Display
 # --------------------------------------------------
