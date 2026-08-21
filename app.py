@@ -3079,17 +3079,30 @@ if "visual_prompt_compiler" not in st.session_state:
     )
     
 # --------------------------------------------------
+# Permanent Image Save Control
+# --------------------------------------------------
+
+image_save_notice = (
+    st.session_state.pop(
+        "image_save_notice",
+        None,
+    )
+)
+
+if image_save_notice:
+    st.success(
+        image_save_notice
+    )
+
+render_image_save_control()
+
+# --------------------------------------------------
 # Chat Input
 # --------------------------------------------------
 
-typed_text = st.chat_input("Message DeDe")
-
-text = typed_text or st.session_state.get("voice_text", "")
-
-if text:
-    st.session_state["voice_text"] = ""
-
-original_user_text = text
+typed_text = st.chat_input(
+    "Message DeDe"
+)
 
 # --------------------------------------------------
 # Active Image Vision Analysis
