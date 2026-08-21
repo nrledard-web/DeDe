@@ -94,7 +94,9 @@ def render_text_creator_launcher() -> None:
         ] = True
 
 
-def render_text_creator_workspace() -> None:
+def render_text_creator_workspace() -> (
+    dict[str, str] | None
+):
     """
     Render the Text Creator workspace.
     """
@@ -195,6 +197,67 @@ def render_text_creator_workspace() -> None:
         "The generation controls will use "
         "the selected DeDe reasoning model."
     )
+
+    create_draft = st.button(
+        "✨ Create Draft",
+        key="text_creator_create_draft",
+        type="primary",
+        use_container_width=True,
+    )
+
+    if create_draft:
+        instruction = str(
+            st.session_state.get(
+                "text_creator_instruction",
+                "",
+            )
+            or ""
+        ).strip()
+
+        title = str(
+            st.session_state.get(
+                "text_creator_title",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if not instruction and not title:
+            st.warning(
+                "Add a title or an instruction "
+                "before creating the draft."
+            )
+
+        else:
+            return {
+                "action": "create_draft",
+                "title": title,
+                "text_type": str(
+                    st.session_state.get(
+                        "text_creator_type",
+                        "Article",
+                    )
+                ),
+                "language": str(
+                    st.session_state.get(
+                        "text_creator_language",
+                        "Automatic",
+                    )
+                ),
+                "tone": str(
+                    st.session_state.get(
+                        "text_creator_tone",
+                        "Natural",
+                    )
+                ),
+                "length": str(
+                    st.session_state.get(
+                        "text_creator_length",
+                        "Medium",
+                    )
+                ),
+                "instruction": instruction,
+            }
 
     st.text_area(
         "Editor",
