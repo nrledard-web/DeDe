@@ -119,6 +119,7 @@ from agents.reduction_agent import ReductionAgent
 from agents.nouscope_agent import NOUSCOPEAgent
 from agents.dissonance_agent import DissonanceAgent
 from agents.cognitive_therapy_agent import CognitiveTherapyAgent
+from agents.decision_threshold_agent import DecisionThresholdAgent
 
 from analysis.text_analysis_engine import TextAnalysisEngine
 from analysis.cognitive_comparator import CognitiveComparator
@@ -250,6 +251,7 @@ class DoxaEnginePhase2:
             ReductionAgent(),
             NOUSCOPEAgent(),
             DissonanceAgent(),
+            DecisionThresholdAgent(),
             CognitiveTherapyAgent(),
         ]
         
@@ -334,6 +336,7 @@ class DoxaEnginePhase2:
         knowledge_mode: str = "best",
         conversation_history: list[dict[str, Any]] | None = None,
         explicit_search_request: bool = False,
+        decision_context: dict[str, Any] | None = None,
         memory_governance: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
