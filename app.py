@@ -372,71 +372,14 @@ def render_image_save_control() -> None:
             width="stretch",
         )
 
-        managed_memory = (
-            st.session_state.engine
-            .persistent_memory
-            .get_memory()
-        )
-
-        custom_folders = (
-            managed_memory.get(
-                "memory_folders",
-                [],
+        (
+            folder_labels,
+            folder_lookup,
+        ) = persistent_folder_options(
+            default_label=(
+                "🖼️ Image Memories"
             )
         )
-
-        if not isinstance(
-            custom_folders,
-            list,
-        ):
-            custom_folders = []
-
-        folder_labels = [
-            "🖼️ Image Memories",
-        ]
-
-        folder_lookup = {
-            "🖼️ Image Memories": "",
-        }
-
-        for folder in custom_folders:
-            if not isinstance(
-                folder,
-                dict,
-            ):
-                continue
-
-            folder_id = str(
-                folder.get(
-                    "folder_id",
-                    "",
-                )
-            ).strip()
-
-            folder_name = str(
-                folder.get(
-                    "name",
-                    "",
-                )
-            ).strip()
-
-            if (
-                not folder_id
-                or not folder_name
-            ):
-                continue
-
-            folder_label = (
-                f"📁 {folder_name}"
-            )
-
-            folder_labels.append(
-                folder_label
-            )
-
-            folder_lookup[
-                folder_label
-            ] = folder_id
 
         save_as_name = st.text_input(
             "Save as...",
