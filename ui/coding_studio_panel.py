@@ -85,6 +85,20 @@ def render_coding_studio_workspace() -> (
 
     ensure_coding_studio_state()
 
+    pending_source_code = (
+        st.session_state.pop(
+            "coding_studio_pending_source",
+            None,
+        )
+    )
+
+    if pending_source_code is not None:
+        st.session_state[
+            "coding_studio_source_code"
+        ] = str(
+            pending_source_code
+        )
+
     if not st.session_state.get(
         "coding_studio_open",
         False,
