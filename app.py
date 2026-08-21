@@ -3297,52 +3297,38 @@ if (
                 "DeDe is creating the "
                 "image prompt..."
             ):
-                image_prompt_report = (
-                    st.session_state.engine.analyze(
-                        text=(
+                image_prompt_result = (
+                    st.session_state.engine
+                    .llm_engine
+                    .ask(
+                        prompt=(
                             image_prompt_instruction
                         ),
-                        detected_language="en",
-                        document_context={},
-                        enable_llm=enable_llm,
-                        search_provider=(
-                            search_provider
-                        ),
-                        search_profile=(
-                            None
-                            if search_profile
-                            == "custom"
-                            else search_profile
-                        ),
-                        search_mode="off",
-                        explicit_search_request=False,
-                        llm_profile="fast",
-                        llm_providers=llm_providers,
-                        knowledge_providers=(
-                            knowledge_providers
-                        ),
-                        knowledge_mode=(
-                            knowledge_mode
-                        ),
-                        conversation_history=[],
-                        memory_governance=None,
+                        profile="fast",
+                        providers=llm_providers,
+                        enabled=enable_llm,
                     )
                 )
 
-            image_prompt_response = (
-                image_prompt_report.get(
-                    "user_response",
-                    {},
-                )
-            )
-
             generated_image_prompt = str(
-                image_prompt_response.get(
-                    "final_answer",
+                image_prompt_result.get(
+                    "response",
                     "",
                 )
                 or ""
             ).strip()
+
+            if len(generated_image_prompt) > 1600:
+                generated_image_prompt = (
+                    generated_image_prompt[
+                        :1600
+                    ]
+                    .rsplit(
+                        " ",
+                        1,
+                    )[0]
+                    .strip()
+                )
 
             if generated_image_prompt:
                 st.session_state[
