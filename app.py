@@ -132,6 +132,381 @@ def generate_speech(text: str) -> bytes | None:
 
     return speech.content
 
+def latest_savable_image() -> dict:
+    """
+    Return the latest generated image.
+
+    If no generated image exists, use the active
+    uploaded or remembered reference image.
+    """
+
+    image_tool_names = {
+        "image_generator",
+        "cloudflare_image_generator",
+        "cloudflare_reference_image",
+    }
+
+    tool_history = st.session_state.get(
+        "tool_history",
+        [],
+    )
+
+    for item in reversed(
+        tool_history
+    ):
+        if item.get(
+            "tool_name"
+        ) not in image_tool_names:
+            continue
+
+        tool_result = item.get(
+            "tool_result",
+            {},
+        )
+
+        if tool_result.get(
+            "status"
+        ) != "success":
+            continue
+
+        image_data = tool_result.get(
+            "data",
+            {},
+        )
+
+        image_bytes = image_data.get(
+            "image_bytes",
+            b"",
+        )
+
+        if not image_bytes:
+            continue
+
+        mime_type = image_data.get(
+            "mime_type",
+            "image/png",
+        )
+
+        if mime_type == "image/jpeg":
+            extension = "jpg"
+
+        elif mime_type == "image/webp":
+            extension = "webp"
+
+        else:
+            extension = "png"
+
+        return {
+            "image_bytes": image_bytes,
+            "mime_type": mime_type,
+            "name": (
+                "dede_generated_image."
+                f"{extension}"
+            ),
+            "description": str(
+                image_data.get(
+                    "prompt",
+                    "",
+                )
+                or ""
+            ).strip(),
+            "source": "generated",
+        }
+
+    active_image = (
+        st.session_state.get(
+            "active_chat_image",
+            {},
+        )
+    )
+
+    if active_image.get(
+        "image_bytes"
+    ):
+        active_analysis = (
+            st.session_state.get(
+                "active_image_analysis",
+                {},
+            )
+        )
+
+        return {
+            "image_bytes": (
+                active_image.get(
+                    "image_bytes",
+                    b"",
+                )
+            ),
+            "mime_type": (
+                active_image.get(
+                    "mime_type",
+                    "image/jpeg",
+                )
+            ),
+            "name": (
+                active_image.get(
+                    "name",
+                    "dede_image",
+                )
+            ),
+            "description": str(
+                active_analysis.get(
+                    "analysis",
+                    "",
+                )
+                or ""
+            ).strip(),
+            "source": "active_reference",
+        }
+
+    return {}
+
+def render_image_save_control() -> None:
+    """
+    Show the permanent image Save button.
+
+    Nothing is saved until the user confirms.
+    """
+
+    with st.popover(
+        "💾 Save",
+        use_container_width=False,
+    ):
+        image_to_save = (
+            latest_savable_image()
+        )
+
+        if not image_to_save:
+            st.info(
+                "Upload or generate an image first."
+            )
+
+            return
+
+        st.caption(
+            "Save the latest available image "
+            "only when you confirm."
+        )
+
+        st.image(
+            image_to_save[
+                "image_bytes"
+            ],
+            width="stretch",
+        )
+
+        managed_memory = (
+            st.session_state.engine
+            .persistent_memory
+            .get_memory()
+        )
+
+        custom_folders = (
+            managed_memory.get(
+                "memory_folders",
+                [],
+            )
+        )
+
+        if not isinstance(
+            custom_folders,
+            list,
+        ):
+            custom_folders = []
+
+        folder_labels = [
+            "🖼️ Image Memories",
+        ]
+
+        folder_lookup = {
+            "🖼️ Image Memories": "",
+        }
+
+        for folder in custom_folders:
+            if not isinstance(
+                folder,
+                dict,
+            ):
+                continue
+
+            folder_id = str(
+                folder.get(
+                    "folder_id",
+                    "",
+                )
+            ).strip()
+
+            folder_name = str(
+                folder.get(
+                    "name",
+                    "",
+                )
+            ).strip()
+
+            if (
+                not folder_id
+                or not folder_name
+            ):
+                continue
+
+            folder_label = (
+                f"📁 {folder_name}"
+            )
+
+            folder_labels.append(
+                folder_label
+            )
+
+            folder_lookup[
+                folder_label
+            ] = folder_id
+
+        save_as_name = st.text_input(
+            "Save as...",
+            value=image_to_save.get(
+                "name",
+                "dede_image",
+            ),
+            key=(
+                "persistent_image_save_as"
+            ),
+        )
+
+        selected_folder_label = (
+            st.selectbox(
+                "Folder",
+                folder_labels,
+                key=(
+                    "persistent_image_"
+                    "save_folder"
+                ),
+            )
+        )
+
+        st.markdown(
+            "##### Create a folder"
+        )
+
+        new_folder_name = st.text_input(
+            "New folder name",
+            key=(
+                "persistent_image_"
+                "new_folder"
+            ),
+            placeholder=(
+                "Example: Family, Book, "
+                "Images..."
+            ),
+        )
+
+        if st.button(
+            "Create Folder",
+            key=(
+                "persistent_image_"
+                "create_folder"
+            ),
+            use_container_width=True,
+        ):
+            creation_result = (
+                st.session_state.engine
+                .persistent_memory
+                .create_memory_folder(
+                    new_folder_name
+                )
+            )
+
+            if creation_result.get(
+                "created",
+                False,
+            ):
+                st.session_state[
+                    "image_save_notice"
+                ] = (
+                    "Folder created."
+                )
+
+                st.rerun()
+
+            else:
+                st.error(
+                    creation_result.get(
+                        "error",
+                        (
+                            "The folder could "
+                            "not be created."
+                        ),
+                    )
+                )
+
+        if st.button(
+            "Save Image",
+            key=(
+                "persistent_image_"
+                "confirm_save"
+            ),
+            type="primary",
+            use_container_width=True,
+        ):
+            cleaned_name = str(
+                save_as_name or ""
+            ).strip()
+
+            if not cleaned_name:
+                st.error(
+                    "Enter a file name."
+                )
+
+                return
+
+            selected_folder_id = (
+                folder_lookup[
+                    selected_folder_label
+                ]
+            )
+
+            save_result = (
+                st.session_state.engine
+                .image_memory
+                .save_image(
+                    image_bytes=(
+                        image_to_save[
+                            "image_bytes"
+                        ]
+                    ),
+                    original_name=(
+                        cleaned_name
+                    ),
+                    mime_type=(
+                        image_to_save.get(
+                            "mime_type",
+                            "image/jpeg",
+                        )
+                    ),
+                    description=(
+                        image_to_save.get(
+                            "description",
+                            "",
+                        )
+                    ),
+                    label=cleaned_name,
+                    usage=[
+                        image_to_save.get(
+                            "source",
+                            "image",
+                        ),
+                    ],
+                    folder_id=(
+                        selected_folder_id
+                    ),
+                )
+            )
+
+            if save_result.get(
+                "status"
+            ) == "success":
+                st.session_state[
+                    "image
+
 st.set_page_config(
     page_title="DeDe",
     page_icon="🧠",
