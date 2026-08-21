@@ -11,8 +11,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 import base64
+import io
 import json
 import os
+import zipfile
 
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives import hashes
