@@ -145,7 +145,6 @@ class CloudflareImageGenerator:
         payload = {
             "prompt": cleaned_prompt,
             "steps": resolved_steps,
-            "seed": resolved_seed,
         }
 
         headers = {
@@ -244,7 +243,6 @@ class CloudflareImageGenerator:
                 "model": self.model,
                 "prompt": cleaned_prompt,
                 "steps": resolved_steps,
-                "seed": resolved_seed,
                 "image_bytes": image_bytes,
                 "mime_type": "image/jpeg",
                 "summary": (
