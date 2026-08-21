@@ -266,7 +266,7 @@ def render_text_creator_workspace() -> (
             "Write here or ask DeDe "
             "to generate a draft..."
         ),
-        height=300,
+        height=180,
     )
 
     current_content = str(
