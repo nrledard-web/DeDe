@@ -2469,6 +2469,137 @@ with st.sidebar:
             use_container_width=True,
         )
 
+        # ----------------------------------------------
+        # Complete memory backup
+        # ----------------------------------------------
+
+        complete_image_items = (
+            st.session_state.engine
+            .image_memory
+            .list_images()
+        )
+
+        complete_image_files = []
+
+        for image_item in (
+            complete_image_items
+        ):
+            if not isinstance(
+                image_item,
+                dict,
+            ):
+                continue
+
+            image_id = str(
+                image_item.get(
+                    "image_id",
+                    "",
+                )
+            ).strip()
+
+            if not image_id:
+                continue
+
+            image_result = (
+                st.session_state.engine
+                .image_memory
+                .get_image(
+                    image_id
+                )
+            )
+
+            if image_result.get(
+                "status"
+            ) != "success":
+                continue
+
+            image_bytes = (
+                image_result.get(
+                    "image_bytes",
+                    b"",
+                )
+            )
+
+            file_name = str(
+                image_item.get(
+                    "file_name",
+                    "",
+                )
+            ).strip()
+
+            if (
+                not image_bytes
+                or not file_name
+            ):
+                continue
+
+            complete_image_files.append(
+                {
+                    "file_name": (
+                        file_name
+                    ),
+                    "image_bytes": (
+                        image_bytes
+                    ),
+                }
+            )
+
+        try:
+            complete_memory_export = (
+                st.session_state
+                .memory_portability
+                .export_complete(
+                    memory_data=(
+                        current_memory_data
+                    ),
+                    image_items=(
+                        complete_image_items
+                    ),
+                    image_files=(
+                        complete_image_files
+                    ),
+                    user_id=(
+                        st.session_state
+                        .owner_id
+                    ),
+                )
+            )
+
+            st.download_button(
+                label=(
+                    "Download Complete Memory"
+                ),
+                data=(
+                    complete_memory_export
+                ),
+                file_name=(
+                    f"{st.session_state.owner_id}"
+                    ".dede-archive.zip"
+                ),
+                mime="application/zip",
+                key=(
+                    "download_complete_memory"
+                ),
+                use_container_width=True,
+            )
+
+            st.caption(
+                "Includes saved responses, "
+                "folders, image metadata and "
+                "the original image files."
+            )
+
+        except ValueError as error:
+            st.error(
+                str(error)
+            )
+
+        except Exception:
+            st.error(
+                "Complete memory export "
+                "could not be prepared."
+            )
+
         st.caption(
             "No password required. Anyone with access "
             "to this file can read its contents."
