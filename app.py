@@ -4607,6 +4607,17 @@ if text:
 
         st.write(final_answer)
 
+        render_message_save_control(
+            message_text=final_answer,
+            control_key=(
+                "current_"
+                f"{len(
+                    st.session_state
+                    .conversation_history
+                )}"
+            ),
+        )
+
         if st.button(
             "🔊 Listen",
             key=f"tts_current_{len(st.session_state.conversation_history)}",
