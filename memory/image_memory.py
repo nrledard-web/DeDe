@@ -138,6 +138,7 @@ class ImageMemory:
         description: str = "",
         label: str = "",
         usage: list[str] | None = None,
+        folder_id: str | None = None,
     ) -> dict[str, Any]:
 
         if not image_bytes:
