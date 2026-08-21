@@ -261,6 +261,83 @@ def latest_savable_image() -> dict:
 
     return {}
 
+def persistent_folder_options(
+    default_label: str,
+) -> tuple[list[str], dict[str, str]]:
+    """
+    Return the real persistent folders used by
+    text memories and image memories.
+    """
+
+    managed_memory = (
+        st.session_state.engine
+        .persistent_memory
+        .get_memory()
+    )
+
+    custom_folders = managed_memory.get(
+        "memory_folders",
+        [],
+    )
+
+    if not isinstance(
+        custom_folders,
+        list,
+    ):
+        custom_folders = []
+
+    folder_labels = [
+        default_label,
+    ]
+
+    folder_lookup = {
+        default_label: "",
+    }
+
+    for folder in custom_folders:
+        if not isinstance(
+            folder,
+            dict,
+        ):
+            continue
+
+        folder_id = str(
+            folder.get(
+                "folder_id",
+                "",
+            )
+        ).strip()
+
+        folder_name = str(
+            folder.get(
+                "name",
+                "",
+            )
+        ).strip()
+
+        if (
+            not folder_id
+            or not folder_name
+        ):
+            continue
+
+        folder_label = (
+            f"📁 {folder_name}"
+        )
+
+        folder_labels.append(
+            folder_label
+        )
+
+        folder_lookup[
+            folder_label
+        ] = folder_id
+
+    return (
+        folder_labels,
+        folder_lookup,
+    )
+
 def render_image_save_control() -> None:
     """
     Show the permanent image Save button.
