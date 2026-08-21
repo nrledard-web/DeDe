@@ -26,10 +26,31 @@ def render_image_generators_panel(
     Render the image generators inside the sidebar.
     """
 
+    pending_prompt = (
+        st.session_state.pop(
+            "pending_image_generator_prompt",
+            None,
+        )
+    )
+
+    if pending_prompt is not None:
+        st.session_state[
+            "image_generator_prompt"
+        ] = str(
+            pending_prompt
+        ).strip()
+
+    open_image_panel = bool(
+        st.session_state.pop(
+            "open_image_generators_panel",
+            False,
+        )
+    )
+
     with st.sidebar:
         with st.expander(
             "🎨 Image Generators",
-            expanded=False,
+            expanded=open_image_panel,
         ):
             st.caption(
                 "Generate images with interchangeable "
