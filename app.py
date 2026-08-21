@@ -542,7 +542,7 @@ def render_message_save_control(
                             content_to_save
                         ),
                         "memory_type": (
-                            "interaction_note"
+                            selected_memory_type
                         ),
                         "storage_scope": (
                             "persistent"
