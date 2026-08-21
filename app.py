@@ -3394,6 +3394,122 @@ coding_studio_request = (
     render_coding_studio_workspace()
 )
 
+if coding_studio_request:
+    coding_task = str(
+        coding_studio_request.get(
+            "task",
+            "Generate code",
+        )
+    )
+
+    coding_language = str(
+        coding_studio_request.get(
+            "language",
+            "Automatic",
+        )
+    )
+
+    code_producing_tasks = {
+        "Generate code",
+        "Modify code",
+        "Debug an error",
+        "Refactor code",
+        "Create tests",
+        "Convert code",
+    }
+
+    if coding_task in code_producing_tasks:
+        output_instruction = (
+            "Return only the complete resulting code. "
+            "Do not use Markdown code fences. "
+            "Do not omit unchanged sections. "
+            "Do not add introductory commentary."
+        )
+
+    else:
+        output_instruction = (
+            "Return a clear, structured analysis. "
+            "Quote only the code fragments necessary "
+            "to support the explanation."
+        )
+
+    coding_prompt = (
+        "You are DeDe's Coding Studio.\n\n"
+        "Complete the requested coding task "
+        "accurately and conservatively.\n"
+        "Preserve existing behavior unless the "
+        "instruction explicitly requests a change.\n"
+        "Do not invent missing APIs, functions or "
+        "project files.\n\n"
+        f"Task: {coding_task}\n"
+        f"Programming language: {coding_language}\n"
+        "File name: "
+        f"{coding_studio_request.get(
+            'filename',
+            ''
+        )}\n"
+        "User instruction:\n"
+        f"{coding_studio_request.get(
+            'instruction',
+            ''
+        )}\n\n"
+        "Error or traceback:\n"
+        f"{coding_studio_request.get(
+            'error',
+            ''
+        )}\n\n"
+        "Source code:\n"
+        "<<<SOURCE_CODE\n"
+        f"{coding_studio_request.get(
+            'source_code',
+            ''
+        )[:30000]}\n"
+        "SOURCE_CODE\n\n"
+        f"{output_instruction}"
+    )
+
+    try:
+        with st.spinner(
+            "DeDe is working on the code..."
+        ):
+            coding_result = (
+                st.session_state.engine
+                .llm_engine
+                .ask(
+                    prompt=coding_prompt,
+                    profile="fast",
+                    providers=llm_providers,
+                    enabled=enable_llm,
+                )
+            )
+
+        generated_code_result = str(
+            coding_result.get(
+                "response",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if generated_code_result:
+            st.session_state[
+                "coding_studio_result"
+            ] = generated_code_result
+
+            st.rerun()
+
+        else:
+            st.error(
+                "DeDe did not produce "
+                "a coding result."
+            )
+
+    except Exception as error:
+        st.error(
+            "Coding task failed: "
+            f"{error}"
+        )
+
 # --------------------------------------------------
 # Chat Display
 # --------------------------------------------------
