@@ -191,6 +191,22 @@ def render_image_generators_panel(
                 )
 
             _show_generated_image()
+            
+            generated_image = (
+                st.session_state.get(
+                    "last_generated_image",
+                    {},
+                )
+            )
+
+            if (
+                generated_image.get(
+                    "status"
+                )
+                == "success"
+                and callable(save_control)
+            ):
+                save_control()
 
 
 def _generate_image(
