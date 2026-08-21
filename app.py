@@ -505,7 +505,25 @@ def render_image_save_control() -> None:
                 "status"
             ) == "success":
                 st.session_state[
-                    "image
+                    "image_save_notice"
+                ] = (
+                    f"{cleaned_name} "
+                    "saved successfully."
+                )
+
+                st.rerun()
+
+            else:
+                st.error(
+                    save_result.get(
+                        "error",
+                        (
+                            "Image memory "
+                            "save failed."
+                        ),
+                    )
+                )
+
 
 st.set_page_config(
     page_title="DeDe",
