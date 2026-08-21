@@ -2952,8 +2952,15 @@ for index, turn in enumerate(st.session_state.conversation_history):
         answer = turn.get("answer", "")
     
         st.write(answer)
-    
+
         if answer:
+            render_message_save_control(
+                message_text=answer,
+                control_key=(
+                    f"history_{index}"
+                ),
+            )
+
             if st.button(
                 "🔊 Listen",
                 key=f"tts_history_{index}",
