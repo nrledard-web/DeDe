@@ -21,6 +21,7 @@ MOVIE_MAKER_LIBRARY_KEY = (
 
 def render_image_generators_panel(
     tool_manager: Any,
+    save_control: Any = None,
 ) -> None:
     """
     Render the image generators inside the sidebar.
