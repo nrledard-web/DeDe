@@ -144,10 +144,6 @@ def render_coding_studio_workspace() -> (
 
             st.rerun()
 
-    task_column, language_column = (
-        st.columns(2)
-    )
-
     with st.expander(
         "🐙 GitHub — Read Only",
         expanded=False,
