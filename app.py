@@ -1814,6 +1814,84 @@ with st.sidebar:
             "remembered image(s)"
         )
 
+        image_folder_labels = [
+            "🖼️ All Images",
+            "📥 Unfiled Images",
+        ]
+
+        image_folder_lookup = {
+            "🖼️ All Images": None,
+            "📥 Unfiled Images": "",
+        }
+
+        for (
+            folder_id,
+            folder_name,
+        ) in custom_folder_names.items():
+            folder_label = (
+                f"📁 {folder_name}"
+            )
+
+            image_folder_labels.append(
+                folder_label
+            )
+
+            image_folder_lookup[
+                folder_label
+            ] = folder_id
+
+        selected_image_folder_label = (
+            st.selectbox(
+                "Image folder",
+                image_folder_labels,
+                key=(
+                    "selected_image_"
+                    "memory_folder"
+                ),
+            )
+        )
+
+        selected_image_folder_id = (
+            image_folder_lookup[
+                selected_image_folder_label
+            ]
+        )
+
+        visible_images = []
+
+        for remembered_image in (
+            remembered_images
+        ):
+            if not isinstance(
+                remembered_image,
+                dict,
+            ):
+                continue
+
+            assigned_folder_id = str(
+                remembered_image.get(
+                    "folder_id",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            if (
+                selected_image_folder_id
+                is None
+            ):
+                visible_images.append(
+                    remembered_image
+                )
+
+            elif (
+                assigned_folder_id
+                == selected_image_folder_id
+            ):
+                visible_images.append(
+                    remembered_image
+                )
+
         if not remembered_images:
 
             st.info(
