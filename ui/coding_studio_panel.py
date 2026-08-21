@@ -277,6 +277,8 @@ def render_coding_studio_workspace() -> (
                 }
 
     task_column, language_column = (
+        st.columns(2)
+    )
 
     with task_column:
         st.selectbox(
