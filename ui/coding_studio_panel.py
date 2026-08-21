@@ -52,6 +52,16 @@ def ensure_coding_studio_state() -> None:
         "coding_studio_error": "",
         "coding_studio_source_code": "",
         "coding_studio_result": "",
+        "coding_github_owner": (
+            "nrledard-web"
+        ),
+        "coding_github_repository": (
+            "DeDe"
+        ),
+        "coding_github_branch": "main",
+        "coding_github_files": [],
+        "coding_github_selected_file": "",
+        "coding_github_status": "",
     }
 
     for key, value in defaults.items():
