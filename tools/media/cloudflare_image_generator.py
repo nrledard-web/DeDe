@@ -163,7 +163,43 @@ class CloudflareImageGenerator:
                 timeout=120,
             )
 
-            response.raise_for_status()
+            if not response.ok:
+                try:
+                    error_data = response.json()
+
+                except ValueError:
+                    error_data = (
+                        response.text
+                        or "Unknown Cloudflare error."
+                    )
+
+                if isinstance(
+                    error_data,
+                    dict,
+                ):
+                    provider_error = (
+                        error_data.get(
+                            "errors"
+                        )
+                        or error_data.get(
+                            "messages"
+                        )
+                        or error_data
+                    )
+
+                else:
+                    provider_error = error_data
+
+                return {
+                    "tool": self.name,
+                    "status": "provider_error",
+                    "error": (
+                        "Cloudflare HTTP "
+                        f"{response.status_code}: "
+                        f"{provider_error}"
+                    ),
+                    "image_bytes": None,
+                }
 
             response_data = response.json()
 
