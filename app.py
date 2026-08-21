@@ -3169,6 +3169,7 @@ with st.sidebar:
 
 render_image_generators_panel(
     tool_manager=st.session_state.tool_manager,
+    save_control=render_image_save_control,
 )
 
 render_video_studio_panel(
