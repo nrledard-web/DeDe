@@ -265,9 +265,57 @@ def persistent_folder_options(
     default_label: str,
 ) -> tuple[list[str], dict[str, str]]:
     """
-    Return the real persistent folders used by
-    text memories and image memories.
+    Return automatic memory categories and
+    user-created persistent folders.
     """
+
+    automatic_destinations = {
+        "👤 Identity & Preferences": (
+            "automatic:personal_fact"
+        ),
+        "📁 Projects & Decisions": (
+            "automatic:project"
+        ),
+        "👥 People & Relationships": (
+            "automatic:relationship"
+        ),
+        "📖 Personal History": (
+            "automatic:autobiographical"
+        ),
+        "🤖 DeDe Identity": (
+            "automatic:assistant_identity"
+        ),
+        "📦 Other Memories": (
+            "automatic:interaction_note"
+        ),
+    }
+
+    folder_labels = [
+        default_label,
+    ]
+
+    folder_lookup = {
+        default_label: "",
+    }
+
+    for (
+        folder_label,
+        destination,
+    ) in automatic_destinations.items():
+        if folder_label == default_label:
+            folder_lookup[
+                folder_label
+            ] = destination
+
+            continue
+
+        folder_labels.append(
+            folder_label
+        )
+
+        folder_lookup[
+            folder_label
+        ] = destination
 
     managed_memory = (
         st.session_state.engine
@@ -285,14 +333,6 @@ def persistent_folder_options(
         list,
     ):
         custom_folders = []
-
-    folder_labels = [
-        default_label,
-    ]
-
-    folder_lookup = {
-        default_label: "",
-    }
 
     for folder in custom_folders:
         if not isinstance(
@@ -322,7 +362,7 @@ def persistent_folder_options(
             continue
 
         folder_label = (
-            f"📁 {folder_name}"
+            f"🗂️ {folder_name}"
         )
 
         folder_labels.append(
