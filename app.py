@@ -338,6 +338,190 @@ def persistent_folder_options(
         folder_lookup,
     )
 
+def render_message_save_control(
+    message_text: str,
+    control_key: str,
+) -> None:
+    """
+    Save one specific DeDe response.
+
+    The button is attached to the message and
+    never saves another response by mistake.
+    """
+
+    cleaned_message = str(
+        message_text or ""
+    ).strip()
+
+    if not cleaned_message:
+        return
+
+    with st.popover(
+        "💾 Save",
+        use_container_width=False,
+    ):
+        st.caption(
+            "Save this response."
+        )
+
+        (
+            folder_labels,
+            folder_lookup,
+        ) = persistent_folder_options(
+            default_label=(
+                "📦 Other Memories"
+            )
+        )
+
+        save_as_title = st.text_input(
+            "Save as...",
+            value="DeDe response",
+            key=(
+                "message_save_title_"
+                f"{control_key}"
+            ),
+        )
+
+        selected_folder_label = (
+            st.selectbox(
+                "Folder",
+                folder_labels,
+                key=(
+                    "message_save_folder_"
+                    f"{control_key}"
+                ),
+            )
+        )
+
+        new_folder_name = st.text_input(
+            "New folder name",
+            key=(
+                "message_new_folder_"
+                f"{control_key}"
+            ),
+            placeholder=(
+                "Example: Book, Research, "
+                "Ideas..."
+            ),
+        )
+
+        if st.button(
+            "Create Folder",
+            key=(
+                "message_create_folder_"
+                f"{control_key}"
+            ),
+            use_container_width=True,
+        ):
+            creation_result = (
+                st.session_state.engine
+                .persistent_memory
+                .create_memory_folder(
+                    new_folder_name
+                )
+            )
+
+            if creation_result.get(
+                "created",
+                False,
+            ):
+                st.session_state[
+                    "memory_manager_notice"
+                ] = "Folder created."
+
+                st.rerun()
+
+            else:
+                st.error(
+                    creation_result.get(
+                        "error",
+                        (
+                            "The folder could "
+                            "not be created."
+                        ),
+                    )
+                )
+
+        if st.button(
+            "Save Response",
+            key=(
+                "message_confirm_save_"
+                f"{control_key}"
+            ),
+            type="primary",
+            use_container_width=True,
+        ):
+            cleaned_title = str(
+                save_as_title or ""
+            ).strip()
+
+            if not cleaned_title:
+                st.error(
+                    "Enter a title."
+                )
+
+                return
+
+            selected_folder_id = (
+                folder_lookup[
+                    selected_folder_label
+                ]
+            )
+
+            content_to_save = (
+                f"{cleaned_title}\n\n"
+                f"{cleaned_message}"
+            )
+
+            st.session_state.engine\
+                .persistent_memory\
+                .store_candidate(
+                    candidate={
+                        "content": (
+                            content_to_save
+                        ),
+                        "memory_type": (
+                            "interaction_note"
+                        ),
+                        "storage_scope": (
+                            "persistent"
+                        ),
+                        "sensitivity": "low",
+                        "confidence": 1.0,
+                        "source": (
+                            "manual_message_save"
+                        ),
+                        "project": None,
+                        "folder_id": (
+                            selected_folder_id
+                        ),
+                        "subject": (
+                            cleaned_title
+                        ),
+                        "attribute": (
+                            "saved_response"
+                        ),
+                        "value": (
+                            cleaned_message
+                        ),
+                        "selection_origin": (
+                            "user_save_button"
+                        ),
+                    },
+                    storage_scope=(
+                        "persistent"
+                    ),
+                )
+
+            st.session_state[
+                "memory_manager_notice"
+            ] = (
+                f"{cleaned_title} "
+                "saved successfully."
+            )
+
+            st.rerun()
+
 def render_image_save_control() -> None:
     """
     Show the permanent image Save button.
