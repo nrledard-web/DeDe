@@ -65,6 +65,164 @@ class MemoryPortability:
             "utf-8"
         )
 
+    def export_complete(
+        self,
+        memory_data: dict[str, Any],
+        image_items: list[dict[str, Any]],
+        image_files: list[dict[str, Any]],
+        user_id: str,
+    ) -> bytes:
+        """
+        Export text memory, folders, image metadata
+        and image files in one portable ZIP archive.
+        """
+
+        self._validate_memory(
+            memory_data
+        )
+
+        if not isinstance(
+            image_items,
+            list,
+        ):
+            image_items = []
+
+        if not isinstance(
+            image_files,
+            list,
+        ):
+            image_files = []
+
+        owner_id = str(
+            user_id or "default_user"
+        ).strip()
+
+        manifest = {
+            "format": (
+                "dede-complete-memory"
+            ),
+            "version": (
+                self.FILE_VERSION
+            ),
+            "owner_id": owner_id,
+            "exported_at": self._now(),
+            "privacy": "unencrypted",
+            "contents": {
+                "text_memory": True,
+                "image_index": True,
+                "image_count": len(
+                    image_files
+                ),
+            },
+        }
+
+        image_index = {
+            "version": 1,
+            "images": image_items,
+        }
+
+        archive_buffer = (
+            io.BytesIO()
+        )
+
+        with zipfile.ZipFile(
+            archive_buffer,
+            mode="w",
+            compression=(
+                zipfile.ZIP_DEFLATED
+            ),
+        ) as archive:
+            archive.writestr(
+                "manifest.json",
+                json.dumps(
+                    manifest,
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+
+            archive.writestr(
+                "user_memory.json",
+                json.dumps(
+                    memory_data,
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+
+            archive.writestr(
+                "image_memory.json",
+                json.dumps(
+                    image_index,
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+
+            for image_file in image_files:
+                if not isinstance(
+                    image_file,
+                    dict,
+                ):
+                    continue
+
+                file_name = str(
+                    image_file.get(
+                        "file_name",
+                        "",
+                    )
+                ).strip()
+
+                image_bytes = (
+                    image_file.get(
+                        "image_bytes",
+                        b"",
+                    )
+                )
+
+                if (
+                    not file_name
+                    or not image_bytes
+                ):
+                    continue
+
+                safe_file_name = (
+                    os.path.basename(
+                        file_name
+                    )
+                )
+
+                if not safe_file_name:
+                    continue
+
+                archive.writestr(
+                    (
+                        "images/"
+                        f"{safe_file_name}"
+                    ),
+                    bytes(
+                        image_bytes
+                    ),
+                )
+
+        complete_archive = (
+            archive_buffer.getvalue()
+        )
+
+        maximum_archive_size = (
+            250 * 1024 * 1024
+        )
+
+        if len(
+            complete_archive
+        ) > maximum_archive_size:
+            raise ValueError(
+                "Complete memory archive exceeds "
+                "the 250 MB export limit."
+            )
+
+        return complete_archive
+
     def import_simple(
         self,
         memory_file: bytes,
