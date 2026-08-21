@@ -48,6 +48,7 @@ class CloudflareImageGenerator:
 
     MIN_STEPS = 1
     MAX_STEPS = 8
+    MAX_PROMPT_LENGTH = 2000
 
     def __init__(
         self,
@@ -101,6 +102,21 @@ class CloudflareImageGenerator:
                 "error": "The image description is empty.",
                 "image_bytes": None,
             }
+
+        if (
+            len(cleaned_prompt)
+            > self.MAX_PROMPT_LENGTH
+        ):
+            cleaned_prompt = (
+                cleaned_prompt[
+                    :self.MAX_PROMPT_LENGTH
+                ]
+                .rsplit(
+                    " ",
+                    1,
+                )[0]
+                .strip()
+            )
 
         try:
             resolved_steps = int(steps)
