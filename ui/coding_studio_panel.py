@@ -148,6 +148,140 @@ def render_coding_studio_workspace() -> (
         st.columns(2)
     )
 
+    with st.expander(
+        "🐙 GitHub — Read Only",
+        expanded=False,
+    ):
+        st.caption(
+            "DeDe may read repository files. "
+            "Writing, deletion and publishing "
+            "are not available."
+        )
+
+        repository_column, branch_column = (
+            st.columns([0.7, 0.3])
+        )
+
+        with repository_column:
+            st.text_input(
+                "Repository owner",
+                key="coding_github_owner",
+            )
+
+            st.text_input(
+                "Repository name",
+                key=(
+                    "coding_github_repository"
+                ),
+            )
+
+        with branch_column:
+            st.text_input(
+                "Branch",
+                key="coding_github_branch",
+            )
+
+        if st.button(
+            "🔗 Connect Repository",
+            key=(
+                "coding_github_"
+                "connect_repository"
+            ),
+            use_container_width=True,
+        ):
+            return {
+                "action": (
+                    "connect_github_repository"
+                ),
+                "owner": str(
+                    st.session_state.get(
+                        "coding_github_owner",
+                        "",
+                    )
+                ).strip(),
+                "repository": str(
+                    st.session_state.get(
+                        "coding_github_repository",
+                        "",
+                    )
+                ).strip(),
+                "branch": str(
+                    st.session_state.get(
+                        "coding_github_branch",
+                        "main",
+                    )
+                ).strip(),
+            }
+
+        github_status = str(
+            st.session_state.get(
+                "coding_github_status",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if github_status:
+            st.caption(
+                github_status
+            )
+
+        github_files = (
+            st.session_state.get(
+                "coding_github_files",
+                [],
+            )
+        )
+
+        if github_files:
+            selected_github_file = (
+                st.selectbox(
+                    "Repository file",
+                    github_files,
+                    key=(
+                        "coding_github_"
+                        "selected_file"
+                    ),
+                )
+            )
+
+            if st.button(
+                "📖 Load Selected File",
+                key=(
+                    "coding_github_"
+                    "load_selected_file"
+                ),
+                use_container_width=True,
+            ):
+                return {
+                    "action": (
+                        "load_github_file"
+                    ),
+                    "owner": str(
+                        st.session_state.get(
+                            "coding_github_owner",
+                            "",
+                        )
+                    ).strip(),
+                    "repository": str(
+                        st.session_state.get(
+                            "coding_github_repository",
+                            "",
+                        )
+                    ).strip(),
+                    "branch": str(
+                        st.session_state.get(
+                            "coding_github_branch",
+                            "main",
+                        )
+                    ).strip(),
+                    "file_path": str(
+                        selected_github_file
+                    ).strip(),
+                }
+
+    task_column, language_column = (
+
     with task_column:
         st.selectbox(
             "Coding task",
