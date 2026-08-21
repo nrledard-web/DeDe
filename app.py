@@ -1915,7 +1915,8 @@ with st.sidebar:
             st.info(
                 "No persistent image memory yet."
             )
-                elif not visible_images:
+
+        elif not visible_images:
 
             st.info(
                 "This image folder is empty."
