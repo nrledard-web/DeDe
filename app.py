@@ -3186,41 +3186,20 @@ if text_creator_request:
         with st.spinner(
             "DeDe is creating the draft..."
         ):
-            text_creator_report = (
-                st.session_state.engine.analyze(
-                    text=text_creator_prompt,
-                    detected_language="en",
-                    document_context={},
-                    enable_llm=enable_llm,
-                    search_provider=search_provider,
-                    search_profile=(
-                        None
-                        if search_profile == "custom"
-                        else search_profile
-                    ),
-                    search_mode="off",
-                    explicit_search_request=False,
-                    llm_profile="fast",
-                    llm_providers=llm_providers,
-                    knowledge_providers=(
-                        knowledge_providers
-                    ),
-                    knowledge_mode=knowledge_mode,
-                    conversation_history=[],
-                    memory_governance=None,
+            text_creator_result = (
+                st.session_state.engine
+                .llm_engine
+                .ask(
+                    prompt=text_creator_prompt,
+                    profile="fast",
+                    providers=llm_providers,
+                    enabled=enable_llm,
                 )
             )
 
-        text_creator_response = (
-            text_creator_report.get(
-                "user_response",
-                {},
-            )
-        )
-
         generated_text = str(
-            text_creator_response.get(
-                "final_answer",
+            text_creator_result.get(
+                "response",
                 "",
             )
             or ""
