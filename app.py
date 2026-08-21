@@ -3388,6 +3388,12 @@ if (
                 f"{error}"
             )
 
+render_coding_studio_launcher()
+
+coding_studio_request = (
+    render_coding_studio_workspace()
+)
+
 # --------------------------------------------------
 # Chat Display
 # --------------------------------------------------
