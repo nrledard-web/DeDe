@@ -3136,6 +3136,10 @@ render_document_studio_panel(
     tool_manager=st.session_state.tool_manager,
 )
 
+render_text_creator_launcher()
+
+render_text_creator_workspace()
+
 # --------------------------------------------------
 # Chat Display
 # --------------------------------------------------
