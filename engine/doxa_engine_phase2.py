@@ -1479,10 +1479,15 @@ class DoxaEnginePhase2:
         # Phase 4.4
         # Cognitive Agents
         # --------------------------------------------------
-        agent_results = {}
-
         for agent in self.agents:
-            result = agent.analyze(workspace)
+            if agent.name == "decision_threshold":
+                result = agent.analyze(
+                    workspace,
+                    decision_context=decision_context,
+                )
+            else:
+                result = agent.analyze(workspace)
+        
             agent_results[agent.name] = result
 
         # --------------------------------------------------
