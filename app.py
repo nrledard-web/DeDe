@@ -144,7 +144,54 @@ def latest_savable_image() -> dict:
     If no generated image exists, use the active
     uploaded or remembered reference image.
     """
+    panel_image = (
+        st.session_state.get(
+            "last_generated_image",
+            {},
+        )
+    )
 
+    if (
+        panel_image.get("status")
+        == "success"
+        and panel_image.get(
+            "image_bytes"
+        )
+    ):
+        mime_type = panel_image.get(
+            "mime_type",
+            "image/jpeg",
+        )
+
+        if mime_type == "image/png":
+            extension = "png"
+
+        elif mime_type == "image/webp":
+            extension = "webp"
+
+        else:
+            extension = "jpg"
+
+        return {
+            "image_bytes": panel_image.get(
+                "image_bytes",
+                b"",
+            ),
+            "mime_type": mime_type,
+            "name": (
+                "dede_generated_image."
+                f"{extension}"
+            ),
+            "description": str(
+                panel_image.get(
+                    "prompt",
+                    "",
+                )
+                or ""
+            ).strip(),
+            "source": "generated",
+        }
+        
     image_tool_names = {
         "image_generator",
         "cloudflare_image_generator",
