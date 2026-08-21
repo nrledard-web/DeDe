@@ -3206,6 +3206,21 @@ typed_text = st.chat_input(
     "Message DeDe"
 )
 
+text = (
+    typed_text
+    or st.session_state.get(
+        "voice_text",
+        "",
+    )
+)
+
+if text:
+    st.session_state[
+        "voice_text"
+    ] = ""
+
+original_user_text = text
+
 # --------------------------------------------------
 # Active Image Vision Analysis
 # --------------------------------------------------
