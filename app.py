@@ -19,6 +19,11 @@ from ui.document_studio_panel import (
     render_document_studio_panel,
 )
 
+from ui.text_creator_panel import (
+    render_text_creator_launcher,
+    render_text_creator_workspace,
+)
+
 from ui.video_studio_panel import (
     render_video_studio_panel,
 )
