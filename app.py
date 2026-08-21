@@ -3138,7 +3138,113 @@ render_document_studio_panel(
 
 render_text_creator_launcher()
 
-render_text_creator_workspace()
+text_creator_request = (
+    render_text_creator_workspace()
+)
+
+if text_creator_request:
+    requested_language = (
+        text_creator_request.get(
+            "language",
+            "Automatic",
+        )
+    )
+
+    if requested_language == "Automatic":
+        language_instruction = (
+            "Infer the appropriate output language "
+            "from the title and instruction."
+        )
+
+    else:
+        language_instruction = (
+            "Write the complete text in "
+            f"{requested_language}."
+        )
+
+    text_creator_prompt = (
+        "You are DeDe's Text Creator.\n\n"
+        "Create a finished text using these "
+        "requirements:\n"
+        f"- Title: "
+        f"{text_creator_request.get('title', '')}\n"
+        f"- Text type: "
+        f"{text_creator_request.get('text_type', '')}\n"
+        f"- Tone: "
+        f"{text_creator_request.get('tone', '')}\n"
+        f"- Length: "
+        f"{text_creator_request.get('length', '')}\n"
+        f"- Language: {requested_language}\n"
+        f"- Instruction: "
+        f"{text_creator_request.get('instruction', '')}\n\n"
+        f"{language_instruction}\n"
+        "Return only the finished text. "
+        "Do not add introductory commentary."
+    )
+
+    try:
+        with st.spinner(
+            "DeDe is creating the draft..."
+        ):
+            text_creator_report = (
+                st.session_state.engine.analyze(
+                    text=text_creator_prompt,
+                    detected_language="en",
+                    document_context={},
+                    enable_llm=enable_llm,
+                    search_provider=search_provider,
+                    search_profile=(
+                        None
+                        if search_profile == "custom"
+                        else search_profile
+                    ),
+                    search_mode="off",
+                    explicit_search_request=False,
+                    llm_profile="fast",
+                    llm_providers=llm_providers,
+                    knowledge_providers=(
+                        knowledge_providers
+                    ),
+                    knowledge_mode=knowledge_mode,
+                    conversation_history=[],
+                    memory_governance=(
+                        memory_governance
+                    ),
+                )
+            )
+
+        text_creator_response = (
+            text_creator_report.get(
+                "user_response",
+                {},
+            )
+        )
+
+        generated_text = str(
+            text_creator_response.get(
+                "final_answer",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if generated_text:
+            st.session_state[
+                "text_creator_content"
+            ] = generated_text
+
+            st.rerun()
+
+        else:
+            st.error(
+                "DeDe did not generate a draft."
+            )
+
+    except Exception as error:
+        st.error(
+            "Text creation failed: "
+            f"{error}"
+        )
 
 # --------------------------------------------------
 # Chat Display
