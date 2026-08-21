@@ -3263,6 +3263,109 @@ if (
         message_text=text_creator_content,
         control_key="text_creator_content",
     )
+    
+    if st.button(
+        "🎨 Create Image Prompt",
+        key=(
+            "text_creator_"
+            "create_image_prompt"
+        ),
+        use_container_width=True,
+    ):
+        image_prompt_instruction = (
+            "Transform the following text into one "
+            "concise, detailed image-generation "
+            "prompt in English.\n\n"
+            "Select the most visually representative "
+            "scene, subject or atmosphere.\n"
+            "Describe the subject, environment, "
+            "composition, lighting, colors, mood "
+            "and visual style.\n"
+            "Return only the image prompt, without "
+            "commentary or quotation marks.\n\n"
+            "Title: "
+            f"{st.session_state.get(
+                'text_creator_title',
+                ''
+            )}\n\n"
+            "Text:\n"
+            f"{text_creator_content[:12000]}"
+        )
+
+        try:
+            with st.spinner(
+                "DeDe is creating the "
+                "image prompt..."
+            ):
+                image_prompt_report = (
+                    st.session_state.engine.analyze(
+                        text=(
+                            image_prompt_instruction
+                        ),
+                        detected_language="en",
+                        document_context={},
+                        enable_llm=enable_llm,
+                        search_provider=(
+                            search_provider
+                        ),
+                        search_profile=(
+                            None
+                            if search_profile
+                            == "custom"
+                            else search_profile
+                        ),
+                        search_mode="off",
+                        explicit_search_request=False,
+                        llm_profile="fast",
+                        llm_providers=llm_providers,
+                        knowledge_providers=(
+                            knowledge_providers
+                        ),
+                        knowledge_mode=(
+                            knowledge_mode
+                        ),
+                        conversation_history=[],
+                        memory_governance=None,
+                    )
+                )
+
+            image_prompt_response = (
+                image_prompt_report.get(
+                    "user_response",
+                    {},
+                )
+            )
+
+            generated_image_prompt = str(
+                image_prompt_response.get(
+                    "final_answer",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            if generated_image_prompt:
+                st.session_state[
+                    "pending_image_generator_prompt"
+                ] = generated_image_prompt
+
+                st.session_state[
+                    "open_image_generators_panel"
+                ] = True
+
+                st.rerun()
+
+            else:
+                st.error(
+                    "DeDe did not create "
+                    "an image prompt."
+                )
+
+        except Exception as error:
+            st.error(
+                "Image prompt creation failed: "
+                f"{error}"
+            )
 
 # --------------------------------------------------
 # Chat Display
