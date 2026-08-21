@@ -3207,9 +3207,7 @@ if text_creator_request:
                     ),
                     knowledge_mode=knowledge_mode,
                     conversation_history=[],
-                    memory_governance=(
-                        memory_governance
-                    ),
+                    memory_governance=None,
                 )
             )
 
