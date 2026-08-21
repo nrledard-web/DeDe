@@ -1898,7 +1898,7 @@ with st.sidebar:
                 "No persistent image memory yet."
             )
 
-        for remembered_image in remembered_images:
+        for remembered_image in visible_images:
 
             if not isinstance(
                 remembered_image,
