@@ -303,5 +303,50 @@ def render_coding_studio_workspace() -> (
             f"{result_lines} result lines | "
             f"{result_characters} characters"
         )
+        
+        result_filename = str(
+            st.session_state.get(
+                "coding_studio_filename",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if not result_filename:
+            result_filename = (
+                "dede_generated_code.txt"
+            )
+
+        control_column, download_column = (
+            st.columns(2)
+        )
+
+        with control_column:
+            if st.button(
+                "↩️ Use as Source",
+                key=(
+                    "coding_studio_"
+                    "use_result_as_source"
+                ),
+                use_container_width=True,
+            ):
+                st.session_state[
+                    "coding_studio_pending_source"
+                ] = result
+
+                st.rerun()
+
+        with download_column:
+            st.download_button(
+                "⬇️ Download File",
+                data=result,
+                file_name=result_filename,
+                mime="text/plain",
+                key=(
+                    "coding_studio_"
+                    "download_result"
+                ),
+                use_container_width=True,
+            )
 
     return None
