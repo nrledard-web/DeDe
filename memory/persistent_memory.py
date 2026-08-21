@@ -166,6 +166,14 @@ class PersistentMemory:
             "project"
         )
 
+        folder_id = str(
+            candidate.get(
+                "folder_id",
+                "",
+            )
+            or ""
+        ).strip()
+
         subject = str(
             candidate.get(
                 "subject",
