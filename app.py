@@ -502,11 +502,32 @@ def render_message_save_control(
 
                 return
 
-            selected_folder_id = (
+            selected_destination = (
                 folder_lookup[
                     selected_folder_label
                 ]
             )
+
+            if selected_destination.startswith(
+                "automatic:"
+            ):
+                selected_memory_type = (
+                    selected_destination.split(
+                        ":",
+                        1,
+                    )[1]
+                )
+
+                selected_folder_id = ""
+
+            else:
+                selected_memory_type = (
+                    "interaction_note"
+                )
+
+                selected_folder_id = (
+                    selected_destination
+                )
 
             content_to_save = (
                 f"{cleaned_title}\n\n"
