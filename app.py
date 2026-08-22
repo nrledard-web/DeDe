@@ -3396,7 +3396,11 @@ if (
 render_coding_studio_launcher()
 
 coding_studio_request = (
-    render_coding_studio_workspace()
+    render_coding_studio_workspace(
+        save_control=(
+            render_message_save_control
+        ),
+    )
 )
 
 coding_studio_action = str(
