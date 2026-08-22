@@ -3898,6 +3898,62 @@ if (
                     verified_review
                 )
 
+            if (
+                coding_task
+                in code_producing_tasks
+                and generated_code_result
+            ):
+                syntax_validation = (
+                    CodeSyntaxValidator()
+                    .validate(
+                        source_code=(
+                            generated_code_result
+                        ),
+                        language=(
+                            coding_language
+                        ),
+                        filename=str(
+                            coding_studio_request.get(
+                                "filename",
+                                "",
+                            )
+                        ),
+                    )
+                )
+    
+                syntax_status = str(
+                    syntax_validation.get(
+                        "summary",
+                        "",
+                    )
+                    or syntax_validation.get(
+                        "error",
+                        "",
+                    )
+                ).strip()
+    
+                syntax_valid = (
+                    syntax_validation.get(
+                        "valid",
+                        None,
+                    )
+                )
+    
+                st.session_state[
+                    "coding_studio_syntax_status"
+                ] = syntax_status
+    
+                st.session_state[
+                    "coding_studio_syntax_valid"
+                ] = syntax_valid
+    
+                if syntax_valid is False:
+                    raise ValueError(
+                        "Generated code failed "
+                        "syntax validation: "
+                        f"{syntax_status}"
+                    )
+
         if generated_code_result:
             st.session_state[
                 "coding_studio_result"
