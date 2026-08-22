@@ -449,6 +449,37 @@ def render_coding_studio_workspace(
             f"{result_characters} characters"
         )
 
+        syntax_status = str(
+            st.session_state.get(
+                "coding_studio_syntax_status",
+                "",
+            )
+            or ""
+        ).strip()
+
+        syntax_valid = (
+            st.session_state.get(
+                "coding_studio_syntax_valid",
+                None,
+            )
+        )
+
+        if syntax_status:
+            if syntax_valid is True:
+                st.success(
+                    f"✅ {syntax_status}"
+                )
+
+            elif syntax_valid is False:
+                st.error(
+                    f"❌ {syntax_status}"
+                )
+
+            else:
+                st.info(
+                    syntax_status
+                )
+
         change_summary = str(
             st.session_state.get(
                 "coding_studio_change_summary",
