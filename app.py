@@ -3794,6 +3794,24 @@ if (
                     )
                 )
 
+            st.session_state[
+                "coding_studio_diff"
+            ] = str(
+                change_application.get(
+                    "diff",
+                    "",
+                )
+            )
+
+            st.session_state[
+                "coding_studio_change_summary"
+            ] = str(
+                change_application.get(
+                    "summary",
+                    "",
+                )
+            )
+
             generated_code_result = str(
                 change_application.get(
                     "source_code",
