@@ -3395,6 +3395,100 @@ coding_studio_request = (
     render_coding_studio_workspace()
 )
 
+coding_studio_action = str(
+    (
+        coding_studio_request
+        or {}
+    ).get(
+        "action",
+        "",
+    )
+)
+
+if (
+    coding_studio_action
+    == "connect_github_repository"
+):
+    github_reader = GitHubReadOnly()
+
+    github_result = (
+        github_reader.list_files(
+            owner=(
+                coding_studio_request.get(
+                    "owner",
+                    "",
+                )
+            ),
+            repository=(
+                coding_studio_request.get(
+                    "repository",
+                    "",
+                )
+            ),
+            branch=(
+                coding_studio_request.get(
+                    "branch",
+                    "main",
+                )
+            ),
+        )
+    )
+
+    if github_result.get(
+        "status"
+    ) == "success":
+        github_file_paths = sorted(
+            [
+                str(
+                    item.get(
+                        "path",
+                        "",
+                    )
+                )
+                for item in (
+                    github_result.get(
+                        "files",
+                        [],
+                    )
+                )
+                if item.get(
+                    "path"
+                )
+            ]
+        )
+
+        st.session_state[
+            "coding_github_files"
+        ] = github_file_paths
+
+        st.session_state[
+            "coding_studio_result"
+        ] = ""
+
+        st.session_state[
+            "coding_github_status"
+        ] = (
+            "Connected in read-only mode: "
+            f"{len(github_file_paths)} "
+            "file(s) available."
+        )
+
+    else:
+        st.session_state[
+            "coding_github_files"
+        ] = []
+
+        st.session_state[
+            "coding_github_status"
+        ] = str(
+            github_result.get(
+                "error",
+                "GitHub connection failed.",
+            )
+        )
+
+    st.rerun()
+
 if (
     coding_studio_request
     and coding_studio_action
