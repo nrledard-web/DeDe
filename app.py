@@ -3754,7 +3754,7 @@ if (
             or ""
         ).strip()
 
-                if (
+        if (
             coding_task
             in deterministic_change_tasks
             and generated_code_result
