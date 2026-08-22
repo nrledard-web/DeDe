@@ -68,6 +68,30 @@ def ensure_coding_studio_state() -> None:
         if key not in st.session_state:
             st.session_state[key] = value
 
+    github_defaults = {
+        "coding_github_owner": (
+            "nrledard-web"
+        ),
+        "coding_github_repository": (
+            "DeDe"
+        ),
+        "coding_github_branch": "main",
+    }
+
+    for key, value in (
+        github_defaults.items()
+    ):
+        current_value = str(
+            st.session_state.get(
+                key,
+                "",
+            )
+            or ""
+        ).strip()
+
+        if not current_value:
+            st.session_state[key] = value
+
 
 def render_coding_studio_launcher() -> None:
     """
