@@ -3490,6 +3490,87 @@ if (
     st.rerun()
 
 if (
+    coding_studio_action
+    == "load_github_file"
+):
+    github_reader = GitHubReadOnly()
+
+    github_file_result = (
+        github_reader.read_file(
+            owner=(
+                coding_studio_request.get(
+                    "owner",
+                    "",
+                )
+            ),
+            repository=(
+                coding_studio_request.get(
+                    "repository",
+                    "",
+                )
+            ),
+            file_path=(
+                coding_studio_request.get(
+                    "file_path",
+                    "",
+                )
+            ),
+            branch=(
+                coding_studio_request.get(
+                    "branch",
+                    "main",
+                )
+            ),
+        )
+    )
+
+    if github_file_result.get(
+        "status"
+    ) == "success":
+        loaded_file_path = str(
+            github_file_result.get(
+                "path",
+                "",
+            )
+        )
+
+        st.session_state[
+            "coding_studio_pending_source"
+        ] = str(
+            github_file_result.get(
+                "content",
+                "",
+            )
+        )
+
+        st.session_state[
+            "coding_studio_filename"
+        ] = loaded_file_path
+
+        st.session_state[
+            "coding_studio_result"
+        ] = ""
+
+        st.session_state[
+            "coding_github_status"
+        ] = (
+            "Loaded read-only file: "
+            f"{loaded_file_path}"
+        )
+
+    else:
+        st.session_state[
+            "coding_github_status"
+        ] = str(
+            github_file_result.get(
+                "error",
+                "The file could not be read.",
+            )
+        )
+
+    st.rerun()
+
+if (
     coding_studio_request
     and coding_studio_action
     == "run_coding_task"
