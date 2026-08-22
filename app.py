@@ -3608,8 +3608,40 @@ if (
         "Create tests",
         "Convert code",
     }
+        deterministic_change_tasks = {
+        "Modify code",
+        "Debug an error",
+        "Refactor code",
+    }
 
-    if coding_task in code_producing_tasks:
+    if coding_task in (
+        deterministic_change_tasks
+    ):
+        output_instruction = (
+            "Do not return the complete file.\n"
+            "Return only one valid JSON object "
+            "using exactly this structure:\n"
+            "{\n"
+            '  "summary": "Short description",\n'
+            '  "changes": [\n'
+            "    {\n"
+            '      "description": "Purpose",\n'
+            '      "old_text": "Exact original text",\n'
+            '      "new_text": "Exact replacement text"\n'
+            "    }\n"
+            "  ]\n"
+            "}\n\n"
+            "Every old_text value must be copied "
+            "exactly from the source code and must "
+            "identify one unique occurrence.\n"
+            "Include enough surrounding lines to "
+            "make the occurrence unique.\n"
+            "Preserve indentation and line breaks.\n"
+            "Do not use Markdown fences, comments "
+            "outside JSON or ellipses."
+        )
+
+    elif coding_task in code_producing_tasks:
         output_instruction = (
             "Return only the complete resulting code. "
             "Do not use Markdown code fences. "
