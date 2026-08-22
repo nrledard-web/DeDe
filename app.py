@@ -3614,11 +3614,51 @@ if (
             "Do not add introductory commentary."
         )
 
-    else:
+    elif coding_task == "Review code":
         output_instruction = (
-            "Return a clear, structured analysis. "
+            "Return a structured code review with "
+            "exactly these sections:\n"
+            "1. Confirmed defects\n"
+            "2. Potential risks\n"
+            "3. Optional improvements\n"
+            "4. Correct patterns to preserve\n\n"
+            "Do not present a stylistic preference "
+            "or negligible micro-optimization as "
+            "a defect.\n"
+            "Distinguish confirmed facts from "
+            "inferences.\n"
+            "Respect the lifecycle and state model "
+            "of the framework being used.\n"
+            "For Streamlit, do not recommend moving "
+            "per-session state initialization to "
+            "module import time.\n"
+            "Treat repeated idempotent initialization "
+            "at independent entry points as defensive "
+            "unless it causes a demonstrated problem.\n"
+            "Quote only the code fragments necessary "
+            "to support each finding."
+        )
+
+    elif coding_task == "Explain code":
+        output_instruction = (
+            "Explain what the code actually does, "
+            "its execution order, state changes and "
+            "dependencies.\n"
+            "Distinguish observed behavior from "
+            "interpretation.\n"
+            "Do not invent missing project context.\n"
             "Quote only the code fragments necessary "
             "to support the explanation."
+        )
+
+    else:
+        output_instruction = (
+            "Return a clear, structured analysis.\n"
+            "Separate confirmed defects, potential "
+            "risks and optional improvements.\n"
+            "Do not describe harmless or defensive "
+            "code as an error without demonstrating "
+            "a concrete consequence."
         )
 
     coding_prompt = (
