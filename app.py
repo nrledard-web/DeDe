@@ -3754,6 +3754,45 @@ if (
             or ""
         ).strip()
 
+                if (
+            coding_task
+            in deterministic_change_tasks
+            and generated_code_result
+        ):
+            change_application = (
+                CodeChangeApplier().apply(
+                    source_code=str(
+                        coding_studio_request.get(
+                            "source_code",
+                            "",
+                        )
+                    ),
+                    raw_response=(
+                        generated_code_result
+                    ),
+                )
+            )
+
+            if change_application.get(
+                "status"
+            ) != "success":
+                raise ValueError(
+                    change_application.get(
+                        "error",
+                        (
+                            "The proposed changes "
+                            "could not be applied."
+                        ),
+                    )
+                )
+
+            generated_code_result = str(
+                change_application.get(
+                    "source_code",
+                    "",
+                )
+            )
+
         if (
             coding_task == "Review code"
             and generated_code_result
