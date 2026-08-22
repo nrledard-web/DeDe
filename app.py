@@ -4154,6 +4154,9 @@ for index, item in enumerate(
                 )
                 or "Tool executed successfully."
             )
+            
+render_publication_studio_workspace()
+
 # --------------------------------------------------
 # Voice Input / Speech to Text
 # --------------------------------------------------
