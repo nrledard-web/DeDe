@@ -3608,7 +3608,7 @@ if (
         "Create tests",
         "Convert code",
     }
-        deterministic_change_tasks = {
+    deterministic_change_tasks = {
         "Modify code",
         "Debug an error",
         "Refactor code",
