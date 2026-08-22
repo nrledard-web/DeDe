@@ -486,6 +486,17 @@ def render_coding_studio_workspace(
                 "dede_generated_code.txt"
             )
 
+        if callable(save_control):
+            save_control(
+                message_text=result,
+                control_key=(
+                    "coding_studio_result"
+                ),
+                default_title=(
+                    result_filename
+                ),
+            )
+
         control_column, download_column = (
             st.columns(2)
         )
