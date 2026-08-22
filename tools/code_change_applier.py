@@ -8,6 +8,7 @@ without executing the source code.
 from __future__ import annotations
 
 import json
+import difflib
 
 from typing import Any
 
@@ -215,6 +216,20 @@ class CodeChangeApplier:
                     ).strip(),
                 }
             )
+
+        diff_lines = (
+            difflib.unified_diff(
+                original_source.splitlines(),
+                updated_source.splitlines(),
+                fromfile="original",
+                tofile="proposed",
+                lineterm="",
+            )
+        )
+
+        diff_text = "\n".join(
+            diff_lines
+        )
 
         return {
             "status": "success",
