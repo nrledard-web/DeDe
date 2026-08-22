@@ -46,6 +46,9 @@ from tools.github_readonly import GitHubReadOnly
 from tools.code_change_applier import (
     CodeChangeApplier,
 )
+from tools.code_syntax_validator import (
+    CodeSyntaxValidator,
+)
 from tools.tool_factory import build_tool_manager
 
 from tools.cloudflare_vision import CloudflareVision
