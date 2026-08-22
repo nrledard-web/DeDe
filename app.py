@@ -3406,6 +3406,8 @@ if (
 
 render_coding_studio_launcher()
 
+render_publication_studio_launcher()
+
 coding_studio_request = (
     render_coding_studio_workspace(
         save_control=(
