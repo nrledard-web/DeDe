@@ -446,6 +446,38 @@ def render_coding_studio_workspace(
             f"{result_lines} result lines | "
             f"{result_characters} characters"
         )
+
+        change_summary = str(
+            st.session_state.get(
+                "coding_studio_change_summary",
+                "",
+            )
+            or ""
+        ).strip()
+
+        code_diff = str(
+            st.session_state.get(
+                "coding_studio_diff",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if change_summary:
+            st.caption(
+                "Change summary: "
+                f"{change_summary}"
+            )
+
+        if code_diff:
+            with st.expander(
+                "🔍 View Changes",
+                expanded=False,
+            ):
+                st.code(
+                    code_diff,
+                    language="diff",
+                )
         
         result_filename = str(
             st.session_state.get(
