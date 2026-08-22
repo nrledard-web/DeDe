@@ -3765,6 +3765,14 @@ if (
             "coding_studio_change_summary"
         ] = ""
 
+        st.session_state[
+            "coding_studio_syntax_status"
+        ] = ""
+
+        st.session_state[
+            "coding_studio_syntax_valid"
+        ] = None
+
         if (
             coding_task
             in deterministic_change_tasks
