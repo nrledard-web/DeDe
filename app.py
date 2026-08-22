@@ -3394,7 +3394,11 @@ coding_studio_request = (
     render_coding_studio_workspace()
 )
 
-if coding_studio_request:
+if (
+    coding_studio_request
+    and coding_studio_action
+    == "run_coding_task"
+):
     coding_task = str(
         coding_studio_request.get(
             "task",
