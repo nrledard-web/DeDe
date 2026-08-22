@@ -7,6 +7,8 @@ workspace and session state.
 
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 
 
