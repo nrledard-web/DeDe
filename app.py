@@ -3719,6 +3719,74 @@ if (
             or ""
         ).strip()
 
+        if (
+            coding_task == "Review code"
+            and generated_code_result
+        ):
+            review_verification_prompt = (
+                "You are the verification stage of "
+                "DeDe's Coding Studio.\n\n"
+                "Audit the draft code review below "
+                "against the actual source code.\n"
+                "Remove every unsupported, impossible "
+                "or merely stylistic finding.\n\n"
+                "Mandatory technical facts:\n"
+                "- dict.get(key, default) does not "
+                "raise KeyError when the key is absent.\n"
+                "- Repeated calls to one centralized, "
+                "idempotent initializer do not duplicate "
+                "the initialization logic.\n"
+                "- Independent UI entry points may each "
+                "defensively call that initializer.\n"
+                "- Streamlit session-state initialization "
+                "must not be moved to module import time.\n"
+                "- A potential risk requires a concrete "
+                "failure mechanism, not speculation.\n\n"
+                "Return only the corrected final review "
+                "with these sections:\n"
+                "1. Confirmed defects\n"
+                "2. Potential risks\n"
+                "3. Optional improvements\n"
+                "4. Correct patterns to preserve\n\n"
+                "SOURCE CODE:\n"
+                "<<<SOURCE\n"
+                f"{coding_studio_request.get(
+                    'source_code',
+                    ''
+                )[:30000]}\n"
+                "SOURCE\n\n"
+                "DRAFT REVIEW:\n"
+                "<<<REVIEW\n"
+                f"{generated_code_result}\n"
+                "REVIEW"
+            )
+
+            verified_review_result = (
+                st.session_state.engine
+                .llm_engine
+                .ask(
+                    prompt=(
+                        review_verification_prompt
+                    ),
+                    profile="fast",
+                    providers=llm_providers,
+                    enabled=enable_llm,
+                )
+            )
+
+            verified_review = str(
+                verified_review_result.get(
+                    "response",
+                    "",
+                )
+                or ""
+            ).strip()
+
+            if verified_review:
+                generated_code_result = (
+                    verified_review
+                )
+
         if generated_code_result:
             st.session_state[
                 "coding_studio_result"
