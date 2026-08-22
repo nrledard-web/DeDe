@@ -3754,6 +3754,14 @@ if (
             or ""
         ).strip()
 
+        st.session_state[
+            "coding_studio_diff"
+        ] = ""
+
+        st.session_state[
+            "coding_studio_change_summary"
+        ] = ""
+
         if (
             coding_task
             in deterministic_change_tasks
