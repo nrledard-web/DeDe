@@ -53,12 +53,8 @@ def ensure_coding_studio_state() -> None:
         "coding_studio_error": "",
         "coding_studio_source_code": "",
         "coding_studio_result": "",
-        "coding_github_owner": (
-            "nrledard-web"
-        ),
-        "coding_github_repository": (
-            "DeDe"
-        ),
+        "coding_github_owner": "",
+        "coding_github_repository": "",
         "coding_github_branch": "main",
         "coding_github_files": [],
         "coding_github_selected_file": "",
@@ -67,30 +63,6 @@ def ensure_coding_studio_state() -> None:
 
     for key, value in defaults.items():
         if key not in st.session_state:
-            st.session_state[key] = value
-
-    github_defaults = {
-        "coding_github_owner": (
-            "nrledard-web"
-        ),
-        "coding_github_repository": (
-            "DeDe"
-        ),
-        "coding_github_branch": "main",
-    }
-
-    for key, value in (
-        github_defaults.items()
-    ):
-        current_value = str(
-            st.session_state.get(
-                key,
-                "",
-            )
-            or ""
-        ).strip()
-
-        if not current_value:
             st.session_state[key] = value
 
 
