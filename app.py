@@ -474,7 +474,10 @@ def render_message_save_control(
 
         save_as_title = st.text_input(
             "Save as...",
-            value="DeDe response",
+            value=(
+                default_title
+                or "DeDe response"
+            ),
             key=(
                 "message_save_title_"
                 f"{control_key}"
