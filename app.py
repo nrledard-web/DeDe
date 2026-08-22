@@ -439,6 +439,7 @@ def persistent_folder_options(
 def render_message_save_control(
     message_text: str,
     control_key: str,
+    default_title: str = "DeDe response",
 ) -> None:
     """
     Save one specific DeDe response.
