@@ -53,6 +53,8 @@ def ensure_coding_studio_state() -> None:
         "coding_studio_error": "",
         "coding_studio_source_code": "",
         "coding_studio_result": "",
+        "coding_studio_diff": "",
+        "coding_studio_change_summary": "",
         "coding_github_owner": "",
         "coding_github_repository": "",
         "coding_github_branch": "main",
