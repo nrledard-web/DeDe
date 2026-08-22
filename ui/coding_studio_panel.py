@@ -111,7 +111,9 @@ def render_coding_studio_launcher() -> None:
         ] = True
 
 
-def render_coding_studio_workspace() -> (
+def render_coding_studio_workspace(
+    save_control: Any = None,
+) -> (
     dict[str, str] | None
 ):
     """
