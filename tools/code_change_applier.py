@@ -234,6 +234,7 @@ class CodeChangeApplier:
         return {
             "status": "success",
             "source_code": updated_source,
+            "diff": diff_text,
             "summary": str(
                 payload.get(
                     "summary",
