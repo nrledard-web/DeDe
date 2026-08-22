@@ -518,7 +518,7 @@ def render_coding_studio_workspace(
 
         with download_column:
             st.download_button(
-                "⬇️ Download File",
+                "⬇️ Download and save File",
                 data=result,
                 file_name=result_filename,
                 mime="text/plain",
