@@ -246,7 +246,108 @@ def render_publication_studio_workspace() -> None:
         f"{character_count} characters"
     )
 
+    st.markdown(
+        "### Publication preview"
+    )
+
+    selected_font = str(
+        st.session_state.get(
+            "publication_font",
+            "Calibri",
+        )
+    )
+
+    selected_size = int(
+        st.session_state.get(
+            "publication_font_size",
+            12,
+        )
+    )
+
+    selected_alignment = str(
+        st.session_state.get(
+            "publication_alignment",
+            "Left",
+        )
+    ).lower()
+
+    if selected_alignment == "justified":
+        selected_alignment = "justify"
+
+    font_weight = (
+        "700"
+        if st.session_state.get(
+            "publication_bold",
+            False,
+        )
+        else "400"
+    )
+
+    font_style = (
+        "italic"
+        if st.session_state.get(
+            "publication_italic",
+            False,
+        )
+        else "normal"
+    )
+
+    escaped_title = html.escape(
+        str(
+            st.session_state.get(
+                "publication_title",
+                "",
+            )
+            or ""
+        )
+    )
+
+    escaped_content = html.escape(
+        current_content
+    ).replace(
+        "\n",
+        "<br>",
+    )
+
+    if not escaped_content:
+        escaped_content = (
+            "Your publication preview "
+            "will appear here."
+        )
+
+    preview_html = f"""
+    <div style="
+        background: white;
+        color: #1f2937;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 32px;
+        min-height: 260px;
+        font-family: '{selected_font}', sans-serif;
+        font-size: {selected_size}px;
+        font-weight: {font_weight};
+        font-style: {font_style};
+        text-align: {selected_alignment};
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    ">
+        <h2 style="
+            font-family: '{selected_font}', sans-serif;
+            text-align: {selected_alignment};
+            margin-top: 0;
+        ">
+            {escaped_title}
+        </h2>
+        <div>{escaped_content}</div>
+    </div>
+    """
+
+    st.markdown(
+        preview_html,
+        unsafe_allow_html=True,
+    )
+
     st.caption(
-        "Document preview and export controls "
-        "will be added in the next step."
+        "Export controls will be added "
+        "in the next step."
     )
